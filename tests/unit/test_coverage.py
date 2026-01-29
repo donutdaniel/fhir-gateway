@@ -9,7 +9,7 @@ import pytest
 from app.models.coverage import (
     CoverageRequirement,
     CoverageRequirementStatus,
-    PlatformInfo,
+    PlatformReference,
     PlatformRulesResult,
     QuestionnairePackageResult,
 )
@@ -59,7 +59,7 @@ class TestCheckCoverageRequirements:
             mock_adapter.check_coverage_requirements = AsyncMock(
                 return_value=CoverageRequirement(
                     status=CoverageRequirementStatus.REQUIRED,
-                    platform=PlatformInfo(id="test-platform", name="Test Platform"),
+                    platform=PlatformReference(id="test-platform", name="Test Platform"),
                     procedure_code="27447",
                     code_system="http://www.ama-assn.org/go/cpt",
                     questionnaire_url="http://example.org/Questionnaire/test",
@@ -258,7 +258,7 @@ class TestCoverageRequirementModel:
         """Test requirement with platform info."""
         req = CoverageRequirement(
             status=CoverageRequirementStatus.CONDITIONAL,
-            platform=PlatformInfo(id="aetna", name="Aetna"),
+            platform=PlatformReference(id="aetna", name="Aetna"),
             procedure_code="27447",
             code_system="http://www.ama-assn.org/go/cpt",
             coverage_id="cov-123",

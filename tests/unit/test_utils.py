@@ -2,7 +2,6 @@
 Tests for FHIR utility functions.
 """
 
-import pytest
 
 from app.utils import (
     FHIR_JSON_CONTENT_TYPE,

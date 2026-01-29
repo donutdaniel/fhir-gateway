@@ -13,8 +13,8 @@ from app.adapters.base import BasePayerAdapter
 from app.adapters.registry import (
     PlatformAdapterNotFoundError,
     PlatformAdapterRegistry,
-    PlatformNotConfiguredError,
 )
+from app.errors import PlatformNotConfiguredError
 from app.models.coverage import CoverageRequirementStatus
 from app.models.platform import PlatformInfo
 

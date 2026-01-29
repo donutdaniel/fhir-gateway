@@ -14,6 +14,23 @@ RESOURCE_ID_PATTERN = re.compile(r"^[A-Za-z0-9\-\.]{1,64}$")
 PLATFORM_ID_PATTERN = re.compile(r"^[a-z][a-z0-9\-]+$")
 PROCEDURE_CODE_PATTERN = re.compile(r"^[A-Z0-9]{3,10}$")
 
+# Allowed FHIR operations
+ALLOWED_OPERATIONS = frozenset({
+    "$everything",
+    "$validate",
+    "$summary",
+    "$document",
+    "$expand",
+    "$lookup",
+    "$translate",
+    "$subsumes",
+    "$closure",
+    "$process-message",
+    "$evaluate-measure",
+    "$submit-data",
+    "$collect-data",
+})
+
 
 class ValidationError(ValueError):
     """Validation error with details."""
@@ -202,27 +219,10 @@ def validate_operation(operation: str) -> str:
             field="operation",
         )
 
-    # Allowlist of operations
-    allowed_operations = {
-        "$everything",
-        "$validate",
-        "$summary",
-        "$document",
-        "$expand",
-        "$lookup",
-        "$translate",
-        "$subsumes",
-        "$closure",
-        "$process-message",
-        "$evaluate-measure",
-        "$submit-data",
-        "$collect-data",
-    }
-
-    if operation not in allowed_operations:
+    if operation not in ALLOWED_OPERATIONS:
         raise ValidationError(
             f"Operation '{operation}' is not allowed. "
-            f"Supported: {', '.join(sorted(allowed_operations))}",
+            f"Supported: {', '.join(sorted(ALLOWED_OPERATIONS))}",
             field="operation",
         )
 

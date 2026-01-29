@@ -6,7 +6,7 @@ from app.models.coverage import (
     AnswerOption,
     CoverageRequirement,
     CoverageRequirementStatus,
-    PlatformInfo,
+    PlatformReference,
     PlatformRulesResult,
     PolicyRule,
     QuestionnaireItem,
@@ -31,19 +31,19 @@ class TestCoverageRequirementStatus:
         assert isinstance(CoverageRequirementStatus.REQUIRED.value, str)
 
 
-class TestPlatformInfo:
-    """Tests for PlatformInfo model."""
+class TestPlatformReference:
+    """Tests for PlatformReference model."""
 
     def test_create_minimal(self):
         """Test creating with minimal fields."""
-        info = PlatformInfo(id="cigna")
+        info = PlatformReference(id="cigna")
         assert info.id == "cigna"
         assert info.name is None
         assert info.endpoint is None
 
     def test_create_full(self):
         """Test creating with all fields."""
-        info = PlatformInfo(
+        info = PlatformReference(
             id="aetna",
             name="Aetna Health Insurance",
             endpoint="https://fhir.aetna.com",
@@ -91,7 +91,7 @@ class TestCoverageRequirement:
         """Test requirement with platform info."""
         req = CoverageRequirement(
             status=CoverageRequirementStatus.CONDITIONAL,
-            platform=PlatformInfo(id="uhc", name="UnitedHealthcare"),
+            platform=PlatformReference(id="uhc", name="UnitedHealthcare"),
             procedure_code="27447",
             code_system="http://www.ama-assn.org/go/cpt",
             coverage_id="cov-123",

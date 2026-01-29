@@ -8,8 +8,8 @@ import pytest
 from fhirpy.base.exceptions import OperationOutcome, ResourceNotFound
 from mcp.server.fastmcp import FastMCP
 
-from app.mcp.tools.fhir import register_fhir_tools
 from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
+from app.mcp.tools.fhir import register_fhir_tools
 
 
 @pytest.fixture

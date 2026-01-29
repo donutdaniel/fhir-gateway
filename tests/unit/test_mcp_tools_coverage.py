@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from mcp.server.fastmcp import FastMCP
 
+from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 from app.mcp.tools.coverage import register_coverage_tools
 from app.models.coverage import (
     CoverageRequirement,
@@ -14,7 +15,6 @@ from app.models.coverage import (
     PlatformRulesResult,
     QuestionnairePackageResult,
 )
-from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 
 
 @pytest.fixture

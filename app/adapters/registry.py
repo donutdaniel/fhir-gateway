@@ -13,7 +13,6 @@ from fhirpy import AsyncFHIRClient
 
 from app.adapters.base import BasePayerAdapter
 from app.config.logging import get_logger
-from app.errors import PlatformNotConfiguredError
 from app.models.platform import PlatformInfo
 
 logger = get_logger(__name__)

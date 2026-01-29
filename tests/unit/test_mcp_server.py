@@ -56,7 +56,7 @@ class TestMCPValidation:
 
         assert validate_platform_id("aetna") is None
         assert validate_platform_id("cigna-healthcare") is None
-        assert validate_platform_id("platform_123") is None
+        assert validate_platform_id("platform-123") is None
 
     def test_validate_platform_id_invalid(self):
         """Test invalid platform IDs return error message."""

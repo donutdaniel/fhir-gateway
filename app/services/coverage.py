@@ -21,7 +21,7 @@ from app.config.logging import get_logger
 from app.config.platform import get_platform
 from app.models.coverage import (
     CoverageRequirement,
-    PlatformInfo,
+    PlatformReference,
     PlatformRulesResult,
     QuestionnairePackageResult,
 )
@@ -120,7 +120,7 @@ async def check_coverage_requirements(
     if platform_id:
         logger.debug(f"Using provided platform_id for routing: {platform_id}")
         platform_config = get_platform(platform_id)
-        platform_info = PlatformInfo(
+        platform_info = PlatformReference(
             id=platform_id, name=platform_config.display_name if platform_config else None
         )
         # Still fetch coverage for other info
@@ -146,7 +146,7 @@ async def check_coverage_requirements(
                     reference = payor_ref.get("reference", "")
                     display = payor_ref.get("display")
                     pid = reference.split("/")[-1] if "/" in reference else reference
-                    platform_info = PlatformInfo(id=pid, name=display)
+                    platform_info = PlatformReference(id=pid, name=display)
         except Exception as e:
             logger.warning(f"Could not fetch coverage {coverage_id}: {e}")
 
@@ -208,7 +208,7 @@ async def fetch_questionnaire_package(
     if platform_id:
         logger.debug(f"Using provided platform_id for routing: {platform_id}")
         platform_config = get_platform(platform_id)
-        platform_info = PlatformInfo(
+        platform_info = PlatformReference(
             id=platform_id, name=platform_config.display_name if platform_config else None
         )
     else:
@@ -225,7 +225,7 @@ async def fetch_questionnaire_package(
                     reference = payor_ref.get("reference", "")
                     display = payor_ref.get("display")
                     pid = reference.split("/")[-1] if "/" in reference else reference
-                    platform_info = PlatformInfo(id=pid, name=display)
+                    platform_info = PlatformReference(id=pid, name=display)
         except Exception as e:
             logger.warning(f"Could not fetch coverage {coverage_id}: {e}")
 
@@ -286,7 +286,7 @@ async def get_platform_rules(
     platform_name = platform_config.display_name if platform_config else None
 
     # Create platform info for adapter selection
-    platform_info = PlatformInfo(id=platform_id, name=platform_name)
+    platform_info = PlatformReference(id=platform_id, name=platform_name)
 
     # Get appropriate adapter
     adapter = PlatformAdapterRegistry.get_adapter(

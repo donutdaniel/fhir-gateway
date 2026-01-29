@@ -21,8 +21,8 @@ class CoverageRequirementStatus(str, Enum):
     UNKNOWN = "unknown"
 
 
-class PlatformInfo(BaseModel):
-    """Information about a platform (payer or EHR)."""
+class PlatformReference(BaseModel):
+    """Simple reference to a platform for embedding in coverage responses."""
 
     id: str = Field(description="Platform identifier")
     name: str | None = Field(default=None, description="Platform display name")
@@ -33,7 +33,7 @@ class CoverageRequirement(BaseModel):
     """Result of coverage requirement check (CRD simulation)."""
 
     status: CoverageRequirementStatus = Field(description="Whether prior authorization is required")
-    platform: PlatformInfo | None = Field(default=None, description="Platform information if available")
+    platform: PlatformReference | None = Field(default=None, description="Platform information if available")
     procedure_code: str = Field(description="The procedure code that was checked")
     code_system: str = Field(description="Code system URL (e.g., CPT, HCPCS)")
     questionnaire_url: str | None = Field(

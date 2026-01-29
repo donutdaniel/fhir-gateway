@@ -16,10 +16,8 @@ from app.config.logging import get_logger
 from app.models.coverage import (
     CoverageRequirement,
     CoverageRequirementStatus,
+    PlatformReference,
     PlatformRulesResult,
-)
-from app.models.coverage import (
-    PlatformInfo as CoveragePlatformInfo,
 )
 from app.models.platform import PlatformInfo
 
@@ -195,12 +193,12 @@ class BasePayerAdapter(ABC):
         if coverage:
             extracted = self.extract_payer_from_coverage(coverage)
             if extracted:
-                platform_info = CoveragePlatformInfo(
+                platform_info = PlatformReference(
                     id=extracted.id,
                     name=extracted.name,
                 )
         elif self.platform_info:
-            platform_info = CoveragePlatformInfo(
+            platform_info = PlatformReference(
                 id=self.platform_info.id,
                 name=self.platform_info.name,
             )

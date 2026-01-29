@@ -8,13 +8,13 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 from app.models.coverage import (
     CoverageRequirement,
     CoverageRequirementStatus,
     PlatformRulesResult,
     QuestionnairePackageResult,
 )
-from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 from app.routers.coverage import router
 
 

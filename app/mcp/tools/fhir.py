@@ -25,6 +25,7 @@ from app.services.fhir_client import (
     get_fhir_client,
     search_resources,
 )
+from app.validation import ALLOWED_OPERATIONS
 
 
 async def get_access_token(ctx: Context, platform_id: str) -> str | None:
@@ -169,11 +170,10 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         if not operation.startswith("$"):
             return error_response("validation_error", "Operation must start with '$'")
 
-        allowed = {"$everything", "$validate", "$summary", "$document", "$expand", "$lookup"}
-        if operation not in allowed:
+        if operation not in ALLOWED_OPERATIONS:
             return error_response(
                 "validation_error",
-                f"Operation not allowed. Supported: {', '.join(sorted(allowed))}",
+                f"Operation not allowed. Supported: {', '.join(sorted(ALLOWED_OPERATIONS))}",
             )
 
         try:
