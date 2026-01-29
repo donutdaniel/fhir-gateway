@@ -3,10 +3,17 @@ Tests for main application lifecycle.
 """
 
 import asyncio
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+
+
+@asynccontextmanager
+async def mock_session_manager_run():
+    """Mock context manager for MCP session manager."""
+    yield
 
 
 class TestCreateApp:
@@ -62,13 +69,19 @@ class TestLifespan:
             except asyncio.CancelledError:
                 pass
 
+        # Mock MCP session manager
+        mock_mcp = MagicMock()
+        mock_mcp.streamable_http_app = MagicMock()
+        mock_mcp._session_manager.run = mock_session_manager_run
+
         with (
             patch("app.main.get_settings") as mock_settings,
             patch("app.main.configure_logging"),
             patch("app.main.load_config") as mock_load_config,
             patch("app.main.PlatformAdapterRegistry") as mock_registry,
             patch("app.main._session_cleanup_loop", mock_cleanup_loop),
-            patch("app.auth.token_manager.cleanup_token_manager", new_callable=AsyncMock),
+            patch("app.main.cleanup_token_manager", new_callable=AsyncMock),
+            patch("app.main.mcp", mock_mcp),
         ):
             mock_settings.return_value.log_level = "INFO"
             mock_settings.return_value.log_json = True
@@ -96,13 +109,19 @@ class TestLifespan:
             except asyncio.CancelledError:
                 pass
 
+        # Mock MCP session manager
+        mock_mcp = MagicMock()
+        mock_mcp.streamable_http_app = MagicMock()
+        mock_mcp._session_manager.run = mock_session_manager_run
+
         with (
             patch("app.main.get_settings") as mock_settings,
             patch("app.main.configure_logging"),
             patch("app.main.load_config") as mock_load_config,
             patch("app.main.PlatformAdapterRegistry") as mock_registry,
             patch("app.main._session_cleanup_loop", mock_cleanup_loop),
-            patch("app.auth.token_manager.cleanup_token_manager", new_callable=AsyncMock) as mock_cleanup,
+            patch("app.main.cleanup_token_manager", new_callable=AsyncMock) as mock_cleanup,
+            patch("app.main.mcp", mock_mcp),
         ):
             mock_settings.return_value.log_level = "INFO"
             mock_settings.return_value.log_json = True
@@ -129,7 +148,7 @@ class TestSessionCleanupLoop:
         mock_token_manager = AsyncMock()
         mock_token_manager.cleanup_expired_sessions = AsyncMock(return_value=3)
 
-        with patch("app.auth.token_manager.get_token_manager", return_value=mock_token_manager):
+        with patch("app.main.get_token_manager", return_value=mock_token_manager):
             # Create task and cancel after brief delay
             task = asyncio.create_task(_session_cleanup_loop())
 
@@ -160,7 +179,7 @@ class TestSessionCleanupLoop:
         mock_token_manager.cleanup_expired_sessions = failing_cleanup
 
         with (
-            patch("app.auth.token_manager.get_token_manager", return_value=mock_token_manager),
+            patch("app.main.get_token_manager", return_value=mock_token_manager),
             patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
         ):
             # Make sleep raise CancelledError on second call to exit loop

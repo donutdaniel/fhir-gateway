@@ -2,15 +2,17 @@
 Coverage and prior authorization tools.
 
 Thin wrappers around app.services.coverage.
+Tokens are auto-fetched from session - clients should use auth tools to authenticate.
 """
 
 from typing import Annotated, Any
 
-from mcp.server.fastmcp import FastMCP
+from mcp.server.fastmcp import Context, FastMCP
 from pydantic import Field
 
 from app.audit import AuditEvent, audit_log
 from app.mcp.errors import error_response, handle_exception
+from app.mcp.tools.fhir import get_access_token
 from app.mcp.validation import validate_platform_id, validate_resource_id
 from app.services.coverage import (
     check_coverage_requirements,
@@ -31,10 +33,10 @@ def register_coverage_tools(mcp: FastMCP) -> None:
         procedure_code: Annotated[
             str, Field(description="CPT/HCPCS procedure code (e.g., '27447')")
         ],
+        ctx: Context,
         code_system: Annotated[
             str, Field(description="Code system URL")
         ] = "http://www.ama-assn.org/go/cpt",
-        access_token: Annotated[str | None, Field(description="OAuth access token")] = None,
     ) -> dict[str, Any]:
         """Check coverage requirements for a procedure."""
         if err := validate_platform_id(platform_id):
@@ -45,7 +47,8 @@ def register_coverage_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", f"Invalid coverage_id: {err}")
 
         try:
-            client = get_fhir_client(platform_id, access_token)
+            token = await get_access_token(ctx, platform_id)
+            client = get_fhir_client(platform_id, token)
             result = await check_coverage_requirements(
                 client=client,
                 patient_id=patient_id,
@@ -65,13 +68,13 @@ def register_coverage_tools(mcp: FastMCP) -> None:
     async def get_questionnaire_package(
         platform_id: Annotated[str, Field(description="Platform identifier")],
         coverage_id: Annotated[str, Field(description="FHIR Coverage resource ID")],
+        ctx: Context,
         questionnaire_url: Annotated[
             str | None, Field(description="Specific questionnaire canonical URL")
         ] = None,
         raw_format: Annotated[
             bool, Field(description="Return raw FHIR Bundle instead of transformed")
         ] = False,
-        access_token: Annotated[str | None, Field(description="OAuth access token")] = None,
     ) -> dict[str, Any]:
         """Fetch questionnaire package for prior authorization."""
         if err := validate_platform_id(platform_id):
@@ -80,7 +83,8 @@ def register_coverage_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", f"Invalid coverage_id: {err}")
 
         try:
-            client = get_fhir_client(platform_id, access_token)
+            token = await get_access_token(ctx, platform_id)
+            client = get_fhir_client(platform_id, token)
             result = await fetch_questionnaire_package(
                 client=client,
                 coverage_id=coverage_id,
@@ -101,17 +105,18 @@ def register_coverage_tools(mcp: FastMCP) -> None:
     async def get_policy_rules(
         platform_id: Annotated[str, Field(description="Platform identifier")],
         procedure_code: Annotated[str, Field(description="CPT/HCPCS procedure code")],
+        ctx: Context,
         code_system: Annotated[
             str, Field(description="Code system URL")
         ] = "http://www.ama-assn.org/go/cpt",
-        access_token: Annotated[str | None, Field(description="OAuth access token")] = None,
     ) -> dict[str, Any]:
         """Get medical policy rules for a procedure."""
         if err := validate_platform_id(platform_id):
             return error_response("validation_error", err)
 
         try:
-            client = get_fhir_client(platform_id, access_token)
+            token = await get_access_token(ctx, platform_id)
+            client = get_fhir_client(platform_id, token)
             result = await get_platform_rules(
                 client=client,
                 platform_id=platform_id,

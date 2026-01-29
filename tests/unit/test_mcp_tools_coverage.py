@@ -17,6 +17,20 @@ from app.models.coverage import (
 from app.services.fhir_client import PlatformNotConfiguredError, PlatformNotFoundError
 
 
+@pytest.fixture
+def mock_ctx():
+    """Create mock MCP context with session ID."""
+    ctx = MagicMock()
+    ctx.client_id = "sess-123"
+    ctx.request_id = "req-456"
+    request = MagicMock()
+    request.headers = MagicMock()
+    request.headers.get = MagicMock(return_value=None)
+    ctx.request_context = MagicMock()
+    ctx.request_context.request = request
+    return ctx
+
+
 class TestCheckPriorAuth:
     """Tests for check_prior_auth tool."""
 
@@ -47,7 +61,7 @@ class TestCheckPriorAuth:
         )
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_success(self, mcp, mock_fhir_client, mock_coverage_result):
+    async def test_check_prior_auth_success(self, mcp, mock_fhir_client, mock_coverage_result, mock_ctx):
         """Should return coverage requirements for valid request."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -66,6 +80,7 @@ class TestCheckPriorAuth:
                 patient_id="pat-456",
                 coverage_id="cov-123",
                 procedure_code="27447",
+                ctx=mock_ctx,
             )
 
         assert result["status"] == "required"
@@ -73,7 +88,7 @@ class TestCheckPriorAuth:
         assert result["documentation_required"] is True
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_with_custom_code_system(self, mcp, mock_fhir_client, mock_coverage_result):
+    async def test_check_prior_auth_with_custom_code_system(self, mcp, mock_fhir_client, mock_coverage_result, mock_ctx):
         """Should use custom code system."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -92,6 +107,7 @@ class TestCheckPriorAuth:
                 patient_id="pat-456",
                 coverage_id="cov-123",
                 procedure_code="G0219",
+                ctx=mock_ctx,
                 code_system="https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets",
             )
 
@@ -100,7 +116,7 @@ class TestCheckPriorAuth:
         assert call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_invalid_platform_id(self, mcp):
+    async def test_check_prior_auth_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         check_prior_auth = tools["check_prior_auth"].fn
@@ -110,13 +126,14 @@ class TestCheckPriorAuth:
             patient_id="pat-456",
             coverage_id="cov-123",
             procedure_code="27447",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
         assert "Invalid platform_id" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_invalid_patient_id(self, mcp):
+    async def test_check_prior_auth_invalid_patient_id(self, mcp, mock_ctx):
         """Should return validation error for invalid patient_id."""
         tools = mcp._tool_manager._tools
         check_prior_auth = tools["check_prior_auth"].fn
@@ -126,13 +143,14 @@ class TestCheckPriorAuth:
             patient_id="",
             coverage_id="cov-123",
             procedure_code="27447",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
         assert "Invalid patient_id" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_invalid_coverage_id(self, mcp):
+    async def test_check_prior_auth_invalid_coverage_id(self, mcp, mock_ctx):
         """Should return validation error for invalid coverage_id."""
         tools = mcp._tool_manager._tools
         check_prior_auth = tools["check_prior_auth"].fn
@@ -142,13 +160,14 @@ class TestCheckPriorAuth:
             patient_id="pat-456",
             coverage_id="bad@id!",
             procedure_code="27447",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
         assert "Invalid coverage_id" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_platform_not_found(self, mcp):
+    async def test_check_prior_auth_platform_not_found(self, mcp, mock_ctx):
         """Should return error when platform not found."""
         with patch(
             "app.mcp.tools.coverage.get_fhir_client",
@@ -162,12 +181,13 @@ class TestCheckPriorAuth:
                 patient_id="pat-456",
                 coverage_id="cov-123",
                 procedure_code="27447",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "platform_not_found"
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_platform_not_configured(self, mcp):
+    async def test_check_prior_auth_platform_not_configured(self, mcp, mock_ctx):
         """Should return error when platform not configured."""
         with patch(
             "app.mcp.tools.coverage.get_fhir_client",
@@ -181,6 +201,7 @@ class TestCheckPriorAuth:
                 patient_id="pat-456",
                 coverage_id="cov-123",
                 procedure_code="27447",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "platform_not_configured"
@@ -227,7 +248,7 @@ class TestGetQuestionnairePackage:
         }
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_success(self, mcp, mock_fhir_client, mock_package_result):
+    async def test_get_questionnaire_package_success(self, mcp, mock_fhir_client, mock_package_result, mock_ctx):
         """Should return questionnaire package for valid request."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -244,12 +265,13 @@ class TestGetQuestionnairePackage:
             result = await get_questionnaire_package(
                 platform_id="aetna",
                 coverage_id="cov-123",
+                ctx=mock_ctx,
             )
 
         assert "questionnaires" in result
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_raw_format(self, mcp, mock_fhir_client, mock_raw_bundle):
+    async def test_get_questionnaire_package_raw_format(self, mcp, mock_fhir_client, mock_raw_bundle, mock_ctx):
         """Should return raw bundle when raw_format=True."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -266,13 +288,14 @@ class TestGetQuestionnairePackage:
             result = await get_questionnaire_package(
                 platform_id="aetna",
                 coverage_id="cov-123",
+                ctx=mock_ctx,
                 raw_format=True,
             )
 
         assert result["resourceType"] == "Bundle"
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_with_url(self, mcp, mock_fhir_client, mock_package_result):
+    async def test_get_questionnaire_package_with_url(self, mcp, mock_fhir_client, mock_package_result, mock_ctx):
         """Should pass questionnaire URL to service."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -289,6 +312,7 @@ class TestGetQuestionnairePackage:
             await get_questionnaire_package(
                 platform_id="aetna",
                 coverage_id="cov-123",
+                ctx=mock_ctx,
                 questionnaire_url="http://example.org/Questionnaire/knee",
             )
 
@@ -297,7 +321,7 @@ class TestGetQuestionnairePackage:
         assert call_kwargs["questionnaire_url"] == "http://example.org/Questionnaire/knee"
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_invalid_platform_id(self, mcp):
+    async def test_get_questionnaire_package_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         get_questionnaire_package = tools["get_questionnaire_package"].fn
@@ -305,12 +329,13 @@ class TestGetQuestionnairePackage:
         result = await get_questionnaire_package(
             platform_id="",
             coverage_id="cov-123",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_invalid_coverage_id(self, mcp):
+    async def test_get_questionnaire_package_invalid_coverage_id(self, mcp, mock_ctx):
         """Should return validation error for invalid coverage_id."""
         tools = mcp._tool_manager._tools
         get_questionnaire_package = tools["get_questionnaire_package"].fn
@@ -318,13 +343,14 @@ class TestGetQuestionnairePackage:
         result = await get_questionnaire_package(
             platform_id="aetna",
             coverage_id="",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
         assert "Invalid coverage_id" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_platform_not_found(self, mcp):
+    async def test_get_questionnaire_package_platform_not_found(self, mcp, mock_ctx):
         """Should return error when platform not found."""
         with patch(
             "app.mcp.tools.coverage.get_fhir_client",
@@ -336,6 +362,7 @@ class TestGetQuestionnairePackage:
             result = await get_questionnaire_package(
                 platform_id="unknown",
                 coverage_id="cov-123",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "platform_not_found"
@@ -368,7 +395,7 @@ class TestGetPolicyRules:
         )
 
     @pytest.mark.asyncio
-    async def test_get_policy_rules_success(self, mcp, mock_fhir_client, mock_rules_result):
+    async def test_get_policy_rules_success(self, mcp, mock_fhir_client, mock_rules_result, mock_ctx):
         """Should return policy rules for valid request."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -385,6 +412,7 @@ class TestGetPolicyRules:
             result = await get_policy_rules(
                 platform_id="aetna",
                 procedure_code="27447",
+                ctx=mock_ctx,
             )
 
         assert result["platform_id"] == "aetna"
@@ -392,7 +420,7 @@ class TestGetPolicyRules:
         assert "markdown_summary" in result
 
     @pytest.mark.asyncio
-    async def test_get_policy_rules_with_custom_code_system(self, mcp, mock_fhir_client, mock_rules_result):
+    async def test_get_policy_rules_with_custom_code_system(self, mcp, mock_fhir_client, mock_rules_result, mock_ctx):
         """Should use custom code system."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -409,6 +437,7 @@ class TestGetPolicyRules:
             await get_policy_rules(
                 platform_id="aetna",
                 procedure_code="G0219",
+                ctx=mock_ctx,
                 code_system="https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets",
             )
 
@@ -417,7 +446,7 @@ class TestGetPolicyRules:
         assert call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
 
     @pytest.mark.asyncio
-    async def test_get_policy_rules_invalid_platform_id(self, mcp):
+    async def test_get_policy_rules_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         get_policy_rules = tools["get_policy_rules"].fn
@@ -425,12 +454,13 @@ class TestGetPolicyRules:
         result = await get_policy_rules(
             platform_id="invalid@platform!",
             procedure_code="27447",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_get_policy_rules_platform_not_found(self, mcp):
+    async def test_get_policy_rules_platform_not_found(self, mcp, mock_ctx):
         """Should return error when platform not found."""
         with patch(
             "app.mcp.tools.coverage.get_fhir_client",
@@ -442,12 +472,13 @@ class TestGetPolicyRules:
             result = await get_policy_rules(
                 platform_id="unknown",
                 procedure_code="27447",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "platform_not_found"
 
     @pytest.mark.asyncio
-    async def test_get_policy_rules_general_exception(self, mcp, mock_fhir_client):
+    async def test_get_policy_rules_general_exception(self, mcp, mock_fhir_client, mock_ctx):
         """Should handle general exceptions gracefully."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -463,6 +494,7 @@ class TestGetPolicyRules:
             result = await get_policy_rules(
                 platform_id="aetna",
                 procedure_code="27447",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "internal_error"

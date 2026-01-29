@@ -5,7 +5,6 @@ A standalone REST API gateway for FHIR operations with multi-platform routing.
 """
 
 import asyncio
-import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -149,37 +148,19 @@ def run():
     """
     Run the FHIR Gateway server.
 
-    Transport is configured via FHIR_GATEWAY_MCP_TRANSPORT:
-    - "streamable-http" (default): REST API + MCP on same port via uvicorn
-    - "stdio": MCP only via stdio (for CLI/desktop integrations)
-
-    Note: We can't use mcp.run(transport=transport) for both because streamable-http
-    runs the full FastAPI app (REST + MCP) via uvicorn, while stdio runs MCP standalone.
+    Starts the REST API and MCP server on the same port via uvicorn.
+    MCP is available at /mcp using streamable-http transport.
     """
     settings = get_settings()
     configure_logging(level=settings.log_level, json_format=settings.log_json)
 
-    transport = os.environ.get("FHIR_GATEWAY_MCP_TRANSPORT", "streamable-http")
-
-    if transport == "stdio":
-        # stdio: Run MCP server only (no REST API)
-        config = load_config()
-        logger.info("Loaded platform configuration", platform_count=len(config.platforms))
-
-        count = PlatformAdapterRegistry.auto_register()
-        logger.info("Registered platform adapters", count=count)
-
-        logger.info("Starting FHIR Gateway MCP server (stdio)")
-        asyncio.run(mcp.run_async(transport="stdio"))
-    else:
-        # streamable-http: Run REST API + MCP via uvicorn
-        uvicorn.run(
-            "app.main:app",
-            host=settings.host,
-            port=settings.port,
-            reload=settings.debug,
-            log_level=settings.log_level.lower(),
-        )
+    uvicorn.run(
+        "app.main:app",
+        host=settings.host,
+        port=settings.port,
+        reload=settings.debug,
+        log_level=settings.log_level.lower(),
+    )
 
 
 if __name__ == "__main__":

@@ -120,6 +120,24 @@ The gateway supports session-scoped OAuth token management:
 | `/auth/token/{platform_id}` | GET | Get token |
 | `/auth/{platform_id}/logout` | POST | Logout |
 
+### MCP Transport
+
+The MCP server uses **streamable-http** transport only (no stdio support). This is required because OAuth callbacks need the HTTP server running.
+
+**Claude Desktop configuration** (`claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "fhir-gateway": {
+      "url": "http://localhost:8000/mcp",
+      "transport": "streamable-http"
+    }
+  }
+}
+```
+
+Run `fhir-gateway` separately before starting Claude Desktop.
+
 ### MCP Tools
 
 **FHIR Tools** (all require `platform_id`):

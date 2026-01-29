@@ -130,7 +130,7 @@ class TestGetRateLimiter:
 
     def test_creates_singleton(self):
         """Should create and return singleton instance."""
-        with patch("app.config.settings.get_settings") as mock_settings:
+        with patch("app.rate_limiter.get_settings") as mock_settings:
             mock_settings.return_value = MagicMock(
                 rate_limit_max=100,
                 rate_limit_window=60,
@@ -143,7 +143,7 @@ class TestGetRateLimiter:
 
     def test_uses_settings(self):
         """Should use settings for configuration."""
-        with patch("app.config.settings.get_settings") as mock_settings:
+        with patch("app.rate_limiter.get_settings") as mock_settings:
             mock_settings.return_value = MagicMock(
                 rate_limit_max=50,
                 rate_limit_window=30,

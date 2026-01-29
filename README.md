@@ -87,21 +87,19 @@ pip install -e .
 ### Running the Server
 
 ```bash
-# REST API + MCP (streamable-http transport, default)
+# Start the server
 fhir-gateway
 
-# MCP only (stdio transport, for CLI/desktop integrations)
-FHIR_GATEWAY_MCP_TRANSPORT=stdio fhir-gateway
+# Or with uvicorn directly
+uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 # Development mode with auto-reload
 uvicorn app.main:app --reload
 ```
 
-**Streamable HTTP (default)**: REST API + MCP on same port
+The server provides both REST API and MCP on the same port:
 - REST API: http://localhost:8000
-- MCP: http://localhost:8000/mcp/
-
-**stdio**: MCP only, for direct integration with Claude Desktop/CLI
+- MCP: http://localhost:8000/mcp (streamable-http transport)
 
 ### Docker
 
@@ -154,7 +152,6 @@ Environment variables (prefix: `FHIR_GATEWAY_`):
 | `FHIR_GATEWAY_REDIS_URL` | Redis URL for token storage | (optional, in-memory fallback) |
 | `FHIR_GATEWAY_REQUIRE_REDIS_TLS` | Require `rediss://` scheme | `false` |
 | `FHIR_GATEWAY_MASTER_KEY` | Master key for encrypting session secrets at rest | (optional) |
-| `FHIR_GATEWAY_MCP_TRANSPORT` | MCP transport: `streamable-http` or `stdio` | `streamable-http` |
 
 Platform-specific OAuth credentials:
 ```bash
@@ -231,19 +228,16 @@ POST /auth/{platform_id}/logout
 
 The gateway includes an MCP (Model Context Protocol) server for AI agents. MCP is mounted at `/mcp` on the same server as the REST API.
 
+> **Note**: The gateway uses streamable-http transport only (no stdio). This is required because OAuth callbacks need the HTTP server running to receive authorization codes.
+
 ### Configuring MCP Clients
 
-Two transport options are available:
-
-<details>
-<summary><strong>Streamable HTTP (recommended for remote/production)</strong></summary>
-
-Start the server:
+1. Start the gateway server:
 ```bash
 fhir-gateway
 ```
 
-Configure your MCP client:
+2. Configure your MCP client to connect:
 
 **Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 ```json
@@ -267,44 +261,7 @@ Configure your MCP client:
 }
 ```
 
-</details>
-
-<details>
-<summary><strong>stdio (recommended for local CLI/desktop)</strong></summary>
-
-Configure your MCP client to spawn the server:
-
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
-```json
-{
-  "mcpServers": {
-    "fhir-gateway": {
-      "command": "fhir-gateway",
-      "env": {
-        "FHIR_GATEWAY_MCP_TRANSPORT": "stdio"
-      }
-    }
-  }
-}
-```
-
-**Claude Code** (`~/.claude/settings.json`):
-```json
-{
-  "mcpServers": {
-    "fhir-gateway": {
-      "command": "fhir-gateway",
-      "env": {
-        "FHIR_GATEWAY_MCP_TRANSPORT": "stdio"
-      }
-    }
-  }
-}
-```
-
-</details>
-
-After updating the config, restart your MCP client.
+3. Restart your MCP client to apply the configuration.
 
 ### MCP Tools
 
