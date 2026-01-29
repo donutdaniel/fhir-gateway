@@ -1,0 +1,47 @@
+{
+  "id": "epic-sandbox-clinician",
+  "name": "Epic FHIR Sandbox (Clinician Access)",
+  "display_name": "Epic Sandbox - Clinician",
+  "type": "sandbox",
+  "aliases": ["epic-clinician", "epic-provider"],
+  "patterns": [],
+
+  "developer_portal": "https://fhir.epic.com",
+
+  "fhir_base_url": "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
+  "sandbox_url": "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
+
+  "oauth": {
+    "authorize_url": "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/authorize",
+    "token_url": "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token",
+    "client_id": null,
+    "redirect_uri": "http://localhost:8000/oauth/callback",
+    "scopes": ["openid", "fhirUser", "user/Patient.read", "user/Observation.read", "user/Condition.read", "user/MedicationRequest.read", "user/AllergyIntolerance.read", "user/Encounter.read", "user/Practitioner.read"],
+    "scopes_supported": [
+      "openid", "fhirUser", "launch/practitioner",
+      "user/*.read", "user/Patient.read",
+      "user/Observation.read", "user/Condition.read",
+      "user/MedicationRequest.read", "user/AllergyIntolerance.read",
+      "user/Encounter.read", "user/Practitioner.read"
+    ],
+    "code_challenge_methods": ["S256"]
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "patient_everything": true
+  },
+
+  "supported_resources": [],
+
+  "verification_status": "pending",
+  "last_verified": "2026-01-27",
+
+  "notes": "Epic public FHIR sandbox - Clinician/Admin Access app. Requires app registration at https://fhir.epic.com with Application Audience set to 'Clinicians or Administrative Users'. Uses user-level scopes (user/*.read) instead of patient-level. Supports PKCE (S256) for public clients."
+}

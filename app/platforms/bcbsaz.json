@@ -1,0 +1,37 @@
+{
+  "id": "bcbsaz",
+  "name": "Blue Cross Blue Shield of Arizona",
+  "display_name": "BCBS Arizona",
+  "type": "payer",
+  "aliases": [
+    "arizona bcbs",
+    "bcbs arizona",
+    "arizona blue cross",
+    "azblue",
+    "77001"
+  ],
+  "patterns": [
+    "bcbs.*arizona",
+    "arizona.*blue.*cross",
+    "azblue"
+  ],
+  "payer_ids": ["77001"],
+  "states": ["AZ"],
+  "fhir_base_url": "https://azblue.innovaccer.com/fhir/",
+  "sandbox_url": null,
+  "developer_portal": "https://www.azblue.com/interoperability",
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "verification_status": "verified",
+  "last_verified": "2026-01-20",
+  "resources": {
+    "interoperability": "https://www.azblue.com/interoperability"
+  },
+  "notes": "BCBS Arizona uses Innovaccer platform for FHIR APIs."
+}

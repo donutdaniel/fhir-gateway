@@ -1,0 +1,52 @@
+{
+  "id": "epic",
+  "name": "Epic",
+  "display_name": "Epic Systems",
+  "type": "ehr",
+  "aliases": ["mychart", "epic systems"],
+  "patterns": ["epic", "mychart"],
+
+  "developer_portal": "https://fhir.epic.com",
+  "support_email": null,
+
+  "fhir_base_url": null,
+  "sandbox_url": null,
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "token_endpoint_auth_methods": ["private_key_jwt"],
+    "scopes_supported": ["openid", "fhirUser", "profile"],
+    "code_challenge_methods": ["S256"]
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "api_products": ["Patient Access API"],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "patient_everything": false,
+    "bulk_data": true
+  },
+
+  "supported_resources": [
+    "Account", "Appointment", "Consent", "FamilyMemberHistory",
+    "InsurancePlan", "MedicationRequest", "NutritionOrder", "Person",
+    "Provenance", "Questionnaire", "QuestionnaireResponse",
+    "RelatedPerson", "Schedule", "ServiceRequest", "Slot"
+  ],
+
+  "client_headers": {
+    "Accept": "application/json+fhir"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-22",
+
+  "notes": "Epic/MyChart - requires JWT client authentication (private_key_jwt) after Jan 2026. Does not support $everything operation. Multi-tenant platform with per-organization FHIR endpoints discovered via endpoint directory."
+}

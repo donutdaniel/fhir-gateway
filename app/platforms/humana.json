@@ -1,0 +1,44 @@
+{
+  "id": "humana",
+  "name": "Humana",
+  "display_name": "Humana Inc.",
+  "type": "payer",
+  "aliases": ["61101", "95132"],
+  "patterns": ["humana"],
+  "payer_ids": ["61101", "95132"],
+
+  "developer_portal": "https://developers.humana.com/",
+
+  "fhir_base_url": "https://fhir.humana.com/api/",
+  "sandbox_url": "https://sandbox-fhir.humana.com/api/",
+
+  "oauth": {
+    "authorize_url": "https://loginbeta.humana.com/as/authorization.oauth2",
+    "token_url": "https://loginbeta.humana.com/as/token.oauth2"
+  },
+
+  "endpoints": {
+    "patient_access_base": "https://fhir.humana.com/api/",
+    "provider_directory_base": "https://fhir.humana.com/api/ProviderDirectory"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://developers.humana.com/interoperability",
+    "provider_portal": "https://www.humana.com/provider",
+    "medical_policies": "https://www.humana.com/provider/medical-resources/clinical-tools/clinical-policies"
+  },
+
+  "verification_status": "verified",
+  "last_verified": "2025-01-15",
+
+  "notes": "Humana Inc. - verified production and sandbox endpoints. One of the largest Medicare Advantage providers."
+}

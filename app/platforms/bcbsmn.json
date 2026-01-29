@@ -1,0 +1,38 @@
+{
+  "id": "bcbsmn",
+  "name": "Blue Cross Blue Shield of Minnesota",
+  "display_name": "BCBS Minnesota",
+  "type": "payer",
+  "aliases": ["00720"],
+  "patterns": ["bcbsmn", "bluecross.*minnesota", "minnesota.*blue"],
+  "payer_ids": ["00720"],
+
+  "states": ["MN"],
+
+  "fhir_base_url": "https://api.bluecrossmn.com/fhir/",
+  "sandbox_url": "https://preview-api.bluecrossmn.com/fhir/",
+  "developer_portal": "https://www.bluecrossmn.com/about-us/doing-business-blue-cross/digital-development",
+
+  "endpoints": {
+    "patient_access_base": "https://api.bluecrossmn.com/fhir/"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.bluecrossmn.com/about-us/interoperability",
+    "provider_portal": "https://www.bluecrossmn.com/providers"
+  },
+
+  "verification_status": "verified",
+  "last_verified": "2025-01-15",
+
+  "notes": "BCBS Minnesota - verified production and sandbox endpoints. Payer ID 00720."
+}

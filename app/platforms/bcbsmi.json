@@ -1,0 +1,39 @@
+{
+  "id": "bcbsmi",
+  "name": "Blue Cross Blue Shield of Michigan",
+  "display_name": "BCBS Michigan",
+  "type": "payer",
+  "aliases": [
+    "bcbsm",
+    "bcbsmichigan",
+    "blue cross michigan",
+    "blue care network",
+    "bcn",
+    "00231"
+  ],
+  "patterns": [
+    "bcbs.*michigan",
+    "blue.*cross.*michigan",
+    "blue.*care.*network"
+  ],
+  "payer_ids": ["00231"],
+  "states": ["MI"],
+  "fhir_base_url": "https://api.interopstation.com/bcbsm/fhir/",
+  "sandbox_url": null,
+  "developer_portal": "https://www.bcbsm.com/important-information/privacy-practices/patient-access/",
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "verification_status": "verified",
+  "last_verified": "2026-01-20",
+  "resources": {
+    "patient_access_info": "https://www.bcbsm.com/important-information/privacy-practices/patient-access/",
+    "member_portal": "https://www.bcbsm.com/"
+  },
+  "notes": "BCBS Michigan is one of the largest Blue Cross plans, serving over 4.7 million members. Also operates Blue Care Network HMO."
+}

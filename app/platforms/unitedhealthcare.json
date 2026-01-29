@@ -1,0 +1,47 @@
+{
+  "id": "unitedhealthcare",
+  "name": "UnitedHealthcare",
+  "display_name": "UnitedHealthcare",
+  "type": "payer",
+  "aliases": ["uhc", "optum", "87726"],
+  "patterns": ["unitedhealth", "uhc", "optum"],
+  "payer_ids": ["87726"],
+
+  "developer_portal": "https://portal.flex.optum.com/",
+  "optum_developer_portal": "https://developer.optum.com",
+
+  "fhir_base_url": "https://public.fhir.flex.optum.com",
+  "sandbox_url": "https://sandbox.fhir.flex.optum.com",
+
+  "oauth": {
+    "authorize_url": "https://authorization.flex.optum.com/as/authorization.oauth2",
+    "token_url": "https://authorization.flex.optum.com/as/token.oauth2"
+  },
+
+  "flex_domain": "flex.optum.com",
+  "known_plan_subdomains": ["rmhp", "healthx", "uhc", "optum"],
+
+  "endpoints": {
+    "patient_access_base": "https://public.fhir.flex.optum.com",
+    "provider_directory_base": "https://public.fhir.flex.optum.com/ProviderDirectory"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": true,
+    "dtr": true,
+    "pas": true,
+    "cdex": true
+  },
+
+  "resources": {
+    "medical_policy_portal": "https://www.uhcprovider.com/en/policies-protocols/commercial-policies.html",
+    "prior_auth_list": "https://www.uhcprovider.com/en/prior-auth-advance-notification.html"
+  },
+
+  "verification_status": "verified",
+  "last_verified": "2025-01-15",
+
+  "notes": "UnitedHealthcare/Optum FLEX platform - verified production endpoint. Full Da Vinci support including CRD, DTR, PAS, and CDex."
+}

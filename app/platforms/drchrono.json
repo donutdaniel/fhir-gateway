@@ -1,0 +1,46 @@
+{
+  "id": "drchrono",
+  "name": "DrChrono",
+  "display_name": "DrChrono (EverHealth)",
+  "type": "ehr",
+  "aliases": ["everhealth", "dr chrono"],
+  "patterns": ["drchrono", "everhealth"],
+
+  "developer_portal": "https://drchrono-fhirpresentation.everhealthsoftware.com/drchrono/basepractice/r4/Home/ApiDocumentation",
+  "support_email": null,
+
+  "fhir_base_url": null,
+  "sandbox_url": "https://stg.drchrono-fhirpresentation.everhealthsoftware.com/fhir/drchronodev/drchronodev/r4/",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": ["openid", "offline_access", "fhirUser", "patient/*.read"],
+    "code_challenge_methods": ["S256"],
+    "confidential": true
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "api_products": ["Patient Access API"],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+
+  "supported_resources": ["MedicationStatement"],
+
+  "client_headers": {
+    "Accept": "application/json+fhir"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-22",
+
+  "notes": "DrChrono (part of EverHealth) - FHIR R4 patient access. Confidential client required. Does not support $everything operation."
+}

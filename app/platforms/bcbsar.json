@@ -1,0 +1,39 @@
+{
+  "id": "bcbsar",
+  "name": "Arkansas Blue Cross and Blue Shield",
+  "display_name": "Arkansas BCBS",
+  "type": "payer",
+  "aliases": [
+    "arkansas bcbs",
+    "bcbs arkansas",
+    "arkansas blue cross",
+    "arkbluecross",
+    "71065"
+  ],
+  "patterns": [
+    "bcbs.*arkansas",
+    "arkansas.*blue.*cross",
+    "arkbluecross"
+  ],
+  "payer_ids": ["71065"],
+  "states": ["AR"],
+  "fhir_base_url": "https://api.arkbluecross.com/blueware/V1/FHIR",
+  "sandbox_url": "https://apipreprod.arkbluecross.com/blueware/V1/FHIR",
+  "developer_portal": "https://www.arkansasbluecross.com/interoperability/documentation",
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "verification_status": "verified",
+  "last_verified": "2026-01-20",
+  "resources": {
+    "documentation": "https://www.arkansasbluecross.com/interoperability/documentation",
+    "patient_access": "https://www.arkansasbluecross.com/interoperability/patient-access"
+  },
+  "support_email": "developer@arkbluecross.com",
+  "notes": "Arkansas BCBS has documented production FHIR API. Uses CARIN Blue Button framework and SMART on FHIR."
+}

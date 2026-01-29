@@ -1,0 +1,43 @@
+{
+  "id": "cigna",
+  "name": "Cigna",
+  "display_name": "Cigna Healthcare",
+  "type": "payer",
+  "aliases": ["62308", "86033"],
+  "patterns": ["cigna"],
+  "payer_ids": ["62308", "86033"],
+
+  "developer_portal": "https://developer.cigna.com",
+
+  "fhir_base_url": "https://fhir.cigna.com/PatientAccess/v1-devportal",
+  "sandbox_url": "https://fhir.cigna.com/PatientAccess/v1-devportal",
+
+  "oauth": {
+    "authorize_url": "https://r-hi2.cigna.com/mga/sps/oauth/oauth20/authorize",
+    "token_url": "https://r-hi2.cigna.com/mga/sps/oauth/oauth20/token"
+  },
+
+  "endpoints": {
+    "patient_access_base": "https://fhir.cigna.com/PatientAccess/v1-devportal",
+    "provider_directory_base": "https://fhir.cigna.com/ProviderDirectory/v1"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.cigna.com/legal/compliance/interoperability-apis",
+    "provider_portal": "https://cignaforhcp.cigna.com/"
+  },
+
+  "verification_status": "verified",
+  "last_verified": "2025-01-15",
+
+  "notes": "Cigna Healthcare - verified production endpoint. Supports Patient Access and Provider Directory APIs."
+}

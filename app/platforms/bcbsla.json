@@ -1,0 +1,44 @@
+{
+  "id": "bcbsla",
+  "name": "Blue Cross and Blue Shield of Louisiana",
+  "display_name": "BCBS Louisiana",
+  "type": "payer",
+  "aliases": [
+    "louisiana bcbs",
+    "bcbs louisiana",
+    "louisiana blue cross",
+    "72076"
+  ],
+  "patterns": [
+    "bcbs.*louisiana",
+    "louisiana.*blue.*cross"
+  ],
+  "payer_ids": ["72076"],
+  "states": ["LA"],
+  "fhir_base_url": "https://api-bcbs-prd.safhir.io/v1/api",
+  "sandbox_url": null,
+  "developer_portal": "https://portal.safhir.io",
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+  "endpoints": {
+    "patient_access_base": "https://api-bcbs-prd.safhir.io/v1/api",
+    "metadata": "https://api-bcbs-prd.safhir.io/v1/api/metadata"
+  },
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "verification_status": "unverified",
+  "last_verified": "2026-01-20",
+  "resources": {
+    "safhir_documentation": "https://docs.safhir.io/blueadvantage-bcbsla.html",
+    "safhir_portal": "https://portal.safhir.io"
+  },
+  "notes": "BCBS Louisiana uses SAFHIR/OnyxOS platform for Patient Access API. Register at portal.safhir.io for app credentials. OAuth endpoints available after registration."
+}

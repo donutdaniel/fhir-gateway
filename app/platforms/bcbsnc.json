@@ -1,0 +1,49 @@
+{
+  "id": "bcbsnc",
+  "name": "Blue Cross NC",
+  "display_name": "Blue Cross NC",
+  "type": "payer",
+  "aliases": ["56111"],
+  "patterns": ["bluecross.*north.*carolina", "blue.*cross.*nc"],
+  "payer_ids": ["56111"],
+
+  "states": ["NC"],
+
+  "fhir_base_url": null,
+  "sandbox_url": "https://apiservicessb-ext.bcbsnc.com/fhir/sb/R4/payer-topayer",
+  "developer_portal": "https://www.bluecrossnc.com/policies-best-practices/notice-privacy-practices/api-access",
+
+  "oauth": {
+    "sandbox_authorize_url": "https://oauthp2psb.bcbsnc.com/CMSP2PMemberSB/sps/oauth/oauth20/authorize",
+    "authorize_url": null,
+    "token_url": null
+  },
+
+  "endpoints": {
+    "sandbox_patient_everything": "https://apiservicessb-ext.bcbsnc.com/fhir/sb/R4/payer-topayer/Patient/{PatientId}/$everything",
+    "sandbox_userinfo": "https://apiservicessb-ext.bcbsnc.com/fhir/sb/R4/payer-to-payer/UserInfo"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.bluecrossnc.com/policies-best-practices/notice-privacy-practices/api-access",
+    "provider_portal": "https://www.bluecrossnc.com/providers",
+    "payer_to_payer_access": "https://www.bluecrossnc.com/policies-best-practices/notification-information-other-payers/api-access-payers",
+    "developer_sandbox": "https://www.bluecrossnc.com/policies-best-practices/notification-information-other-payers/api-access-payers/developer-sandbox-payer-to-payer"
+  },
+
+  "verification_status": "unverified",
+  "last_verified": "2026-01-20",
+
+  "registration_email": "cms-appregistration@bcbsnc.com",
+
+  "notes": "Blue Cross NC serves North Carolina. Payer ID 56111. Supports DaVinci IG with $everything endpoint. Sandbox available for testing before registration. Registration approval takes 10 business days. Contact cms-appregistration@bcbsnc.com for support."
+}

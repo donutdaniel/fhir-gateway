@@ -1,0 +1,47 @@
+{
+  "id": "questdiagnostics",
+  "name": "Quest Diagnostics",
+  "display_name": "Quest Diagnostics",
+  "type": "lab",
+  "aliases": ["quest", "quest labs"],
+  "patterns": ["questdiagnostics", "quest diagnostics", "quest labs"],
+
+  "developer_portal": null,
+  "support_email": null,
+
+  "fhir_base_url": "https://api.questdiagnostics.com/resource-server/fhir/r4/",
+  "sandbox_url": null,
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "offline_access", "launch/patient", "patient/*.read"
+    ],
+    "code_challenge_methods": ["S256"],
+    "confidential": true,
+    "cors_relay_required": true
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "api_products": ["Patient Access API"],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+
+  "supported_resources": [],
+
+  "client_headers": {},
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-22",
+
+  "notes": "Quest Diagnostics - laboratory services with FHIR R4 patient access. CORS relay required. Does not support standard $everything but supports Patient?_id= bundle retrieval. Confidential client required."
+}

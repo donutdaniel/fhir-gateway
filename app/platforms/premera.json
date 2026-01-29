@@ -1,0 +1,69 @@
+{
+  "id": "premera",
+  "name": "Premera Blue Cross",
+  "display_name": "Premera Blue Cross",
+  "type": "payer",
+  "aliases": [
+    "premera",
+    "premera bcbs",
+    "premera blue cross blue shield",
+    "bcbs washington",
+    "bcbs alaska",
+    "bcbswa",
+    "bcbsak",
+    "00402",
+    "93052"
+  ],
+  "patterns": [
+    "premera",
+    "bcbs.*washington",
+    "bcbs.*alaska",
+    "blue.*cross.*washington",
+    "blue.*cross.*alaska"
+  ],
+  "payer_ids": ["00402", "93052"],
+  "states": ["WA", "AK"],
+  "fhir_base_url": null,
+  "sandbox_url": null,
+  "developer_portal": "https://www.premera.com/visitor/developers",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+
+  "regional_portals": {
+    "washington": {
+      "portal_url": "https://pmwaportal.valence.care/",
+      "member_portal": "https://pmwaportal.valence.care/member/"
+    },
+    "alaska": {
+      "portal_url": "https://pmakportal.valence.care/",
+      "member_portal": "https://pmakportal.valence.care/member/"
+    }
+  },
+
+  "endpoints": {
+    "patient_access_base": null
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-20",
+
+  "resources": {
+    "washington_portal": "https://pmwaportal.valence.care/",
+    "alaska_portal": "https://pmakportal.valence.care/",
+    "main_developer": "https://www.premera.com/visitor/developers"
+  },
+
+  "notes": "Premera Blue Cross serves Washington (payer ID 00402) and Alaska (payer ID 93052). Uses Valence.care platform with separate portals per state. Supports HL7 Da Vinci CDEx standards. Partner with Providence Health for value-based care initiatives."
+}

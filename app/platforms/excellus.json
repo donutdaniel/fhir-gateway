@@ -1,0 +1,42 @@
+{
+  "id": "excellus",
+  "name": "Excellus BlueCross BlueShield",
+  "display_name": "Excellus BCBS",
+  "type": "payer",
+  "aliases": ["00805"],
+  "patterns": ["excellus"],
+  "payer_ids": ["00805"],
+
+  "states": ["NY"],
+
+  "fhir_base_url": "https://fhir.excellusbcbs.com/fhir/api",
+  "developer_portal": "https://news.excellusbcbs.com/developer-info/interoperability-apis",
+
+  "oauth": {
+    "authorize_url": "https://fedprd.excellusbcbs.com/sso/oauth2/FHIR_EXCELLUS/authorize",
+    "token_url": "https://fhir.excellusbcbs.com/fhir/auth/token"
+  },
+
+  "endpoints": {
+    "patient_access_base": "https://fhir.excellusbcbs.com/fhir/api"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.excellusbcbs.com/wps/portal/xl/interoperability",
+    "provider_portal": "https://www.excellusbcbs.com/providers"
+  },
+
+  "verification_status": "verified",
+  "last_verified": "2025-01-15",
+
+  "notes": "Excellus BCBS serves Central New York, Southern Tier, Finger Lakes, and Utica/Rome regions. Payer ID 00805."
+}

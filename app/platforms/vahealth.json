@@ -1,0 +1,61 @@
+{
+  "id": "vahealth",
+  "name": "VA Health",
+  "display_name": "Veterans Affairs Health API",
+  "type": "government",
+  "aliases": ["va", "veterans affairs", "va.gov", "veteran health"],
+  "patterns": ["vahealth", "va health", "veterans affairs"],
+
+  "developer_portal": "https://developer.va.gov/explore/api/patient-health/docs",
+  "support_email": null,
+
+  "fhir_base_url": null,
+  "sandbox_url": null,
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "profile", "openid", "launch/patient", "offline_access",
+      "patient/Appointment.read", "patient/AllergyIntolerance.read",
+      "patient/Binary.read", "patient/Condition.read",
+      "patient/Device.read", "patient/DeviceRequest.read",
+      "patient/DiagnosticReport.read", "patient/DocumentReference.read",
+      "patient/Encounter.read", "patient/Immunization.read",
+      "patient/Location.read", "patient/Medication.read",
+      "patient/MedicationOrder.read", "patient/MedicationRequest.read",
+      "patient/Observation.read", "patient/Organization.read",
+      "patient/Patient.read", "patient/Practitioner.read",
+      "patient/PractitionerRole.read", "patient/Procedure.read"
+    ],
+    "code_challenge_methods": []
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "api_products": ["Patient Health API", "Veterans Health API"],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+
+  "supported_resources": [
+    "Appointment", "DeviceRequest", "MedicationRequest"
+  ],
+
+  "client_headers": {
+    "Accept": "application/fhir+json"
+  },
+
+  "rate_limited": true,
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-22",
+
+  "notes": "VA Health API - provides veterans access to their health data via FHIR R4. Rate limited. Does not support $everything operation. Public client supported."
+}

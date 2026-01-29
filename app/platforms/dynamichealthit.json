@@ -1,0 +1,48 @@
+{
+  "id": "dynamichealthit",
+  "name": "Dynamic Health IT",
+  "display_name": "Dynamic Health IT",
+  "type": "ehr",
+  "aliases": ["dhit", "dynamic health"],
+  "patterns": ["dynamichealthit", "dynamic health"],
+
+  "developer_portal": "https://dynamicfhirpresentation.dynamicfhirsandbox.com/dhithealth/practiceone/r4/Home/ApiDocumentation",
+  "support_email": null,
+
+  "fhir_base_url": null,
+  "sandbox_url": "https://dynamicfhirpresentation.dynamicfhirsandbox.com/fhir/dhit/fastenhealth/r4/",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "fhirUser", "openid", "offline_access", "launch/patient", "patient/*.read"
+    ],
+    "code_challenge_methods": ["S256"],
+    "confidential": true
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "api_products": ["Patient Access API"],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+
+  "supported_resources": [],
+
+  "client_headers": {
+    "Accept": "application/json+fhir"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-22",
+
+  "notes": "Dynamic Health IT - FHIR R4 patient access. Confidential client required. Does not support $everything operation."
+}

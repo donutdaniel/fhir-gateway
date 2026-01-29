@@ -1,0 +1,38 @@
+{
+  "id": "capitalblue",
+  "name": "Capital BlueCross",
+  "display_name": "Capital BlueCross",
+  "type": "payer",
+  "aliases": ["capital", "53589"],
+  "patterns": ["capital.*blue.*cross", "capital.*bcbs"],
+  "payer_ids": ["53589"],
+
+  "states": ["PA"],
+
+  "fhir_base_url": "https://patientaccess-api.capbluecross.com/r4",
+  "sandbox_url": "https://patientaccess-api-demo.capbluecross.com/r4",
+  "developer_portal": "https://www.capbluecross.com/wps/portal/cap/about/developer/patient-access-api-access-guide",
+
+  "endpoints": {
+    "patient_access_base": "https://patientaccess-api.capbluecross.com/r4"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.capbluecross.com/interoperability",
+    "provider_portal": "https://www.capbluecross.com/providers"
+  },
+
+  "verification_status": "verified",
+  "last_verified": "2025-01-15",
+
+  "notes": "Capital BlueCross serves Central Pennsylvania and the Lehigh Valley. Payer ID 53589."
+}

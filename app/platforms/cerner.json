@@ -1,0 +1,70 @@
+{
+  "id": "cerner",
+  "name": "Cerner",
+  "display_name": "Oracle Health (Cerner)",
+  "type": "ehr",
+  "aliases": ["oracle health", "oracle cerner", "millennium"],
+  "patterns": ["cerner", "oracle health"],
+
+  "developer_portal": "http://fhir.cerner.com/millennium/r4/",
+  "support_email": null,
+
+  "fhir_base_url": null,
+  "sandbox_url": null,
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "openid", "fhirUser", "offline_access",
+      "patient/Account.read", "patient/AllergyIntolerance.read",
+      "patient/Appointment.read", "patient/Binary.read",
+      "patient/CarePlan.read", "patient/CareTeam.read",
+      "patient/Condition.read", "patient/Consent.read",
+      "patient/Coverage.read", "patient/Device.read",
+      "patient/DiagnosticReport.read", "patient/DocumentReference.read",
+      "patient/Encounter.read", "patient/FamilyMemberHistory.read",
+      "patient/Goal.read", "patient/Immunization.read",
+      "patient/InsurancePlan.read", "patient/MedicationAdministration.read",
+      "patient/MedicationRequest.read", "patient/NutritionOrder.read",
+      "patient/Observation.read", "patient/Patient.read",
+      "patient/Person.read", "patient/Procedure.read",
+      "patient/Provenance.read", "patient/Questionnaire.read",
+      "patient/QuestionnaireResponse.read", "patient/RelatedPerson.read",
+      "patient/Schedule.read", "patient/ServiceRequest.read",
+      "patient/Slot.read",
+      "user/Organization.read", "user/Location.read", "user/Practitioner.read"
+    ],
+    "code_challenge_methods": ["S256"]
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "api_products": ["Patient Access API", "Provider Directory API"],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "patient_everything": false,
+    "bulk_data": true
+  },
+
+  "supported_resources": [
+    "Consent", "FamilyMemberHistory", "InsurancePlan",
+    "MedicationAdministration", "MedicationRequest", "NutritionOrder",
+    "Person", "Provenance", "QuestionnaireResponse", "RelatedPerson",
+    "Schedule", "ServiceRequest", "Slot"
+  ],
+
+  "client_headers": {
+    "Accept": "application/fhir+json"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-22",
+
+  "notes": "Oracle Health (formerly Cerner) Millennium platform - FHIR R4 with broad resource support. Does not support $everything operation. Multi-tenant with per-organization endpoints."
+}

@@ -1,0 +1,56 @@
+{
+  "id": "floridablue",
+  "name": "Florida Blue",
+  "display_name": "Florida Blue (BCBS FL)",
+  "type": "payer",
+  "aliases": ["bcbsfl", "59140"],
+  "patterns": ["florida.*blue", "bcbs.*florida"],
+  "payer_ids": ["59140"],
+
+  "states": ["FL"],
+
+  "fhir_base_url": null,
+  "developer_portal": "https://developer.bcbsfl.com/interop/interop-developer-portal/",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "pkce_required": true
+  },
+
+  "endpoints": {
+    "patient_access_base": null,
+    "provider_directory_base": null,
+    "metadata_route": "/R4/metadata"
+  },
+
+  "api_products": [
+    "Patient Access",
+    "Provider Directory",
+    "PDEX FHIR service",
+    "Pharmacy API",
+    "Payer2Payer OutBound"
+  ],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://developer.bcbsfl.com/interop/interop-developer-portal/",
+    "provider_portal": "https://www.floridablue.com/providers",
+    "patient_access_product": "https://developer.bcbsfl.com/interop/interop-developer-portal/product/306",
+    "provider_directory_product": "https://developer.bcbsfl.com/interop/interop-developer-portal/product/530",
+    "faq": "https://developer.bcbsfl.com/interop/interop-developer-portal/faq"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-20",
+
+  "notes": "Florida Blue (BCBS of Florida). Supports PKCE OAuth flow. Capability Statement at /R4/metadata. App registration provides API Key and Secret. Endpoint URLs shown under Security Section on each API's overview page."
+}

@@ -1,0 +1,44 @@
+{
+  "id": "horizon",
+  "name": "Horizon Blue Cross Blue Shield of New Jersey",
+  "display_name": "Horizon BCBS NJ",
+  "type": "payer",
+  "aliases": ["22099"],
+  "patterns": ["horizon"],
+  "payer_ids": ["22099"],
+
+  "states": ["NJ"],
+
+  "fhir_base_url": null,
+  "developer_portal": "https://developer.interop.horizonblue.com/",
+  "api_library": "https://api.horizonblue.com/",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+
+  "endpoints": {
+    "patient_access_base": null
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.horizonblue.com/members/understanding-your-coverage/interoperability",
+    "provider_portal": "https://www.horizonblue.com/providers",
+    "api_list": "https://developer.interop.horizonblue.com/apis"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-20",
+
+  "notes": "Horizon BCBS serves New Jersey. Payer ID 22099. Developer portal operated by Cognizant. Supports HL7 Da Vinci and CARIN implementation guides. FHIR endpoints available after registration at developer.interop.horizonblue.com."
+}

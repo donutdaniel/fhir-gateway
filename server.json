@@ -1,0 +1,33 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "fhir-gateway",
+  "title": "FHIR Gateway",
+  "description": "REST API gateway for FHIR operations with multi-payer routing and MCP integration",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "fhir-gateway",
+      "version": "0.1.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "FHIR_GATEWAY_SESSION_SECRET",
+          "description": "Secret key for session signing (required in production)",
+          "isRequired": true,
+          "isSecret": true
+        },
+        {
+          "name": "FHIR_GATEWAY_REDIS_URL",
+          "description": "Redis URL for token storage (optional, uses in-memory if not set)",
+          "isRequired": false,
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

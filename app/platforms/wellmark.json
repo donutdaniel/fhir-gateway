@@ -1,0 +1,40 @@
+{
+  "id": "wellmark",
+  "name": "Wellmark Blue Cross Blue Shield",
+  "display_name": "Wellmark BCBS",
+  "type": "payer",
+  "aliases": [
+    "wellmark bcbs",
+    "bcbs iowa",
+    "bcbs south dakota",
+    "bcbsia",
+    "bcbssd",
+    "88848"
+  ],
+  "patterns": [
+    "wellmark",
+    "bcbs.*iowa",
+    "bcbs.*south.*dakota",
+    "blue.*cross.*iowa"
+  ],
+  "payer_ids": ["88848"],
+  "states": ["IA", "SD"],
+  "fhir_base_url": "https://apigw.wellmark.com/patient-access-api/v1/",
+  "sandbox_url": null,
+  "developer_portal": "https://www.wellmark.com/developer/wellmark-developer",
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "verification_status": "verified",
+  "last_verified": "2026-01-20",
+  "resources": {
+    "developer_portal": "https://www.wellmark.com/developer/wellmark-developer",
+    "main_site": "https://www.wellmark.com/"
+  },
+  "notes": "Wellmark BCBS serves Iowa and South Dakota. Has developer portal for Patient Access API using FHIR standard."
+}

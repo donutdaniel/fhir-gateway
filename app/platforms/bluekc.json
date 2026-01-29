@@ -1,0 +1,38 @@
+{
+  "id": "bluekc",
+  "name": "Blue Cross Blue Shield of Kansas City",
+  "display_name": "Blue KC",
+  "type": "payer",
+  "aliases": [
+    "blue kc",
+    "bcbs kc",
+    "bcbs kansas city",
+    "blue cross kansas city",
+    "47080"
+  ],
+  "patterns": [
+    "blue.*kc",
+    "bcbs.*kansas.*city",
+    "blue.*cross.*kansas.*city"
+  ],
+  "payer_ids": ["47080"],
+  "states": ["MO", "KS"],
+  "fhir_base_url": "https://patient360kc.bcbsdirect.com/P360Member/api/fhir",
+  "sandbox_url": null,
+  "developer_portal": "https://data.bluekc.com/",
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "verification_status": "verified",
+  "last_verified": "2026-01-20",
+  "resources": {
+    "provider_directory_api": "https://data.bluekc.com/provider_directory_api.html",
+    "fhir_documentation": "https://patient360kc.bcbsdirect.com/P360Member/fhir/documentation?prefix=fhir"
+  },
+  "notes": "Blue KC serves the Kansas City metro area in Missouri and Kansas. Has verified FHIR API endpoint using DSTU2/Argonaut."
+}

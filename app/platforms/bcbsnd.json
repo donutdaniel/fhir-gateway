@@ -1,0 +1,48 @@
+{
+  "id": "bcbsnd",
+  "name": "Blue Cross Blue Shield of North Dakota",
+  "display_name": "BCBS North Dakota",
+  "type": "payer",
+  "aliases": ["88022"],
+  "patterns": ["bcbsnd", "bluecross.*north.*dakota", "north.*dakota.*blue"],
+  "payer_ids": ["88022"],
+
+  "states": ["ND"],
+
+  "fhir_base_url": null,
+  "sandbox_url": "https://apiportal.bcbsnd.com/",
+  "developer_portal": "https://apiportal.bcbsnd.com/",
+
+  "oauth": {
+    "authorize_url": "https://bcbsndprodb2c.b2clogin.com/bcbsndprodb2c.onmicrosoft.com/B2C_1A_bluemember_signup_signin/oauth2/v2.0/authorize",
+    "token_url": "https://bcbsndprodb2c.b2clogin.com/bcbsndprodb2c.onmicrosoft.com/B2C_1A_bluemember_signup_signin/oauth2/v2.0/token",
+    "scopes": {
+      "public_client": ["openid", "https://bcbsndprodb2c.onmicrosoft.com/fhir/patientaccess/patient.READ"],
+      "confidential_client": ["openid", "offline_access", "https://bcbsndprodb2c.onmicrosoft.com/fhir/patientaccess/patient.READ"]
+    }
+  },
+
+  "endpoints": {
+    "patient_access_base": null
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.bcbsnd.com/interoperability",
+    "provider_portal": "https://www.bcbsnd.com/providers",
+    "getting_started": "https://apiportal.bcbsnd.com/getting-started"
+  },
+
+  "verification_status": "unverified",
+  "last_verified": "2026-01-20",
+
+  "notes": "BCBS North Dakota. Payer ID 88022. Uses Azure B2C for OAuth. Sandbox available via API portal with API Key auth. Production requires developer registration. Phone: 1-800-544-8467."
+}

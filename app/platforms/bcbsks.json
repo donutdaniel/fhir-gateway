@@ -1,0 +1,36 @@
+{
+  "id": "bcbsks",
+  "name": "Blue Cross and Blue Shield of Kansas",
+  "display_name": "BCBS Kansas",
+  "type": "payer",
+  "aliases": [
+    "bcbs kansas",
+    "blue cross kansas",
+    "bcbskansas",
+    "47060"
+  ],
+  "patterns": [
+    "bcbs.*kansas(?!.*city)",
+    "blue.*cross.*kansas(?!.*city)"
+  ],
+  "payer_ids": ["47060"],
+  "states": ["KS"],
+  "fhir_base_url": "https://patient360ks.bcbsdirect.com/P360Member/api/fhir",
+  "sandbox_url": null,
+  "developer_portal": "https://www.bcbsks.com/help/interoperability/developer-api",
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "verification_status": "verified",
+  "last_verified": "2026-01-20",
+  "resources": {
+    "developer_api": "https://www.bcbsks.com/help/interoperability/developer-api",
+    "interoperability": "https://www.bcbsks.com/help/interoperability"
+  },
+  "notes": "BCBS Kansas (separate from Blue KC) serves Kansas state excluding the Kansas City metro area."
+}

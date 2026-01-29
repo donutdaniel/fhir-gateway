@@ -1,0 +1,67 @@
+{
+  "id": "molina",
+  "name": "Molina Healthcare",
+  "display_name": "Molina Healthcare",
+  "type": "payer",
+  "aliases": ["38814"],
+  "patterns": ["molina"],
+  "payer_ids": ["38814"],
+
+  "states": ["ALL"],
+
+  "fhir_base_url": null,
+  "developer_portal": "https://developer.interop.molinahealthcare.com/",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+
+  "endpoints": {
+    "patient_access_base": null,
+    "provider_directory_base": null
+  },
+
+  "implementation_guides": [
+    "USCDI",
+    "CARIN Consumer Directed Payer Data Exchange",
+    "Da Vinci Formulary Drug",
+    "Da Vinci Provider Directory"
+  ],
+
+  "api_products": [
+    "Patient Access API",
+    "Provider Directory API",
+    "Payer-to-Payer API"
+  ],
+
+  "sandbox_features": {
+    "mock_data": true,
+    "provider_directory_public": true,
+    "patient_access_requires_registration": true,
+    "payer_to_payer_requires_registration": true
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://developer.interop.molinahealthcare.com/",
+    "provider_portal": "https://www.molinahealthcare.com/providers/",
+    "api_catalog": "https://developer.interop.molinahealthcare.com/apis",
+    "products": "https://developer.interop.molinahealthcare.com/products",
+    "provider_directory_docs": "https://developer.interop.molinahealthcare.com/content/Provider%20Online%20Directory%20Developer%20Documentation.pdf",
+    "interop_docs": "https://developer.interop.molinahealthcare.com/content/Interoperability%20Product%20Documentation.pdf"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-20",
+
+  "notes": "Molina Healthcare (FORTUNE 500) specializes in Medicaid, Medicare, and Marketplace managed care. Serves ~4 million members in 15 states. API Sandbox includes mock data for testing. Provider Directory API is publicly accessible. Patient Access and Payer-to-Payer APIs require registration."
+}

@@ -1,0 +1,58 @@
+{
+  "id": "aetna",
+  "name": "Aetna",
+  "display_name": "Aetna (a CVS Health Company)",
+  "type": "payer",
+  "aliases": ["cvs", "83109", "60054"],
+  "patterns": ["aetna", "cvs health"],
+  "payer_ids": ["60054", "83109"],
+
+  "developer_portal": "https://developerportal.aetna.com",
+  "support_email": "interoperabilitydevelopersupport@aetna.com",
+
+  "fhir_base_url": null,
+  "sandbox_url": "https://vteapif1.aetna.com/fhirdemo/v1/patientaccess",
+
+  "oauth": {
+    "authorize_url": "https://apif1.aetna.com/fhir/v1/fhirserver_auth/oauth2/authorize",
+    "token_url": "https://apif1.aetna.com/fhir/v1/fhirserver_auth/oauth2/token"
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core 5.0.1", "SMART on FHIR"],
+
+  "endpoints": {
+    "patient_access_base": null,
+    "cdex_submit_attachment": "/clinicaldataexchange/v1/$submit-attachment"
+  },
+
+  "api_products": [
+    "Patient Access API V2",
+    "Provider Directory API",
+    "Clinical Data Exchange (CDex)"
+  ],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": true,
+    "dtr": true,
+    "pas": true,
+    "cdex": true
+  },
+
+  "crd_hooks": ["order-select", "order-sign"],
+
+  "resources": {
+    "clinical_policy_bulletins": "https://www.aetna.com/health-care-professionals/clinical-policy-bulletins.html",
+    "precertification_list": "https://www.aetna.com/health-care-professionals/precertification.html",
+    "getting_started": "https://developerportal.aetna.com/gettingstarted",
+    "token_generation_guide": "https://developerportal.aetna.com/managedcontent/pdfs/Token_Generation_Process-Patient_Access_APIs-Sandbox.pdf",
+    "release_notes": "https://developerportal.aetna.com/managedcontent/pdfs/Previous_Releases.pdf"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-20",
+
+  "notes": "Aetna (CVS Health) - FHIR R4 with US Core 5.0.1 and SMART on FHIR. Supports Da Vinci implementation guides (CRD, DTR, PAS, CDex). Patient Access API V2 available in Sandbox. Production endpoints provided after app registration at developerportal.aetna.com."
+}

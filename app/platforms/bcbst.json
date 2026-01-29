@@ -1,0 +1,45 @@
+{
+  "id": "bcbst",
+  "name": "BlueCross BlueShield of Tennessee",
+  "display_name": "BCBS Tennessee",
+  "type": "payer",
+  "aliases": ["54828"],
+  "patterns": ["bluecross.*tennessee", "bcbs.*tennessee", "bcbs.*tn"],
+  "payer_ids": ["54828"],
+
+  "states": ["TN"],
+
+  "fhir_base_url": null,
+  "developer_portal": "https://www.bcbst.com/developer-resources",
+  "registration_portal": "https://fdp.edifecsfedcloud.com/#/portal/bcbstn/home",
+  "support_email": "BCBST_Interoperability_Support@bcbst.com",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+
+  "endpoints": {
+    "provider_directory_base": "https://api.bcbst.com/r4/providerdirectory/BCBST",
+    "provider_directory_metadata": "https://api.bcbst.com/r4/providerdirectory/BCBST/metadata"
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.bcbst.com/developer-resources",
+    "provider_portal": "https://www.bcbst.com/providers"
+  },
+
+  "verification_status": "unverified",
+  "last_verified": "2026-01-20",
+
+  "notes": "BCBS Tennessee. Payer ID 54828. Provider Directory API is open access at api.bcbst.com. Patient Access API requires registration at fdp.edifecsfedcloud.com. Contact BCBST_Interoperability_Support@bcbst.com for developer support."
+}

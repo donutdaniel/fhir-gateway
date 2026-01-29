@@ -1,0 +1,45 @@
+{
+  "id": "logica",
+  "name": "Logica Health",
+  "display_name": "Logica Health Sandbox",
+  "type": "sandbox",
+  "aliases": ["logica sandbox", "hspc"],
+  "patterns": ["logica"],
+
+  "developer_portal": null,
+  "support_email": null,
+
+  "fhir_base_url": null,
+  "sandbox_url": null,
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "openid", "fhirUser", "patient/*.read", "offline_access"
+    ],
+    "code_challenge_methods": ["S256"]
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "api_products": ["FHIR Sandbox"],
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+
+  "supported_resources": [],
+
+  "client_headers": {},
+
+  "verification_status": "sandbox_only",
+  "last_verified": "2026-01-22",
+
+  "notes": "Logica Health (formerly HSPC) - FHIR R4 sandbox for development and testing. Open-source FHIR sandbox environment."
+}

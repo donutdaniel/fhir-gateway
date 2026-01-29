@@ -1,0 +1,46 @@
+{
+  "id": "bcbsma",
+  "name": "Blue Cross Blue Shield of Massachusetts",
+  "display_name": "BCBS Massachusetts",
+  "type": "payer",
+  "aliases": ["00200"],
+  "patterns": ["bcbsma", "bluecross.*massachusetts", "massachusetts.*blue"],
+  "payer_ids": ["00200"],
+
+  "states": ["MA"],
+
+  "fhir_base_url": null,
+  "developer_portal": "https://developer.bluecrossma.com/interops-fhir",
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+
+  "endpoints": {
+    "patient_access_base": null
+  },
+
+  "fhir_version": "R4 4.0.1",
+  "auth_model": "OAuth 2.0",
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+
+  "resources": {
+    "interoperability_info": "https://www.bluecrossma.org/interoperability",
+    "provider_portal": "https://provider.bluecrossma.com/",
+    "fhir_developer_portal": "https://developer.bluecrossma.com/interops-fhir"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-20",
+
+  "notes": "BCBS Massachusetts. Payer ID 00200. FHIR R4 4.0.1 with OAuth 2.0. Developer registration required at developer.bluecrossma.com. Sandbox available for testing."
+}
