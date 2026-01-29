@@ -37,7 +37,7 @@ class BasePayerAdapter(ABC):
         self,
         client: AsyncFHIRClient,
         platform_info: PlatformInfo | None = None,
-    ):
+    ) -> None:
         """
         Initialize the platform adapter.
 
@@ -65,7 +65,7 @@ class BasePayerAdapter(ABC):
     @abstractmethod
     def adapter_name(self) -> str:
         """Return the name of this adapter for logging/identification."""
-        pass
+        ...
 
     async def initialize_platform_client(
         self,

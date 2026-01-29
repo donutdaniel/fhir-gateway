@@ -382,7 +382,9 @@ class TestAutoRefresh:
         mock_store.get_token.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_refresh_with_lock_concurrent(self, token_manager, mock_store, mock_backend, expiring_soon_token):
+    async def test_refresh_with_lock_concurrent(
+        self, token_manager, mock_store, mock_backend, expiring_soon_token
+    ):
         """Should skip refresh if distributed lock is already held."""
         mock_store.get_token.return_value = expiring_soon_token
 
@@ -401,7 +403,9 @@ class TestAutoRefresh:
         mock_backend.release_refresh_lock.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_refresh_token_failure(self, token_manager, mock_store, mock_backend, expiring_soon_token):
+    async def test_refresh_token_failure(
+        self, token_manager, mock_store, mock_backend, expiring_soon_token
+    ):
         """Should return original token on refresh failure."""
         # Return expiring token on re-check after lock acquired
         mock_store.get_token.return_value = expiring_soon_token
@@ -427,7 +431,9 @@ class TestAutoRefresh:
         mock_backend.release_refresh_lock.assert_called_once_with("session-123", "aetna")
 
     @pytest.mark.asyncio
-    async def test_refresh_token_success(self, token_manager, mock_store, mock_backend, expiring_soon_token):
+    async def test_refresh_token_success(
+        self, token_manager, mock_store, mock_backend, expiring_soon_token
+    ):
         """Should store new token on successful refresh."""
         # First call returns expiring token, second returns it again (re-check after lock)
         mock_store.get_token.side_effect = [expiring_soon_token, expiring_soon_token]
@@ -627,9 +633,7 @@ class TestWaitForAuthWithSignal:
         """Should return immediately if valid token exists."""
         mock_store.get_token.return_value = sample_oauth_token
 
-        result = await token_manager.wait_for_auth_complete(
-            "session-1", "aetna", timeout=10
-        )
+        result = await token_manager.wait_for_auth_complete("session-1", "aetna", timeout=10)
 
         assert result == sample_oauth_token
 
@@ -649,9 +653,7 @@ class TestWaitForAuthWithSignal:
         signal_task = asyncio.create_task(signal_after_delay())
 
         # Wait should complete when signal is sent
-        result = await token_manager.wait_for_auth_complete(
-            "session-1", "aetna", timeout=5
-        )
+        result = await token_manager.wait_for_auth_complete("session-1", "aetna", timeout=5)
 
         await signal_task
 

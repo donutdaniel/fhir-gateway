@@ -61,7 +61,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         description="Get FHIR server capabilities for a resource type. Call this first to discover search parameters."
     )
     async def get_capabilities(
-        platform_id: Annotated[str, Field(description="Platform identifier (e.g., 'aetna', 'cigna')")],
+        platform_id: Annotated[
+            str, Field(description="Platform identifier (e.g., 'aetna', 'cigna')")
+        ],
         ctx: Context,
         resource_type: Annotated[
             str | None, Field(description="FHIR resource type to filter (e.g., 'Patient')")
@@ -81,7 +83,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
                 resource_type=resource_type,
             )
             audit_log(
-                AuditEvent.RESOURCE_READ, platform_id=platform_id, resource_type="CapabilityStatement"
+                AuditEvent.RESOURCE_READ,
+                platform_id=platform_id,
+                resource_type="CapabilityStatement",
             )
             return result
         except Exception as e:
@@ -114,7 +118,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
                 search_params=params,
                 access_token=token,
             )
-            audit_log(AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type=resource_type)
+            audit_log(
+                AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type=resource_type
+            )
             return result
         except Exception as e:
             return handle_exception(e, "search")
@@ -211,7 +217,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             token = await get_access_token(ctx, platform_id)
             client = get_fhir_client(platform_id, token)
             created = await client.resource(resource_type, **resource).save()
-            audit_log(AuditEvent.RESOURCE_CREATE, platform_id=platform_id, resource_type=resource_type)
+            audit_log(
+                AuditEvent.RESOURCE_CREATE, platform_id=platform_id, resource_type=resource_type
+            )
             return dict(created)
         except Exception as e:
             return handle_exception(e, "create")

@@ -6,9 +6,12 @@ app/platforms/{platform_id}.json. It eliminates the need for individual adapter
 files for each platform.
 """
 
+from fhirpy import AsyncFHIRClient
+
 from app.adapters.base import BasePayerAdapter
 from app.config.logging import get_logger
 from app.config.platform import get_platform
+from app.models.platform import PlatformInfo
 
 logger = get_logger(__name__)
 
@@ -22,7 +25,12 @@ class GenericPayerAdapter(BasePayerAdapter):
     dynamically from the platform's JSON config file.
     """
 
-    def __init__(self, platform_id: str, client, platform_info=None):
+    def __init__(
+        self,
+        platform_id: str,
+        client: AsyncFHIRClient,
+        platform_info: PlatformInfo | None = None,
+    ) -> None:
         """
         Initialize the generic platform adapter.
 

@@ -11,7 +11,7 @@ Provides high-level session token management with:
 import asyncio
 from typing import Any
 
-from app.audit import AuditEvent, audit_log
+from app.audit import AuditEvent, audit_log, truncate_session_id
 from app.auth.secure_token_store import (
     InMemoryTokenStorage,
     RedisTokenStorage,
@@ -124,7 +124,7 @@ class SessionTokenManager:
             # Another refresh in progress (possibly on another instance)
             logger.debug(
                 "Token refresh already in progress",
-                session_id=session_id[:16],
+                session_id=truncate_session_id(session_id),
                 platform_id=platform_id,
             )
             return token
@@ -157,7 +157,7 @@ class SessionTokenManager:
 
             logger.info(
                 "Token refreshed successfully",
-                session_id=session_id[:16],
+                session_id=truncate_session_id(session_id),
                 platform_id=platform_id,
             )
 
@@ -174,7 +174,7 @@ class SessionTokenManager:
 
             logger.error(
                 "Token refresh failed",
-                session_id=session_id[:16],
+                session_id=truncate_session_id(session_id),
                 platform_id=platform_id,
                 error=str(e),
             )
@@ -312,7 +312,7 @@ class SessionTokenManager:
         if self._waiter_counts.get(wait_key, 0) > 0:
             logger.warning(
                 "Already waiting for auth completion",
-                session_id=session_id[:16],
+                session_id=truncate_session_id(session_id),
                 platform_id=platform_id,
             )
             return None
@@ -332,7 +332,9 @@ class SessionTokenManager:
                 return token
 
             # Subscribe to backend pub/sub for distributed signaling
-            async with self._backend.subscribe_auth_complete(session_id, platform_id) as backend_event:
+            async with self._backend.subscribe_auth_complete(
+                session_id, platform_id
+            ) as backend_event:
                 local_event = self._auth_waiters[wait_key]
 
                 async def wait_for_either():
@@ -353,7 +355,7 @@ class SessionTokenManager:
                 except asyncio.TimeoutError:
                     logger.debug(
                         "Auth wait timed out",
-                        session_id=session_id[:16],
+                        session_id=truncate_session_id(session_id),
                         platform_id=platform_id,
                     )
                     return None

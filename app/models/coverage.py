@@ -33,7 +33,9 @@ class CoverageRequirement(BaseModel):
     """Result of coverage requirement check (CRD simulation)."""
 
     status: CoverageRequirementStatus = Field(description="Whether prior authorization is required")
-    platform: PlatformReference | None = Field(default=None, description="Platform information if available")
+    platform: PlatformReference | None = Field(
+        default=None, description="Platform information if available"
+    )
     procedure_code: str = Field(description="The procedure code that was checked")
     code_system: str = Field(description="Code system URL (e.g., CPT, HCPCS)")
     questionnaire_url: str | None = Field(

@@ -70,7 +70,9 @@ class PlatformNotFoundError(PlatformError):
             message = f"Platform '{platform_id}' is not registered. Available platforms can be found at /api/platforms"
         elif platform_name:
             message = f"Platform not found by name: {platform_name}"
-        super().__init__(message, details={"platform_id": platform_id, "platform_name": platform_name})
+        super().__init__(
+            message, details={"platform_id": platform_id, "platform_name": platform_name}
+        )
 
 
 class PlatformNotConfiguredError(PlatformError):
@@ -193,7 +195,9 @@ class QuestionnaireNotFoundError(PriorAuthorizationError):
     def __init__(self, procedure_code: str, platform_id: str):
         self.procedure_code = procedure_code
         self.platform_id = platform_id
-        message = f"No questionnaire found for procedure {procedure_code} from platform {platform_id}"
+        message = (
+            f"No questionnaire found for procedure {procedure_code} from platform {platform_id}"
+        )
         super().__init__(
             message,
             details={"procedure_code": procedure_code, "platform_id": platform_id},

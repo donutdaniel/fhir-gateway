@@ -234,7 +234,9 @@ class TestWaitForAuth:
 
         assert result["success"] is True
         assert result["expires_in"] == 3600
-        mock_token_manager.wait_for_auth_complete.assert_called_once_with("sess-123", "test-payer", 300)
+        mock_token_manager.wait_for_auth_complete.assert_called_once_with(
+            "sess-123", "test-payer", 300
+        )
 
     @pytest.mark.asyncio
     async def test_wait_for_auth_timeout(self, mcp, mock_ctx):

@@ -10,6 +10,7 @@ import base64
 import contextlib
 import hashlib
 import json
+import os
 import time
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
@@ -17,6 +18,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
+from app.audit import truncate_session_id
 from app.config.logging import get_logger
 from app.config.settings import get_settings
 from app.models.auth import OAuthToken
@@ -25,6 +27,7 @@ logger = get_logger(__name__)
 
 # Session constants
 SESSION_TTL_SECONDS = 3600  # 1 hour
+STATE_MAPPING_TTL_SECONDS = 900  # 15 minutes for OAuth state mappings
 
 
 class MasterKeyEncryption:
@@ -66,7 +69,7 @@ class MasterKeyEncryption:
 
         Args:
             data: Plain text to encrypt
-            session_id: Session ID used as salt for key derivation
+            session_id: Session ID (kept for API compatibility, not used for salt)
 
         Returns:
             Base64-encoded encrypted data with format: version:salt:ciphertext
@@ -76,8 +79,8 @@ class MasterKeyEncryption:
         except ImportError:
             raise ImportError("cryptography package required for encryption")
 
-        # Use session ID as salt
-        salt = session_id.encode()[:16].ljust(16, b"\0")
+        # Use cryptographically random salt (not session ID which is predictable)
+        salt = os.urandom(16)
         key = self._derive_key(salt)
         f = Fernet(key)
 
@@ -92,7 +95,7 @@ class MasterKeyEncryption:
 
         Args:
             encrypted_data: Encrypted data string
-            session_id: Session ID used as salt for key derivation
+            session_id: Session ID (kept for API compatibility)
 
         Returns:
             Decrypted plain text
@@ -110,8 +113,8 @@ class MasterKeyEncryption:
             if len(parts) != 3 or parts[0] != "v1":
                 raise ValueError("Invalid encrypted data format")
 
-            # Extract salt (though we could recompute from session_id)
-            salt = session_id.encode()[:16].ljust(16, b"\0")
+            # Extract salt from the stored data (not from session_id)
+            salt = base64.urlsafe_b64decode(parts[1])
             key = self._derive_key(salt)
             f = Fernet(key)
 
@@ -166,7 +169,8 @@ class SecureSession:
             "created_at": self.created_at,
             "last_accessed": self.last_accessed,
             "platform_tokens": {
-                platform_id: token.model_dump() for platform_id, token in self.platform_tokens.items()
+                platform_id: token.model_dump()
+                for platform_id, token in self.platform_tokens.items()
             },
             "pending_auth": self.pending_auth,
             "_verification_hash": self._verification_hash,
@@ -196,48 +200,46 @@ class TokenStorageBackend(ABC):
     @abstractmethod
     async def get(self, key: str) -> str | None:
         """Get value by key."""
-        pass
+        ...
 
     @abstractmethod
     async def set(self, key: str, value: str, ttl: int | None = None) -> None:
         """Set key-value pair with optional TTL."""
-        pass
+        ...
 
     @abstractmethod
     async def delete(self, key: str) -> None:
         """Delete key."""
-        pass
+        ...
 
     @abstractmethod
     async def exists(self, key: str) -> bool:
         """Check if key exists."""
-        pass
+        ...
 
     @abstractmethod
     async def keys(self, pattern: str) -> list[str]:
         """Get keys matching pattern."""
-        pass
+        ...
 
     # -------------------------------------------------------------------------
     # OAuth State Mapping (for O(1) state -> session/platform lookup)
     # -------------------------------------------------------------------------
 
     @abstractmethod
-    async def store_state_mapping(
-        self, state: str, session_id: str, platform_id: str
-    ) -> None:
+    async def store_state_mapping(self, state: str, session_id: str, platform_id: str) -> None:
         """Store OAuth state -> (session_id, platform_id) mapping."""
-        pass
+        ...
 
     @abstractmethod
     async def lookup_state_mapping(self, state: str) -> tuple[str, str] | None:
         """Look up (session_id, platform_id) by OAuth state. Returns None if not found."""
-        pass
+        ...
 
     @abstractmethod
     async def delete_state_mapping(self, state: str) -> None:
         """Delete an OAuth state mapping."""
-        pass
+        ...
 
     # -------------------------------------------------------------------------
     # Auth Completion Pub/Sub (for distributed auth signaling)
@@ -246,7 +248,7 @@ class TokenStorageBackend(ABC):
     @abstractmethod
     async def publish_auth_complete(self, session_id: str, platform_id: str) -> None:
         """Publish an auth-complete event for cross-instance signaling."""
-        pass
+        ...
 
     @abstractmethod
     @asynccontextmanager
@@ -261,24 +263,26 @@ class TokenStorageBackend(ABC):
     # -------------------------------------------------------------------------
 
     @abstractmethod
-    async def acquire_refresh_lock(
-        self, session_id: str, platform_id: str, ttl: int = 30
-    ) -> bool:
+    async def acquire_refresh_lock(self, session_id: str, platform_id: str, ttl: int = 30) -> bool:
         """Acquire a distributed refresh lock. Returns True if acquired."""
-        pass
+        ...
 
     @abstractmethod
     async def release_refresh_lock(self, session_id: str, platform_id: str) -> None:
         """Release a distributed refresh lock."""
-        pass
+        ...
 
 
 class InMemoryTokenStorage(TokenStorageBackend):
     """In-memory token storage for development/testing."""
 
+    # State mapping TTL in seconds (15 minutes, matching Redis behavior)
+    STATE_MAPPING_TTL = 900
+
     def __init__(self):
         self._store: dict[str, tuple[str, float | None]] = {}  # key -> (value, expires_at)
-        self._state_mappings: dict[str, tuple[str, str]] = {}  # state -> (session_id, platform_id)
+        # state -> (session_id, platform_id, expires_at)
+        self._state_mappings: dict[str, tuple[str, str, float]] = {}
         self._refresh_locks: dict[str, bool] = {}  # "{session_id}:{platform_id}" -> locked
 
     async def get(self, key: str) -> str | None:
@@ -311,17 +315,30 @@ class InMemoryTokenStorage(TokenStorageBackend):
         expired = [k for k, (_, exp) in self._store.items() if exp and now > exp]
         for k in expired:
             del self._store[k]
-        return len(expired)
+
+        # Also cleanup expired state mappings
+        expired_states = [s for s, (_, _, exp) in self._state_mappings.items() if now > exp]
+        for s in expired_states:
+            del self._state_mappings[s]
+
+        return len(expired) + len(expired_states)
 
     # -- State mapping methods --
 
-    async def store_state_mapping(
-        self, state: str, session_id: str, platform_id: str
-    ) -> None:
-        self._state_mappings[state] = (session_id, platform_id)
+    async def store_state_mapping(self, state: str, session_id: str, platform_id: str) -> None:
+        expires_at = time.time() + self.STATE_MAPPING_TTL
+        self._state_mappings[state] = (session_id, platform_id, expires_at)
 
     async def lookup_state_mapping(self, state: str) -> tuple[str, str] | None:
-        return self._state_mappings.get(state)
+        mapping = self._state_mappings.get(state)
+        if mapping is None:
+            return None
+        session_id, platform_id, expires_at = mapping
+        # Check if expired
+        if time.time() > expires_at:
+            del self._state_mappings[state]
+            return None
+        return (session_id, platform_id)
 
     async def delete_state_mapping(self, state: str) -> None:
         self._state_mappings.pop(state, None)
@@ -341,9 +358,7 @@ class InMemoryTokenStorage(TokenStorageBackend):
 
     # -- Refresh lock methods --
 
-    async def acquire_refresh_lock(
-        self, session_id: str, platform_id: str, ttl: int = 30
-    ) -> bool:
+    async def acquire_refresh_lock(self, session_id: str, platform_id: str, ttl: int = 30) -> bool:
         key = f"{session_id}:{platform_id}"
         if self._refresh_locks.get(key):
             return False
@@ -439,12 +454,10 @@ class RedisTokenStorage(TokenStorageBackend):
     def _state_mapping_key(self, state: str) -> str:
         return f"fhir:oauth_state:{state}"
 
-    async def store_state_mapping(
-        self, state: str, session_id: str, platform_id: str
-    ) -> None:
+    async def store_state_mapping(self, state: str, session_id: str, platform_id: str) -> None:
         client = await self._get_client()
         data = json.dumps({"session_id": session_id, "platform_id": platform_id})
-        await client.setex(self._state_mapping_key(state), 900, data)  # 15min TTL
+        await client.setex(self._state_mapping_key(state), STATE_MAPPING_TTL_SECONDS, data)
 
     async def lookup_state_mapping(self, state: str) -> tuple[str, str] | None:
         client = await self._get_client()
@@ -465,9 +478,7 @@ class RedisTokenStorage(TokenStorageBackend):
 
     async def publish_auth_complete(self, session_id: str, platform_id: str) -> None:
         client = await self._get_client()
-        await client.publish(
-            self._auth_complete_channel(session_id, platform_id), "complete"
-        )
+        await client.publish(self._auth_complete_channel(session_id, platform_id), "complete")
 
     @asynccontextmanager
     async def subscribe_auth_complete(
@@ -503,9 +514,7 @@ class RedisTokenStorage(TokenStorageBackend):
     def _refresh_lock_key(self, session_id: str, platform_id: str) -> str:
         return f"fhir:refresh_lock:{session_id}:{platform_id}"
 
-    async def acquire_refresh_lock(
-        self, session_id: str, platform_id: str, ttl: int = 30
-    ) -> bool:
+    async def acquire_refresh_lock(self, session_id: str, platform_id: str, ttl: int = 30) -> bool:
         client = await self._get_client()
         result = await client.set(
             self._refresh_lock_key(session_id, platform_id),
@@ -589,13 +598,15 @@ class SecureTokenStore:
 
             # Verify session integrity
             if not session.verify():
-                logger.warning("Session integrity check failed", session_id=session_id[:16])
+                logger.warning(
+                    "Session integrity check failed", session_id=truncate_session_id(session_id)
+                )
                 await self._backend.delete(key)
                 return None
 
             # Check expiration
             if session.is_expired(self._session_ttl):
-                logger.debug("Session expired", session_id=session_id[:16])
+                logger.debug("Session expired", session_id=truncate_session_id(session_id))
                 await self._backend.delete(key)
                 return None
 
@@ -610,7 +621,7 @@ class SecureTokenStore:
         """Create a new session."""
         session = SecureSession(session_id=session_id)
         await self.save_session(session)
-        logger.debug("Session created", session_id=session_id[:16])
+        logger.debug("Session created", session_id=truncate_session_id(session_id))
         return session
 
     async def save_session(self, session: SecureSession) -> None:
@@ -624,7 +635,7 @@ class SecureTokenStore:
         """Delete a session."""
         key = self._make_key(session_id)
         await self._backend.delete(key)
-        logger.debug("Session deleted", session_id=session_id[:16])
+        logger.debug("Session deleted", session_id=truncate_session_id(session_id))
 
     async def get_or_create_session(self, session_id: str) -> SecureSession:
         """Get existing session or create new one."""
@@ -645,7 +656,7 @@ class SecureTokenStore:
         await self.save_session(session)
         logger.debug(
             "Token stored",
-            session_id=session_id[:16],
+            session_id=truncate_session_id(session_id),
             platform_id=platform_id,
         )
 

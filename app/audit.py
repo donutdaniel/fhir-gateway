@@ -62,6 +62,17 @@ class AuditEvent:
     PLATFORM_ERROR = "error.platform"
 
 
+# Logging constants
+SESSION_ID_VISIBLE_CHARS = 16
+
+
+def truncate_session_id(session_id: str, visible_chars: int = SESSION_ID_VISIBLE_CHARS) -> str:
+    """Truncate session ID for logging while preserving enough for correlation."""
+    if len(session_id) > visible_chars:
+        return session_id[:visible_chars] + "..."
+    return session_id
+
+
 def audit_log(
     event: str,
     *,
@@ -94,8 +105,7 @@ def audit_log(
     }
 
     if session_id:
-        # Truncate for privacy but keep enough for correlation
-        log_data["session_id"] = session_id[:16] + "..." if len(session_id) > 16 else session_id
+        log_data["session_id"] = truncate_session_id(session_id)
     if platform_id:
         log_data["platform_id"] = platform_id
     if resource_type:

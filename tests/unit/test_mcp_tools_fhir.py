@@ -131,7 +131,9 @@ class TestGetCapabilities:
         assert result["status"] == "active"
 
     @pytest.mark.asyncio
-    async def test_get_capabilities_with_resource_type(self, mcp, mock_capability_statement, mock_ctx):
+    async def test_get_capabilities_with_resource_type(
+        self, mcp, mock_capability_statement, mock_ctx
+    ):
         """Should filter capabilities by resource type."""
         with patch(
             "app.mcp.tools.fhir.fetch_capability_statement",

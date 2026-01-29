@@ -146,6 +146,31 @@ async def oauth_callback(
     platform_id = pending_auth["platform_id"]
     pkce_verifier = pending_auth["pkce_verifier"]
 
+    # Validate platform still exists and has OAuth configured
+    platform = get_platform(platform_id)
+    if not platform or not platform.oauth:
+        audit_log(
+            AuditEvent.AUTH_FAILURE,
+            session_id=session_id,
+            platform_id=platform_id,
+            success=False,
+            error="Platform not found or OAuth not configured",
+        )
+        return HTMLResponse(
+            content="""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Platform Error</title></head>
+            <body>
+                <h1>Platform Error</h1>
+                <p>The platform is no longer available or OAuth is not configured.</p>
+            </body>
+            </html>
+            """,
+            status_code=400,
+            headers={"Content-Security-Policy": CSP_HEADER},
+        )
+
     # Exchange code for tokens
     try:
         oauth_service = OAuthService(
@@ -171,7 +196,7 @@ async def oauth_callback(
             platform_id=platform_id,
         )
 
-        platform = get_platform(platform_id)
+        # platform was already validated above, use it directly
         platform_name = html.escape(platform.display_name if platform else platform_id)
 
         response = HTMLResponse(

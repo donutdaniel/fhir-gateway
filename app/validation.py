@@ -15,21 +15,23 @@ PLATFORM_ID_PATTERN = re.compile(r"^[a-z][a-z0-9\-]+$")
 PROCEDURE_CODE_PATTERN = re.compile(r"^[A-Z0-9]{3,10}$")
 
 # Allowed FHIR operations
-ALLOWED_OPERATIONS = frozenset({
-    "$everything",
-    "$validate",
-    "$summary",
-    "$document",
-    "$expand",
-    "$lookup",
-    "$translate",
-    "$subsumes",
-    "$closure",
-    "$process-message",
-    "$evaluate-measure",
-    "$submit-data",
-    "$collect-data",
-})
+ALLOWED_OPERATIONS = frozenset(
+    {
+        "$everything",
+        "$validate",
+        "$summary",
+        "$document",
+        "$expand",
+        "$lookup",
+        "$translate",
+        "$subsumes",
+        "$closure",
+        "$process-message",
+        "$evaluate-measure",
+        "$submit-data",
+        "$collect-data",
+    }
+)
 
 
 class ValidationError(ValueError):

@@ -30,7 +30,9 @@ def handle_exception(e: Exception, operation: str) -> dict[str, Any]:
         return error_response("platform_not_found", f"Platform '{e.platform_id}' not found")
 
     if isinstance(e, PlatformNotConfiguredError):
-        return error_response("platform_not_configured", f"Platform '{e.platform_id}' has no FHIR endpoint")
+        return error_response(
+            "platform_not_configured", f"Platform '{e.platform_id}' has no FHIR endpoint"
+        )
 
     if isinstance(e, ResourceNotFound):
         return error_response("not_found", "Resource not found")

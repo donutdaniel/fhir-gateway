@@ -80,7 +80,9 @@ class TestCheckRequirements:
         assert data["procedure_code"] == "27447"
         assert data["documentation_required"] is True
 
-    def test_check_requirements_with_custom_code_system(self, client, mock_fhir_client, mock_coverage_result):
+    def test_check_requirements_with_custom_code_system(
+        self, client, mock_fhir_client, mock_coverage_result
+    ):
         """Should use custom code system."""
         with (
             patch("app.routers.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -104,7 +106,9 @@ class TestCheckRequirements:
         assert response.status_code == 200
         mock_check.assert_called_once()
         call_kwargs = mock_check.call_args.kwargs
-        assert call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        assert (
+            call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        )
 
     def test_check_requirements_invalid_patient_id(self, client):
         """Should return 400 for invalid patient_id."""
@@ -246,7 +250,9 @@ class TestGetQuestionnairePackage:
         data = response.json()
         assert data["resourceType"] == "Bundle"
 
-    def test_get_questionnaire_package_with_url(self, client, mock_fhir_client, mock_package_result):
+    def test_get_questionnaire_package_with_url(
+        self, client, mock_fhir_client, mock_package_result
+    ):
         """Should pass questionnaire URL to service."""
         with (
             patch("app.routers.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -353,7 +359,9 @@ class TestGetRules:
         assert response.status_code == 200
         mock_get_rules.assert_called_once()
         call_kwargs = mock_get_rules.call_args.kwargs
-        assert call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        assert (
+            call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        )
 
     def test_get_rules_platform_not_found(self, client, mock_fhir_client):
         """Should return 404 when platform not found."""

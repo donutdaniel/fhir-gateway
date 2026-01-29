@@ -314,7 +314,9 @@ class TestEncryptionPerformance:
 
         encryption = MasterKeyEncryption("test-master-key-for-benchmarks")
 
-        token_data = '{"access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9", "token_type": "Bearer"}'
+        token_data = (
+            '{"access_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9", "token_type": "Bearer"}'
+        )
         session_id = "test-session-123"
 
         iterations = 100

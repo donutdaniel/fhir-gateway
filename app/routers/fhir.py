@@ -156,7 +156,9 @@ async def read_resource(
         return resource
 
     except Exception as e:
-        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)
+        handle_fhir_error(
+            e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id
+        )
 
 
 @router.get("/{platform_id}/{resource_type}/{resource_id}/{operation}")
@@ -205,7 +207,9 @@ async def execute_operation(
         return result
 
     except Exception as e:
-        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)
+        handle_fhir_error(
+            e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id
+        )
 
 
 @router.post("/{platform_id}/{resource_type}")
@@ -308,7 +312,9 @@ async def update_resource(
         return updated
 
     except Exception as e:
-        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)
+        handle_fhir_error(
+            e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id
+        )
 
 
 @router.delete("/{platform_id}/{resource_type}/{resource_id}")
@@ -355,4 +361,6 @@ async def delete_resource(
         }
 
     except Exception as e:
-        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)
+        handle_fhir_error(
+            e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id
+        )

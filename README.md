@@ -217,9 +217,6 @@ GET /auth/status
 # Wait for auth to complete (for programmatic use)
 GET /auth/{platform_id}/wait
 
-# Get token (internal use)
-GET /auth/token/{platform_id}
-
 # Logout
 POST /auth/{platform_id}/logout
 ```

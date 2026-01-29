@@ -256,7 +256,9 @@ class TestPlatformAdapterRegistry:
             assert PlatformAdapterRegistry._resolve_platform_id("tp1") == "test-payer-1"
 
             # Check patterns were registered
-            assert PlatformAdapterRegistry._resolve_platform_id("testpayer-variant") == "test-payer-1"
+            assert (
+                PlatformAdapterRegistry._resolve_platform_id("testpayer-variant") == "test-payer-1"
+            )
 
     def test_auto_register_invalid_json(self):
         """Test auto-register handles invalid JSON gracefully."""

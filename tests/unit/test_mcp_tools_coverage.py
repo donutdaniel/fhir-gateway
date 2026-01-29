@@ -61,7 +61,9 @@ class TestCheckPriorAuth:
         )
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_success(self, mcp, mock_fhir_client, mock_coverage_result, mock_ctx):
+    async def test_check_prior_auth_success(
+        self, mcp, mock_fhir_client, mock_coverage_result, mock_ctx
+    ):
         """Should return coverage requirements for valid request."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -88,7 +90,9 @@ class TestCheckPriorAuth:
         assert result["documentation_required"] is True
 
     @pytest.mark.asyncio
-    async def test_check_prior_auth_with_custom_code_system(self, mcp, mock_fhir_client, mock_coverage_result, mock_ctx):
+    async def test_check_prior_auth_with_custom_code_system(
+        self, mcp, mock_fhir_client, mock_coverage_result, mock_ctx
+    ):
         """Should use custom code system."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -113,7 +117,9 @@ class TestCheckPriorAuth:
 
         mock_check.assert_called_once()
         call_kwargs = mock_check.call_args.kwargs
-        assert call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        assert (
+            call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        )
 
     @pytest.mark.asyncio
     async def test_check_prior_auth_invalid_platform_id(self, mcp, mock_ctx):
@@ -248,7 +254,9 @@ class TestGetQuestionnairePackage:
         }
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_success(self, mcp, mock_fhir_client, mock_package_result, mock_ctx):
+    async def test_get_questionnaire_package_success(
+        self, mcp, mock_fhir_client, mock_package_result, mock_ctx
+    ):
         """Should return questionnaire package for valid request."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -271,7 +279,9 @@ class TestGetQuestionnairePackage:
         assert "questionnaires" in result
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_raw_format(self, mcp, mock_fhir_client, mock_raw_bundle, mock_ctx):
+    async def test_get_questionnaire_package_raw_format(
+        self, mcp, mock_fhir_client, mock_raw_bundle, mock_ctx
+    ):
         """Should return raw bundle when raw_format=True."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -295,7 +305,9 @@ class TestGetQuestionnairePackage:
         assert result["resourceType"] == "Bundle"
 
     @pytest.mark.asyncio
-    async def test_get_questionnaire_package_with_url(self, mcp, mock_fhir_client, mock_package_result, mock_ctx):
+    async def test_get_questionnaire_package_with_url(
+        self, mcp, mock_fhir_client, mock_package_result, mock_ctx
+    ):
         """Should pass questionnaire URL to service."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -395,7 +407,9 @@ class TestGetPolicyRules:
         )
 
     @pytest.mark.asyncio
-    async def test_get_policy_rules_success(self, mcp, mock_fhir_client, mock_rules_result, mock_ctx):
+    async def test_get_policy_rules_success(
+        self, mcp, mock_fhir_client, mock_rules_result, mock_ctx
+    ):
         """Should return policy rules for valid request."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -420,7 +434,9 @@ class TestGetPolicyRules:
         assert "markdown_summary" in result
 
     @pytest.mark.asyncio
-    async def test_get_policy_rules_with_custom_code_system(self, mcp, mock_fhir_client, mock_rules_result, mock_ctx):
+    async def test_get_policy_rules_with_custom_code_system(
+        self, mcp, mock_fhir_client, mock_rules_result, mock_ctx
+    ):
         """Should use custom code system."""
         with (
             patch("app.mcp.tools.coverage.get_fhir_client", return_value=mock_fhir_client),
@@ -443,7 +459,9 @@ class TestGetPolicyRules:
 
         mock_get_rules.assert_called_once()
         call_kwargs = mock_get_rules.call_args.kwargs
-        assert call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        assert (
+            call_kwargs["code_system"] == "https://www.cms.gov/Medicare/Coding/HCPCSReleaseCodeSets"
+        )
 
     @pytest.mark.asyncio
     async def test_get_policy_rules_invalid_platform_id(self, mcp, mock_ctx):

@@ -129,7 +129,9 @@ def register_auth_tools(mcp: FastMCP) -> None:
             status = await token_manager.get_auth_status(session_id)
 
             if platform_id:
-                platform_status = status.get(platform_id, {"authenticated": False, "has_token": False})
+                platform_status = status.get(
+                    platform_id, {"authenticated": False, "has_token": False}
+                )
                 return {"session_id": session_id, "platform_id": platform_id, **platform_status}
 
             return {"session_id": session_id, "platforms": status}

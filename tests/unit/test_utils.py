@@ -2,7 +2,6 @@
 Tests for FHIR utility functions.
 """
 
-
 from app.utils import (
     FHIR_JSON_CONTENT_TYPE,
     extract_bearer_token,

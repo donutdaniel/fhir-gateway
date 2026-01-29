@@ -8,7 +8,6 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from app.models.auth import OAuthToken
 from app.routers.auth import router as auth_router
 from app.routers.oauth import router as oauth_router
 
@@ -111,9 +110,7 @@ class TestLogin:
             mock_settings.return_value.session_max_age = 3600
             mock_settings.return_value.session_cookie_secure = False
 
-            client.get(
-                "/auth/test-payer/login?redirect=false&scopes=openid%20patient/*.read"
-            )
+            client.get("/auth/test-payer/login?redirect=false&scopes=openid%20patient/*.read")
 
         mock_oauth_service.build_authorization_url.assert_called_once_with(
             scopes=["openid", "patient/*.read"]
@@ -189,6 +186,59 @@ class TestOAuthCallback:
         assert response.status_code == 400
         assert "Invalid State" in response.text
 
+    def test_callback_platform_not_found(self, client):
+        """Should return error when platform is not found."""
+        mock_token_manager = AsyncMock()
+        mock_token_manager.get_pending_auth_by_state = AsyncMock(
+            return_value={
+                "session_id": "test-session",
+                "platform_id": "missing-platform",
+                "state": "test-state",
+                "pkce_verifier": "test-verifier",
+            }
+        )
+
+        with (
+            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.get_platform", return_value=None),
+            patch("app.routers.oauth.audit_log"),
+        ):
+            mock_settings.return_value.session_cookie_name = "fhir_session"
+
+            response = client.get("/oauth/callback?code=test-code&state=test-state")
+
+        assert response.status_code == 400
+        assert "Platform Error" in response.text
+
+    def test_callback_platform_no_oauth(self, client):
+        """Should return error when platform has no OAuth configured."""
+        mock_token_manager = AsyncMock()
+        mock_token_manager.get_pending_auth_by_state = AsyncMock(
+            return_value={
+                "session_id": "test-session",
+                "platform_id": "test-payer",
+                "state": "test-state",
+                "pkce_verifier": "test-verifier",
+            }
+        )
+
+        mock_platform = MagicMock()
+        mock_platform.oauth = None
+
+        with (
+            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.get_platform", return_value=mock_platform),
+            patch("app.routers.oauth.audit_log"),
+        ):
+            mock_settings.return_value.session_cookie_name = "fhir_session"
+
+            response = client.get("/oauth/callback?code=test-code&state=test-state")
+
+        assert response.status_code == 400
+        assert "Platform Error" in response.text
+
     def test_callback_success(self, client):
         """Should exchange code and store token successfully."""
         mock_token = MagicMock()
@@ -211,6 +261,7 @@ class TestOAuthCallback:
 
         mock_platform = MagicMock()
         mock_platform.display_name = "Test Platform"
+        mock_platform.oauth = MagicMock()  # Explicitly set OAuth config
 
         with (
             patch("app.routers.oauth.get_settings") as mock_settings,
@@ -246,9 +297,13 @@ class TestOAuthCallback:
         mock_oauth_service = MagicMock()
         mock_oauth_service.exchange_code = AsyncMock(side_effect=Exception("Exchange failed"))
 
+        mock_platform = MagicMock()
+        mock_platform.oauth = MagicMock()
+
         with (
             patch("app.routers.oauth.get_settings") as mock_settings,
             patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.get_platform", return_value=mock_platform),
             patch("app.routers.oauth.OAuthService", return_value=mock_oauth_service),
             patch("app.routers.oauth.audit_log"),
         ):
@@ -366,67 +421,6 @@ class TestLogout:
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True
-
-
-class TestGetToken:
-    """Tests for GET /auth/token/{platform_id}."""
-
-    def test_get_token_success(self, client):
-        """Should return token info for authenticated platform."""
-        mock_token = OAuthToken(
-            access_token="test-access-token",
-            token_type="Bearer",
-            expires_in=3600,
-        )
-
-        mock_token_manager = AsyncMock()
-        mock_token_manager.get_token = AsyncMock(return_value=mock_token)
-
-        with (
-            patch("app.routers.auth.get_settings") as mock_settings,
-            patch("app.routers.auth.get_token_manager", return_value=mock_token_manager),
-        ):
-            mock_settings.return_value.session_cookie_name = "fhir_session"
-
-            response = client.get("/auth/token/test-payer")
-
-        assert response.status_code == 200
-        data = response.json()
-        assert data["access_token"] == "test-access-token"
-        assert data["token_type"] == "Bearer"
-
-    def test_get_token_not_found(self, client):
-        """Should return 401 when no token exists."""
-        mock_token_manager = AsyncMock()
-        mock_token_manager.get_token = AsyncMock(return_value=None)
-
-        with (
-            patch("app.routers.auth.get_settings") as mock_settings,
-            patch("app.routers.auth.get_token_manager", return_value=mock_token_manager),
-        ):
-            mock_settings.return_value.session_cookie_name = "fhir_session"
-
-            response = client.get("/auth/token/test-payer")
-
-        assert response.status_code == 401
-
-    def test_get_token_expired(self, client):
-        """Should return 401 when token is expired."""
-        mock_token = MagicMock()
-        mock_token.is_expired = True
-
-        mock_token_manager = AsyncMock()
-        mock_token_manager.get_token = AsyncMock(return_value=mock_token)
-
-        with (
-            patch("app.routers.auth.get_settings") as mock_settings,
-            patch("app.routers.auth.get_token_manager", return_value=mock_token_manager),
-        ):
-            mock_settings.return_value.session_cookie_name = "fhir_session"
-
-            response = client.get("/auth/token/test-payer")
-
-        assert response.status_code == 401
 
 
 class TestWaitForAuth:

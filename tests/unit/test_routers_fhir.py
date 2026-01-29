@@ -249,7 +249,9 @@ class TestExecuteOperation:
         """Create mock FHIR client."""
         client = MagicMock()
         mock_resource = MagicMock()
-        mock_resource.execute = AsyncMock(return_value={"resourceType": "Bundle", "type": "searchset"})
+        mock_resource.execute = AsyncMock(
+            return_value={"resourceType": "Bundle", "type": "searchset"}
+        )
         client.resource = MagicMock(return_value=mock_resource)
         return client
 

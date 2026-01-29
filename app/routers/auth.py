@@ -29,10 +29,8 @@ from app.services.oauth import OAuthService
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def get_session_id(request: Request, explicit_session_id: str | None = None) -> str:
-    """Get session ID from explicit param, cookie, or create new one."""
-    if explicit_session_id:
-        return explicit_session_id
+def get_session_id(request: Request) -> str:
+    """Get session ID from cookie or create new one."""
     settings = get_settings()
     session_id = request.cookies.get(settings.session_cookie_name)
     if not session_id:
@@ -59,7 +57,6 @@ async def login(
     request: Request,
     redirect: bool = Query(True, description="Redirect to auth URL or return JSON"),
     scopes: str | None = Query(None, description="Space-separated OAuth scopes"),
-    session_id: str | None = Query(None, description="Explicit session ID (for MCP)"),
 ):
     """
     Initiate OAuth login flow for a platform.
@@ -68,7 +65,6 @@ async def login(
         platform_id: The platform identifier
         redirect: If True, redirect to auth URL; if False, return JSON
         scopes: Optional OAuth scopes (space-separated)
-        session_id: Explicit session ID (used by MCP tools)
     """
     platform = get_platform(platform_id)
     if not platform:
@@ -82,7 +78,7 @@ async def login(
 
     settings = get_settings()
     callback_url = settings.oauth_redirect_uri
-    session_id = get_session_id(request, session_id)
+    session_id = get_session_id(request)
 
     try:
         oauth_service = OAuthService(
@@ -208,36 +204,6 @@ async def logout(platform_id: str, request: Request) -> dict[str, Any]:
         "success": True,
         "message": f"Logged out from {platform_id}",
         "token_revoked": revoked,
-    }
-
-
-@router.get("/token/{platform_id}")
-async def get_token(platform_id: str, request: Request) -> dict[str, Any]:
-    """
-    Get the current access token for a platform (internal use).
-
-    This endpoint is for internal use to retrieve tokens for FHIR requests.
-    In production, tokens should be handled server-side only.
-
-    Args:
-        platform_id: The platform identifier
-    """
-    session_id = get_session_id(request)
-    token_manager = get_token_manager()
-
-    # Get token with auto-refresh
-    token = await token_manager.get_token(session_id, platform_id, auto_refresh=True)
-
-    if not token:
-        raise HTTPException(status_code=401, detail=f"No token for platform '{platform_id}'")
-
-    if token.is_expired:
-        raise HTTPException(status_code=401, detail="Token expired, re-authentication required")
-
-    return {
-        "access_token": token.access_token,
-        "token_type": token.token_type,
-        "expires_in": int(token.seconds_until_expiry() or 0),
     }
 
 

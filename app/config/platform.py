@@ -270,7 +270,9 @@ class PlatformDefinition:
             verification_status=data.get("verification_status"),
             last_verified=data.get("last_verified"),
             states=data.get("states"),
-            platform_ids=data.get("payer_ids"),  # Keep reading payer_ids from JSON for compatibility
+            platform_ids=data.get(
+                "payer_ids"
+            ),  # Keep reading payer_ids from JSON for compatibility
             fhir_version=data.get("fhir_version"),
             implementation_guides=data.get("implementation_guides"),
             api_products=data.get("api_products"),

@@ -117,7 +117,6 @@ The gateway supports session-scoped OAuth token management:
 | `/oauth/callback` | GET | OAuth callback |
 | `/auth/status` | GET | Auth status |
 | `/auth/{platform_id}/wait` | GET | Wait for auth |
-| `/auth/token/{platform_id}` | GET | Get token |
 | `/auth/{platform_id}/logout` | POST | Logout |
 
 ### MCP Transport

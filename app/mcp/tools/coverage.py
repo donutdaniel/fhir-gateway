@@ -58,7 +58,9 @@ def register_coverage_tools(mcp: FastMCP) -> None:
                 platform_id=platform_id,
             )
             audit_log(
-                AuditEvent.RESOURCE_READ, platform_id=platform_id, resource_type="CoverageRequirements"
+                AuditEvent.RESOURCE_READ,
+                platform_id=platform_id,
+                resource_type="CoverageRequirements",
             )
             return result.model_dump(exclude_none=True)
         except Exception as e:
@@ -93,7 +95,9 @@ def register_coverage_tools(mcp: FastMCP) -> None:
                 platform_id=platform_id,
             )
             audit_log(
-                AuditEvent.RESOURCE_READ, platform_id=platform_id, resource_type="QuestionnairePackage"
+                AuditEvent.RESOURCE_READ,
+                platform_id=platform_id,
+                resource_type="QuestionnairePackage",
             )
             if isinstance(result, dict):
                 return result
@@ -123,7 +127,9 @@ def register_coverage_tools(mcp: FastMCP) -> None:
                 procedure_code=procedure_code,
                 code_system=code_system,
             )
-            audit_log(AuditEvent.RESOURCE_READ, platform_id=platform_id, resource_type="PlatformRules")
+            audit_log(
+                AuditEvent.RESOURCE_READ, platform_id=platform_id, resource_type="PlatformRules"
+            )
             return result.model_dump(exclude_none=True)
         except Exception as e:
             return handle_exception(e, "get_policy_rules")

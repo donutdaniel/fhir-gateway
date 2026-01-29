@@ -23,9 +23,7 @@ class TestBundleContract:
             "resourceType": "Bundle",
             "type": "searchset",
             "total": 2,
-            "link": [
-                {"relation": "self", "url": "https://example.org/Patient?name=Smith"}
-            ],
+            "link": [{"relation": "self", "url": "https://example.org/Patient?name=Smith"}],
             "entry": [
                 {
                     "fullUrl": "https://example.org/Patient/123",
@@ -393,9 +391,9 @@ class TestReferenceContract:
             has_identifier = "identifier" in ref
             has_display = "display" in ref
 
-            assert (
-                has_reference or has_identifier or has_display
-            ), "Reference must have reference, identifier, or display"
+            assert has_reference or has_identifier or has_display, (
+                "Reference must have reference, identifier, or display"
+            )
 
     def test_relative_reference_format(self, valid_references):
         """Relative references should be ResourceType/id."""
@@ -406,14 +404,12 @@ class TestReferenceContract:
                 reference = ref["reference"]
                 # Either relative (Type/id) or absolute URL
                 is_relative = re.match(r"^[A-Z][a-zA-Z]+/[A-Za-z0-9\-\.]+$", reference)
-                is_absolute = reference.startswith("http://") or reference.startswith(
-                    "https://"
-                )
+                is_absolute = reference.startswith("http://") or reference.startswith("https://")
                 is_urn = reference.startswith("urn:")
 
-                assert (
-                    is_relative or is_absolute or is_urn
-                ), f"Invalid reference format: {reference}"
+                assert is_relative or is_absolute or is_urn, (
+                    f"Invalid reference format: {reference}"
+                )
 
 
 class TestCodeableConceptContract:

@@ -67,9 +67,7 @@ class TestFHIRMetadata:
 
     def test_capability_statement_resource_filter(self, client, sandbox_platform):
         """Should filter capabilities by resource type."""
-        response = client.get(
-            f"/api/fhir/{sandbox_platform}/metadata?resource_type=Patient"
-        )
+        response = client.get(f"/api/fhir/{sandbox_platform}/metadata?resource_type=Patient")
 
         if response.status_code == 503:
             pytest.skip("Sandbox server unavailable")
@@ -101,9 +99,7 @@ class TestFHIRSearch:
 
     def test_search_patients_by_name(self, client, sandbox_platform):
         """Should search patients by name."""
-        response = client.get(
-            f"/api/fhir/{sandbox_platform}/Patient?family=Smith&_count=5"
-        )
+        response = client.get(f"/api/fhir/{sandbox_platform}/Patient?family=Smith&_count=5")
 
         if response.status_code == 503:
             pytest.skip("Sandbox server unavailable")
@@ -136,9 +132,7 @@ class TestFHIRSearch:
 
     def test_search_with_multiple_params(self, client, sandbox_platform):
         """Should handle multiple search parameters."""
-        response = client.get(
-            f"/api/fhir/{sandbox_platform}/Patient?_count=3&_sort=-_lastUpdated"
-        )
+        response = client.get(f"/api/fhir/{sandbox_platform}/Patient?_count=3&_sort=-_lastUpdated")
 
         if response.status_code == 503:
             pytest.skip("Sandbox server unavailable")
@@ -165,9 +159,7 @@ class TestFHIRRead:
 
     def test_read_patient(self, client, sandbox_platform, sample_patient_id):
         """Should read a specific patient resource."""
-        response = client.get(
-            f"/api/fhir/{sandbox_platform}/Patient/{sample_patient_id}"
-        )
+        response = client.get(f"/api/fhir/{sandbox_platform}/Patient/{sample_patient_id}")
 
         assert response.status_code == 200
         data = response.json()
@@ -177,9 +169,7 @@ class TestFHIRRead:
 
     def test_read_nonexistent_resource(self, client, sandbox_platform):
         """Should return 404 for nonexistent resource."""
-        response = client.get(
-            f"/api/fhir/{sandbox_platform}/Patient/nonexistent-id-12345"
-        )
+        response = client.get(f"/api/fhir/{sandbox_platform}/Patient/nonexistent-id-12345")
 
         # Should be 404, but some servers may return different codes
         assert response.status_code in [404, 410, 500]
@@ -200,7 +190,10 @@ class TestOAuthFlow:
         assert data["platform_id"] == sandbox_platform
 
         # Verify URL points to sandbox auth server
-        assert "smart" in data["authorization_url"].lower() or "auth" in data["authorization_url"].lower()
+        assert (
+            "smart" in data["authorization_url"].lower()
+            or "auth" in data["authorization_url"].lower()
+        )
 
     def test_oauth_state_is_unique(self, client, sandbox_platform):
         """Should generate unique state for each OAuth request."""
@@ -218,9 +211,7 @@ class TestOAuthFlow:
     def test_oauth_with_custom_scopes(self, client, sandbox_platform):
         """Should include custom scopes in authorization URL."""
         scopes = "openid patient/*.read"
-        response = client.get(
-            f"/auth/{sandbox_platform}/login?redirect=false&scopes={scopes}"
-        )
+        response = client.get(f"/auth/{sandbox_platform}/login?redirect=false&scopes={scopes}")
 
         assert response.status_code == 200
         data = response.json()
