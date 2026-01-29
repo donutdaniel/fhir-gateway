@@ -49,6 +49,8 @@ class AuditEvent:
     SECURITY_INVALID_STATE = "security.invalid_state"
     SECURITY_INVALID_TOKEN = "security.invalid_token"
     SECURITY_RATE_LIMIT = "security.rate_limit"
+    SECURITY_CSRF_VIOLATION = "security.csrf_violation"
+    SECURITY_SESSION_MISMATCH = "security.session_mismatch"
 
     # Coverage events
     COVERAGE_CHECK = "coverage.check"

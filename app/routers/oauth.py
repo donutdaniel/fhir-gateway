@@ -15,41 +15,12 @@ from app.auth.token_manager import get_token_manager
 from app.config.platform import get_platform
 from app.config.settings import get_settings
 from app.rate_limiter import get_callback_rate_limiter
+from app.routers.session import get_client_ip, get_session_id, set_session_cookie
 from app.services.oauth import OAuthService
 
 router = APIRouter(prefix="/oauth", tags=["oauth"])
 
 CSP_HEADER = "default-src 'none'; style-src 'unsafe-inline'"
-
-
-def _get_client_ip(request: Request) -> str:
-    """Extract client IP from request, handling proxies."""
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    real_ip = request.headers.get("x-real-ip")
-    if real_ip:
-        return real_ip
-    return request.client.host if request.client else "unknown"
-
-
-def _get_session_id(request: Request) -> str | None:
-    """Get session ID from cookie."""
-    settings = get_settings()
-    return request.cookies.get(settings.session_cookie_name)
-
-
-def _set_session_cookie(response: HTMLResponse, session_id: str) -> None:
-    """Set session cookie on response."""
-    settings = get_settings()
-    response.set_cookie(
-        key=settings.session_cookie_name,
-        value=session_id,
-        max_age=settings.session_max_age,
-        httponly=True,
-        secure=settings.session_cookie_secure,
-        samesite="lax",
-    )
 
 
 @router.get("/callback")
@@ -68,7 +39,7 @@ async def oauth_callback(
     up from the state parameter.
     """
     # Rate limit by client IP to prevent abuse
-    client_ip = _get_client_ip(request)
+    client_ip = get_client_ip(request)
     limiter = get_callback_rate_limiter()
     if not limiter.check(client_ip):
         audit_log(
@@ -146,6 +117,35 @@ async def oauth_callback(
     platform_id = pending_auth["platform_id"]
     pkce_verifier = pending_auth["pkce_verifier"]
 
+    # SESSION FIXATION PROTECTION:
+    # Verify the browser's session cookie matches the session that initiated OAuth.
+    # This prevents attacks where an attacker initiates OAuth on their session,
+    # then tricks a victim into completing the callback.
+    current_session = get_session_id(request, create_if_missing=False)
+    if current_session and current_session != session_id:
+        audit_log(
+            AuditEvent.SECURITY_SESSION_MISMATCH,
+            session_id=session_id,
+            success=False,
+            error="Session mismatch - possible session fixation attempt",
+            details={"expected": session_id[:8] + "...", "got": current_session[:8] + "..."},
+        )
+        return HTMLResponse(
+            content="""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Session Mismatch</title></head>
+            <body>
+                <h1>Session Mismatch</h1>
+                <p>The authentication was started in a different browser session.</p>
+                <p>Please start the login process again from your application.</p>
+            </body>
+            </html>
+            """,
+            status_code=400,
+            headers={"Content-Security-Policy": CSP_HEADER},
+        )
+
     # Validate platform still exists and has OAuth configured
     platform = get_platform(platform_id)
     if not platform or not platform.oauth:
@@ -214,7 +214,7 @@ async def oauth_callback(
             status_code=200,
             headers={"Content-Security-Policy": CSP_HEADER},
         )
-        _set_session_cookie(response, session_id)
+        set_session_cookie(response, session_id)
         return response
 
     except Exception as e:

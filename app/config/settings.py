@@ -86,6 +86,11 @@ class Settings(BaseSettings):
     # Encryption settings
     pbkdf2_iterations: int = 100_000  # PBKDF2 iteration count for key derivation
 
+    # Proxy settings (for secure IP detection behind load balancers)
+    # Comma-separated CIDR ranges. Empty string = use defaults (loopback + private ranges)
+    # Set to "none" to disable proxy header trust entirely
+    trusted_proxy_cidrs: str = ""
+
 
 @lru_cache
 def get_settings() -> Settings:

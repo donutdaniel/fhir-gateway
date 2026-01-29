@@ -18,7 +18,6 @@ from app.audit import AuditEvent, audit_log
 from app.routers.validation import (
     handle_fhir_error,
     validate_operation,
-    validate_platform_id,
     validate_resource_id,
     validate_resource_type,
 )
@@ -45,8 +44,6 @@ async def get_metadata(
         resource_type: Optional resource type to filter capabilities
         authorization: Optional Bearer token
     """
-    validate_platform_id(platform_id)
-
     access_token = extract_bearer_token(authorization)
 
     try:

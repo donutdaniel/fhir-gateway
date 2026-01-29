@@ -199,7 +199,7 @@ class TestOAuthCallback:
         )
 
         with (
-            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.auth.get_settings") as mock_settings,
             patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
             patch("app.routers.oauth.get_platform", return_value=None),
             patch("app.routers.oauth.audit_log"),
@@ -227,7 +227,7 @@ class TestOAuthCallback:
         mock_platform.oauth = None
 
         with (
-            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.auth.get_settings") as mock_settings,
             patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
             patch("app.routers.oauth.get_platform", return_value=mock_platform),
             patch("app.routers.oauth.audit_log"),
@@ -264,7 +264,7 @@ class TestOAuthCallback:
         mock_platform.oauth = MagicMock()  # Explicitly set OAuth config
 
         with (
-            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.auth.get_settings") as mock_settings,
             patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
             patch("app.routers.oauth.OAuthService", return_value=mock_oauth_service),
             patch("app.routers.oauth.get_platform", return_value=mock_platform),
@@ -301,7 +301,7 @@ class TestOAuthCallback:
         mock_platform.oauth = MagicMock()
 
         with (
-            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.auth.get_settings") as mock_settings,
             patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
             patch("app.routers.oauth.get_platform", return_value=mock_platform),
             patch("app.routers.oauth.OAuthService", return_value=mock_oauth_service),
@@ -314,6 +314,43 @@ class TestOAuthCallback:
 
         assert response.status_code == 500
         assert "Token Exchange Failed" in response.text
+
+    def test_callback_session_fixation_protection(self, client):
+        """Should reject callback when session cookie doesn't match state session."""
+        mock_token_manager = AsyncMock()
+        mock_token_manager.get_pending_auth_by_state = AsyncMock(
+            return_value={
+                "session_id": "attacker-session-id",  # OAuth was started with this session
+                "platform_id": "test-payer",
+                "state": "test-state",
+                "pkce_verifier": "test-verifier",
+            }
+        )
+
+        mock_platform = MagicMock()
+        mock_platform.oauth = MagicMock()
+        mock_platform.display_name = "Test Platform"
+
+        # Mock get_session_id to return the victim's session (different from attacker's)
+        def mock_get_session_id(request, create_if_missing=True):
+            return "victim-session-id"  # Different from attacker-session-id in pending_auth
+
+        with (
+            patch("app.routers.auth.get_settings") as mock_settings,
+            patch("app.routers.oauth.get_settings") as mock_oauth_settings,
+            patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.get_platform", return_value=mock_platform),
+            patch("app.routers.oauth.get_session_id", side_effect=mock_get_session_id),
+            patch("app.routers.oauth.audit_log"),
+        ):
+            mock_settings.return_value.session_cookie_name = "fhir_session"
+            mock_oauth_settings.return_value.session_cookie_name = "fhir_session"
+
+            response = client.get("/oauth/callback?code=test-code&state=test-state")
+
+        # Should reject due to session mismatch
+        assert response.status_code == 400
+        assert "Session Mismatch" in response.text
 
 
 class TestGetAuthStatus:
@@ -368,7 +405,11 @@ class TestLogout:
             mock_settings.return_value.session_cookie_name = "fhir_session"
             mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/auth/callback"
 
-            response = client.post("/auth/test-payer/logout")
+            # Include CSRF header required by the endpoint
+            response = client.post(
+                "/auth/test-payer/logout",
+                headers={"X-Requested-With": "XMLHttpRequest"},
+            )
 
         assert response.status_code == 200
         data = response.json()
@@ -387,7 +428,11 @@ class TestLogout:
         ):
             mock_settings.return_value.session_cookie_name = "fhir_session"
 
-            response = client.post("/auth/test-payer/logout")
+            # Include CSRF header required by the endpoint
+            response = client.post(
+                "/auth/test-payer/logout",
+                headers={"X-Requested-With": "XMLHttpRequest"},
+            )
 
         assert response.status_code == 200
         data = response.json()
@@ -415,12 +460,27 @@ class TestLogout:
             mock_settings.return_value.session_cookie_name = "fhir_session"
             mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/auth/callback"
 
-            response = client.post("/auth/test-payer/logout")
+            # Include CSRF header required by the endpoint
+            response = client.post(
+                "/auth/test-payer/logout",
+                headers={"X-Requested-With": "XMLHttpRequest"},
+            )
 
         # Should still succeed
         assert response.status_code == 200
         data = response.json()
         assert data["success"] is True
+
+    def test_logout_missing_csrf_header(self, client):
+        """Should return 403 when CSRF header is missing."""
+        with patch("app.routers.auth.get_settings") as mock_settings:
+            mock_settings.return_value.session_cookie_name = "fhir_session"
+
+            # No X-Requested-With header
+            response = client.post("/auth/test-payer/logout")
+
+        assert response.status_code == 403
+        assert "X-Requested-With" in response.json()["detail"]
 
 
 class TestWaitForAuth:

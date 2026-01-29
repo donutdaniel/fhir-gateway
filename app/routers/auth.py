@@ -9,10 +9,9 @@ Provides OAuth flow endpoints:
 Note: OAuth callback is handled at /oauth/callback (see oauth.py).
 """
 
-import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query, Request, Response
+from fastapi import APIRouter, Header, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 
 from app.audit import AuditEvent, audit_log
@@ -24,31 +23,15 @@ from app.models.auth import (
     AuthStatusResponse,
     LoginResponse,
 )
+from app.routers.session import get_session_id, set_session_cookie
 from app.services.oauth import OAuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-
-def get_session_id(request: Request) -> str:
-    """Get session ID from cookie or create new one."""
-    settings = get_settings()
-    session_id = request.cookies.get(settings.session_cookie_name)
-    if not session_id:
-        session_id = str(uuid.uuid4())
-    return session_id
-
-
-def set_session_cookie(response: Response, session_id: str) -> None:
-    """Set session cookie on response."""
-    settings = get_settings()
-    response.set_cookie(
-        key=settings.session_cookie_name,
-        value=session_id,
-        max_age=settings.session_max_age,
-        httponly=True,
-        secure=settings.session_cookie_secure,
-        samesite="lax",
-    )
+# CSRF protection header - must be present on state-changing requests
+# Browsers won't send custom headers in simple cross-origin requests without CORS preflight
+CSRF_HEADER_NAME = "x-requested-with"
+CSRF_HEADER_VALUE = "XMLHttpRequest"
 
 
 @router.get("/{platform_id}/login", response_model=None)
@@ -150,16 +133,39 @@ async def get_auth_status(request: Request) -> AuthStatusResponse:
 
 
 @router.post("/{platform_id}/logout")
-async def logout(platform_id: str, request: Request) -> dict[str, Any]:
+async def logout(
+    platform_id: str,
+    request: Request,
+    x_requested_with: str | None = Header(None, alias="x-requested-with"),
+) -> dict[str, Any]:
     """
     Clear authentication for a platform.
 
     Attempts to revoke tokens at the platform's OAuth server before
     removing them from local storage.
 
+    CSRF Protection: Requires the X-Requested-With header to be set.
+    This prevents cross-site request forgery attacks since browsers
+    won't send custom headers in simple cross-origin requests.
+
     Args:
         platform_id: The platform identifier
+        x_requested_with: CSRF protection header (required)
     """
+    # CSRF protection: require custom header that can't be sent cross-origin
+    # without CORS preflight (which would be blocked by our CORS policy)
+    if not x_requested_with:
+        audit_log(
+            AuditEvent.SECURITY_CSRF_VIOLATION,
+            success=False,
+            error="Missing X-Requested-With header",
+            details={"endpoint": f"/auth/{platform_id}/logout"},
+        )
+        raise HTTPException(
+            status_code=403,
+            detail="Missing required header: X-Requested-With",
+        )
+
     session_id = get_session_id(request)
     token_manager = get_token_manager()
     settings = get_settings()
