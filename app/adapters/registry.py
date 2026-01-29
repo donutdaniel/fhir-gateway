@@ -13,6 +13,7 @@ from fhirpy import AsyncFHIRClient
 
 from app.adapters.base import BasePayerAdapter
 from app.config.logging import get_logger
+from app.errors import PlatformNotConfiguredError
 from app.models.platform import PlatformInfo
 
 logger = get_logger(__name__)
@@ -41,20 +42,6 @@ class PlatformAdapterNotFoundError(Exception):
         else:
             message = "No platform information provided and no adapter found."
         super().__init__(message)
-
-
-class PlatformNotConfiguredError(Exception):
-    """Raised when a platform's FHIR endpoint is not configured."""
-
-    def __init__(self, platform_id: str, message: str | None = None):
-        self.platform_id = platform_id
-        if message:
-            super().__init__(message)
-        else:
-            super().__init__(
-                f"Platform '{platform_id}' has no FHIR endpoint configured. "
-                f"Please configure a fhir_base_url for this platform."
-            )
 
 
 class PlatformAdapterRegistry:

@@ -55,6 +55,12 @@ class AuditEvent:
     QUESTIONNAIRE_FETCH = "coverage.questionnaire_fetch"
     PLATFORM_RULES_FETCH = "coverage.platform_rules_fetch"
 
+    # Error events
+    RESOURCE_ACCESS_ERROR = "error.resource_access"
+    COVERAGE_ERROR = "error.coverage"
+    VALIDATION_ERROR = "error.validation"
+    PLATFORM_ERROR = "error.platform"
+
 
 def audit_log(
     event: str,

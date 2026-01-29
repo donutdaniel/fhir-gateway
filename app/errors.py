@@ -67,10 +67,25 @@ class PlatformNotFoundError(PlatformError):
         self.platform_name = platform_name
         message = "Platform not found"
         if platform_id:
-            message = f"Platform not found: {platform_id}"
+            message = f"Platform '{platform_id}' is not registered. Available platforms can be found at /api/platforms"
         elif platform_name:
             message = f"Platform not found by name: {platform_name}"
         super().__init__(message, details={"platform_id": platform_id, "platform_name": platform_name})
+
+
+class PlatformNotConfiguredError(PlatformError):
+    """Raised when a platform's FHIR endpoint is not configured."""
+
+    def __init__(self, platform_id: str, message: str | None = None):
+        self.platform_id = platform_id
+        if message:
+            msg = message
+        else:
+            msg = (
+                f"Platform '{platform_id}' does not have a FHIR endpoint configured. "
+                f"Check the platform's configuration in platforms/{platform_id}.json"
+            )
+        super().__init__(msg, details={"platform_id": platform_id})
 
 
 class PlatformEndpointNotConfiguredError(PlatformError):

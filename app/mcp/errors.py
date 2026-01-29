@@ -9,7 +9,7 @@ from typing import Any
 from fhirpy.base.exceptions import OperationOutcome, ResourceNotFound
 
 from app.config.logging import get_logger
-from app.services.fhir_client import PlatformNotConfiguredError, PlatformNotFoundError
+from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 
 logger = get_logger(__name__)
 

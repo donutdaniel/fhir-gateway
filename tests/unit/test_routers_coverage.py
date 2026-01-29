@@ -14,8 +14,8 @@ from app.models.coverage import (
     PlatformRulesResult,
     QuestionnairePackageResult,
 )
+from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 from app.routers.coverage import router
-from app.services.fhir_client import PlatformNotConfiguredError, PlatformNotFoundError
 
 
 @pytest.fixture
@@ -138,7 +138,7 @@ class TestCheckRequirements:
         """Should return 404 when platform not found."""
         # First patch validation to pass, then have get_fhir_client raise the error
         with (
-            patch("app.routers.coverage._validate_platform_id", return_value=None),
+            patch("app.routers.validation._validate_platform_id", return_value=None),
             patch(
                 "app.routers.coverage.get_fhir_client",
                 side_effect=PlatformNotFoundError("unknown"),
@@ -283,7 +283,7 @@ class TestGetQuestionnairePackage:
         """Should return 404 when platform not found."""
         # First patch validation to pass, then have get_fhir_client raise the error
         with (
-            patch("app.routers.coverage._validate_platform_id", return_value=None),
+            patch("app.routers.validation._validate_platform_id", return_value=None),
             patch(
                 "app.routers.coverage.get_fhir_client",
                 side_effect=PlatformNotFoundError("unknown"),
@@ -359,7 +359,7 @@ class TestGetRules:
         """Should return 404 when platform not found."""
         # First patch validation to pass, then have get_fhir_client raise the error
         with (
-            patch("app.routers.coverage._validate_platform_id", return_value=None),
+            patch("app.routers.validation._validate_platform_id", return_value=None),
             patch(
                 "app.routers.coverage.get_fhir_client",
                 side_effect=PlatformNotFoundError("unknown"),

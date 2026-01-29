@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from fhirpy.base.exceptions import OperationOutcome, ResourceNotFound
 
 from app.routers.fhir import router
-from app.services.fhir_client import PlatformNotConfiguredError, PlatformNotFoundError
+from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 
 
 @pytest.fixture

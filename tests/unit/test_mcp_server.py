@@ -97,8 +97,8 @@ class TestMCPErrors:
 
     def test_handle_exception_platform_not_found(self):
         """Test handle_exception for PlatformNotFoundError."""
+        from app.errors import PlatformNotFoundError
         from app.mcp.errors import handle_exception
-        from app.services.fhir_client import PlatformNotFoundError
 
         error = PlatformNotFoundError("unknown-platform")
         result = handle_exception(error, "test_op")
@@ -108,8 +108,8 @@ class TestMCPErrors:
 
     def test_handle_exception_platform_not_configured(self):
         """Test handle_exception for PlatformNotConfiguredError."""
+        from app.errors import PlatformNotConfiguredError
         from app.mcp.errors import handle_exception
-        from app.services.fhir_client import PlatformNotConfiguredError
 
         error = PlatformNotConfiguredError("some-platform")
         result = handle_exception(error, "test_op")

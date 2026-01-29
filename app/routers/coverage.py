@@ -9,33 +9,23 @@ Provides coverage and prior authorization endpoints:
 
 from typing import Any
 
-from fastapi import APIRouter, Header, HTTPException, Query
+from fastapi import APIRouter, Header, Query
 from pydantic import BaseModel, Field
 
 from app.audit import AuditEvent, audit_log
+from app.routers.validation import (
+    handle_platform_error,
+    validate_platform_id,
+    validate_procedure_code,
+    validate_resource_id,
+)
 from app.services.coverage import (
     check_coverage_requirements,
     fetch_questionnaire_package,
     get_platform_rules,
 )
-from app.services.fhir_client import (
-    PlatformNotConfiguredError,
-    PlatformNotFoundError,
-    get_fhir_client,
-)
+from app.services.fhir_client import get_fhir_client
 from app.utils import extract_bearer_token
-from app.validation import (
-    ValidationError,
-)
-from app.validation import (
-    validate_platform_id as _validate_platform_id,
-)
-from app.validation import (
-    validate_procedure_code as _validate_procedure_code,
-)
-from app.validation import (
-    validate_resource_id as _validate_resource_id,
-)
 
 router = APIRouter(prefix="/api/coverage", tags=["coverage"])
 
@@ -61,39 +51,6 @@ class QuestionnairePackageRequest(BaseModel):
         default=None, description="Optional specific questionnaire canonical URL"
     )
     raw_format: bool = Field(default=False, description="If true, return raw FHIR Bundle")
-
-
-def validate_platform_id(platform_id: str) -> None:
-    """Validate platform ID format."""
-    try:
-        _validate_platform_id(platform_id)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-def validate_resource_id(resource_id: str, field_name: str = "resource_id") -> None:
-    """Validate FHIR resource ID format."""
-    try:
-        _validate_resource_id(resource_id)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid {field_name}: {str(e)}")
-
-
-def validate_procedure_code(code: str, code_system: str) -> None:
-    """Validate procedure code format."""
-    try:
-        _validate_procedure_code(code, code_system)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-def handle_error(e: Exception, platform_id: str) -> None:
-    """Convert errors to HTTP exceptions."""
-    if isinstance(e, PlatformNotFoundError):
-        raise HTTPException(status_code=404, detail=str(e))
-    if isinstance(e, PlatformNotConfiguredError):
-        raise HTTPException(status_code=503, detail=str(e))
-    raise HTTPException(status_code=500, detail=f"Operation failed: {str(e)}")
 
 
 @router.post("/{platform_id}/requirements")
@@ -146,7 +103,7 @@ async def check_requirements(
         return result.model_dump(exclude_none=True)
 
     except Exception as e:
-        handle_error(e, platform_id)
+        handle_platform_error(e, platform_id=platform_id)
 
 
 @router.post("/{platform_id}/questionnaire-package")
@@ -194,7 +151,7 @@ async def get_questionnaire_package(
         return result.model_dump(exclude_none=True)
 
     except Exception as e:
-        handle_error(e, platform_id)
+        handle_platform_error(e, platform_id=platform_id)
 
 
 @router.get("/{platform_id}/rules/{procedure_code}")
@@ -242,4 +199,4 @@ async def get_rules(
         return result.model_dump(exclude_none=True)
 
     except Exception as e:
-        handle_error(e, platform_id)
+        handle_platform_error(e, platform_id=platform_id)

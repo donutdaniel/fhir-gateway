@@ -14,7 +14,7 @@ from app.models.coverage import (
     PlatformRulesResult,
     QuestionnairePackageResult,
 )
-from app.services.fhir_client import PlatformNotConfiguredError, PlatformNotFoundError
+from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 
 
 @pytest.fixture

@@ -13,70 +13,22 @@ Provides FHIR operations with multi-platform routing:
 from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
-from fhirpy.base.exceptions import OperationOutcome, ResourceNotFound
 
 from app.audit import AuditEvent, audit_log
+from app.routers.validation import (
+    handle_fhir_error,
+    validate_operation,
+    validate_platform_id,
+    validate_resource_id,
+    validate_resource_type,
+)
 from app.services.fhir_client import (
-    PlatformNotConfiguredError,
-    PlatformNotFoundError,
     fetch_capability_statement,
     get_fhir_client,
 )
 from app.utils import extract_bearer_token
-from app.validation import (
-    ValidationError,
-)
-from app.validation import (
-    validate_operation as _validate_operation,
-)
-from app.validation import (
-    validate_platform_id as _validate_platform_id,
-)
-from app.validation import (
-    validate_resource_id as _validate_resource_id,
-)
-from app.validation import (
-    validate_resource_type as _validate_resource_type,
-)
 
 router = APIRouter(prefix="/api/fhir", tags=["fhir"])
-
-
-def validate_resource_type(resource_type: str) -> None:
-    """Validate FHIR resource type format."""
-    try:
-        _validate_resource_type(resource_type)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-def validate_resource_id(resource_id: str) -> None:
-    """Validate FHIR resource ID format."""
-    try:
-        _validate_resource_id(resource_id)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-def validate_platform_id(platform_id: str) -> None:
-    """Validate platform ID format and existence."""
-    try:
-        _validate_platform_id(platform_id)
-    except ValidationError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-
-
-def handle_fhir_error(e: Exception, platform_id: str) -> None:
-    """Convert FHIR errors to HTTP exceptions."""
-    if isinstance(e, PlatformNotFoundError):
-        raise HTTPException(status_code=404, detail=str(e))
-    if isinstance(e, PlatformNotConfiguredError):
-        raise HTTPException(status_code=503, detail=str(e))
-    if isinstance(e, ResourceNotFound):
-        raise HTTPException(status_code=404, detail="Resource not found")
-    if isinstance(e, OperationOutcome):
-        raise HTTPException(status_code=422, detail=str(e))
-    raise HTTPException(status_code=500, detail=f"FHIR operation failed: {str(e)}")
 
 
 @router.get("/{platform_id}/metadata")
@@ -104,7 +56,7 @@ async def get_metadata(
             resource_type=resource_type,
         )
     except Exception as e:
-        handle_fhir_error(e, platform_id)
+        handle_fhir_error(e, platform_id=platform_id)
 
 
 @router.get("/{platform_id}/{resource_type}")
@@ -166,7 +118,7 @@ async def search_resources(
         }
 
     except Exception as e:
-        handle_fhir_error(e, platform_id)
+        handle_fhir_error(e, platform_id=platform_id)
 
 
 @router.get("/{platform_id}/{resource_type}/{resource_id}")
@@ -204,7 +156,7 @@ async def read_resource(
         return resource
 
     except Exception as e:
-        handle_fhir_error(e, platform_id)
+        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)
 
 
 @router.get("/{platform_id}/{resource_type}/{resource_id}/{operation}")
@@ -228,11 +180,7 @@ async def execute_operation(
     """
     validate_resource_type(resource_type)
     validate_resource_id(resource_id)
-
-    try:
-        _validate_operation(operation)
-    except ValidationError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    validate_operation(operation)
 
     access_token = extract_bearer_token(authorization)
 
@@ -257,7 +205,7 @@ async def execute_operation(
         return result
 
     except Exception as e:
-        handle_fhir_error(e, platform_id)
+        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)
 
 
 @router.post("/{platform_id}/{resource_type}")
@@ -302,7 +250,7 @@ async def create_resource(
         return created
 
     except Exception as e:
-        handle_fhir_error(e, platform_id)
+        handle_fhir_error(e, platform_id=platform_id)
 
 
 @router.put("/{platform_id}/{resource_type}/{resource_id}")
@@ -360,7 +308,7 @@ async def update_resource(
         return updated
 
     except Exception as e:
-        handle_fhir_error(e, platform_id)
+        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)
 
 
 @router.delete("/{platform_id}/{resource_type}/{resource_id}")
@@ -407,4 +355,4 @@ async def delete_resource(
         }
 
     except Exception as e:
-        handle_fhir_error(e, platform_id)
+        handle_fhir_error(e, platform_id=platform_id, resource_type=resource_type, resource_id=resource_id)

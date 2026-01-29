@@ -438,7 +438,7 @@ class TestPlatformNotConfiguredError:
         error = PlatformNotConfiguredError("aetna")
 
         assert "aetna" in str(error)
-        assert "fhir_base_url" in str(error).lower()
+        assert "fhir endpoint" in str(error).lower()
 
     def test_error_custom_message(self):
         """Test custom error message."""

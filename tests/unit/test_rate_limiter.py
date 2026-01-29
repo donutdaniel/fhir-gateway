@@ -194,7 +194,7 @@ class TestResetRateLimiter:
 
     def test_resets_both_limiters(self):
         """Should reset both rate limiters."""
-        with patch("app.config.settings.get_settings") as mock_settings:
+        with patch("app.rate_limiter.get_settings") as mock_settings:
             mock_settings.return_value = MagicMock(
                 rate_limit_max=100,
                 rate_limit_window=60,

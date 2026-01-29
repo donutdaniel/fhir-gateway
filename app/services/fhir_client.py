@@ -13,6 +13,7 @@ from fhirpy import AsyncFHIRClient
 from app.config.logging import get_logger
 from app.config.platform import get_platform
 from app.config.settings import get_settings
+from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 
 logger = get_logger(__name__)
 
@@ -21,27 +22,6 @@ class FHIRClientError(Exception):
     """Error creating or using FHIR client."""
 
     pass
-
-
-class PlatformNotConfiguredError(FHIRClientError):
-    """Platform does not have a FHIR endpoint configured."""
-
-    def __init__(self, platform_id: str):
-        self.platform_id = platform_id
-        super().__init__(
-            f"Platform '{platform_id}' does not have a FHIR endpoint configured. "
-            f"Check the platform's configuration in platforms/{platform_id}.json"
-        )
-
-
-class PlatformNotFoundError(FHIRClientError):
-    """Platform is not registered."""
-
-    def __init__(self, platform_id: str):
-        self.platform_id = platform_id
-        super().__init__(
-            f"Platform '{platform_id}' is not registered. Available platforms can be found at /api/platforms"
-        )
 
 
 class FHIRClientFactory:
