@@ -14,9 +14,23 @@ from app.audit import AuditEvent, audit_log
 from app.auth.token_manager import get_token_manager
 from app.config.platform import get_platform
 from app.config.settings import get_settings
+from app.rate_limiter import get_callback_rate_limiter
 from app.services.oauth import OAuthService
 
 router = APIRouter(prefix="/oauth", tags=["oauth"])
+
+CSP_HEADER = "default-src 'none'; style-src 'unsafe-inline'"
+
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP from request, handling proxies."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    real_ip = request.headers.get("x-real-ip")
+    if real_ip:
+        return real_ip
+    return request.client.host if request.client else "unknown"
 
 
 def _get_session_id(request: Request) -> str | None:
@@ -53,6 +67,30 @@ async def oauth_callback(
     and exchanges it for tokens. The platform_id and session_id are looked
     up from the state parameter.
     """
+    # Rate limit by client IP to prevent abuse
+    client_ip = _get_client_ip(request)
+    limiter = get_callback_rate_limiter()
+    if not limiter.check(client_ip):
+        audit_log(
+            AuditEvent.SECURITY_RATE_LIMIT,
+            success=False,
+            details={"ip": client_ip, "endpoint": "/oauth/callback"},
+        )
+        return HTMLResponse(
+            content="""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Too Many Requests</title></head>
+            <body>
+                <h1>Too Many Requests</h1>
+                <p>Please wait a moment and try again.</p>
+            </body>
+            </html>
+            """,
+            status_code=429,
+            headers={"Content-Security-Policy": CSP_HEADER},
+        )
+
     settings = get_settings()
     token_manager = get_token_manager()
 
@@ -77,7 +115,7 @@ async def oauth_callback(
             </html>
             """,
             status_code=400,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
+            headers={"Content-Security-Policy": CSP_HEADER},
         )
 
     # Look up pending auth by state
@@ -101,7 +139,7 @@ async def oauth_callback(
             </html>
             """,
             status_code=400,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
+            headers={"Content-Security-Policy": CSP_HEADER},
         )
 
     session_id = pending_auth["session_id"]
@@ -149,7 +187,7 @@ async def oauth_callback(
             </html>
             """,
             status_code=200,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
+            headers={"Content-Security-Policy": CSP_HEADER},
         )
         _set_session_cookie(response, session_id)
         return response
@@ -175,5 +213,5 @@ async def oauth_callback(
             </html>
             """,
             status_code=500,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
+            headers={"Content-Security-Policy": CSP_HEADER},
         )

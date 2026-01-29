@@ -5,11 +5,15 @@ Provides encrypted token storage backends for both in-memory (development)
 and Redis (production) storage with session isolation.
 """
 
+import asyncio
 import base64
+import contextlib
 import hashlib
 import json
 import time
 from abc import ABC, abstractmethod
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -214,12 +218,68 @@ class TokenStorageBackend(ABC):
         """Get keys matching pattern."""
         pass
 
+    # -------------------------------------------------------------------------
+    # OAuth State Mapping (for O(1) state -> session/platform lookup)
+    # -------------------------------------------------------------------------
+
+    @abstractmethod
+    async def store_state_mapping(
+        self, state: str, session_id: str, platform_id: str
+    ) -> None:
+        """Store OAuth state -> (session_id, platform_id) mapping."""
+        pass
+
+    @abstractmethod
+    async def lookup_state_mapping(self, state: str) -> tuple[str, str] | None:
+        """Look up (session_id, platform_id) by OAuth state. Returns None if not found."""
+        pass
+
+    @abstractmethod
+    async def delete_state_mapping(self, state: str) -> None:
+        """Delete an OAuth state mapping."""
+        pass
+
+    # -------------------------------------------------------------------------
+    # Auth Completion Pub/Sub (for distributed auth signaling)
+    # -------------------------------------------------------------------------
+
+    @abstractmethod
+    async def publish_auth_complete(self, session_id: str, platform_id: str) -> None:
+        """Publish an auth-complete event for cross-instance signaling."""
+        pass
+
+    @abstractmethod
+    @asynccontextmanager
+    async def subscribe_auth_complete(
+        self, session_id: str, platform_id: str
+    ) -> AsyncIterator[asyncio.Event]:
+        """Subscribe to auth-complete events. Yields an Event that is set on message."""
+        yield  # type: ignore[misc]
+
+    # -------------------------------------------------------------------------
+    # Distributed Refresh Locks (for coordinating token refresh)
+    # -------------------------------------------------------------------------
+
+    @abstractmethod
+    async def acquire_refresh_lock(
+        self, session_id: str, platform_id: str, ttl: int = 30
+    ) -> bool:
+        """Acquire a distributed refresh lock. Returns True if acquired."""
+        pass
+
+    @abstractmethod
+    async def release_refresh_lock(self, session_id: str, platform_id: str) -> None:
+        """Release a distributed refresh lock."""
+        pass
+
 
 class InMemoryTokenStorage(TokenStorageBackend):
     """In-memory token storage for development/testing."""
 
     def __init__(self):
         self._store: dict[str, tuple[str, float | None]] = {}  # key -> (value, expires_at)
+        self._state_mappings: dict[str, tuple[str, str]] = {}  # state -> (session_id, platform_id)
+        self._refresh_locks: dict[str, bool] = {}  # "{session_id}:{platform_id}" -> locked
 
     async def get(self, key: str) -> str | None:
         if key not in self._store:
@@ -252,6 +312,46 @@ class InMemoryTokenStorage(TokenStorageBackend):
         for k in expired:
             del self._store[k]
         return len(expired)
+
+    # -- State mapping methods --
+
+    async def store_state_mapping(
+        self, state: str, session_id: str, platform_id: str
+    ) -> None:
+        self._state_mappings[state] = (session_id, platform_id)
+
+    async def lookup_state_mapping(self, state: str) -> tuple[str, str] | None:
+        return self._state_mappings.get(state)
+
+    async def delete_state_mapping(self, state: str) -> None:
+        self._state_mappings.pop(state, None)
+
+    # -- Pub/sub methods (no-op for in-memory, local events suffice) --
+
+    async def publish_auth_complete(self, session_id: str, platform_id: str) -> None:
+        pass  # Local events handle same-process signaling
+
+    @asynccontextmanager
+    async def subscribe_auth_complete(
+        self, session_id: str, platform_id: str
+    ) -> AsyncIterator[asyncio.Event]:
+        # In-memory: yield an event that is never externally set.
+        # The local asyncio.Event in token_manager handles signaling.
+        yield asyncio.Event()
+
+    # -- Refresh lock methods --
+
+    async def acquire_refresh_lock(
+        self, session_id: str, platform_id: str, ttl: int = 30
+    ) -> bool:
+        key = f"{session_id}:{platform_id}"
+        if self._refresh_locks.get(key):
+            return False
+        self._refresh_locks[key] = True
+        return True
+
+    async def release_refresh_lock(self, session_id: str, platform_id: str) -> None:
+        self._refresh_locks.pop(f"{session_id}:{platform_id}", None)
 
 
 class RedisTokenStorage(TokenStorageBackend):
@@ -334,6 +434,91 @@ class RedisTokenStorage(TokenStorageBackend):
             await self._client.close()
             self._client = None
 
+    # -- State mapping methods --
+
+    def _state_mapping_key(self, state: str) -> str:
+        return f"fhir:oauth_state:{state}"
+
+    async def store_state_mapping(
+        self, state: str, session_id: str, platform_id: str
+    ) -> None:
+        client = await self._get_client()
+        data = json.dumps({"session_id": session_id, "platform_id": platform_id})
+        await client.setex(self._state_mapping_key(state), 900, data)  # 15min TTL
+
+    async def lookup_state_mapping(self, state: str) -> tuple[str, str] | None:
+        client = await self._get_client()
+        data = await client.get(self._state_mapping_key(state))
+        if not data:
+            return None
+        parsed = json.loads(data)
+        return parsed["session_id"], parsed["platform_id"]
+
+    async def delete_state_mapping(self, state: str) -> None:
+        client = await self._get_client()
+        await client.delete(self._state_mapping_key(state))
+
+    # -- Pub/sub methods --
+
+    def _auth_complete_channel(self, session_id: str, platform_id: str) -> str:
+        return f"fhir:auth_complete:{session_id}:{platform_id}"
+
+    async def publish_auth_complete(self, session_id: str, platform_id: str) -> None:
+        client = await self._get_client()
+        await client.publish(
+            self._auth_complete_channel(session_id, platform_id), "complete"
+        )
+
+    @asynccontextmanager
+    async def subscribe_auth_complete(
+        self, session_id: str, platform_id: str
+    ) -> AsyncIterator[asyncio.Event]:
+        client = await self._get_client()
+        pubsub = client.pubsub()
+        channel = self._auth_complete_channel(session_id, platform_id)
+        await pubsub.subscribe(channel)
+        event = asyncio.Event()
+
+        async def _listener():
+            try:
+                async for message in pubsub.listen():
+                    if message["type"] == "message":
+                        event.set()
+                        break
+            except asyncio.CancelledError:
+                pass
+
+        task = asyncio.create_task(_listener())
+        try:
+            yield event
+        finally:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+            await pubsub.unsubscribe(channel)
+            await pubsub.aclose()
+
+    # -- Refresh lock methods --
+
+    def _refresh_lock_key(self, session_id: str, platform_id: str) -> str:
+        return f"fhir:refresh_lock:{session_id}:{platform_id}"
+
+    async def acquire_refresh_lock(
+        self, session_id: str, platform_id: str, ttl: int = 30
+    ) -> bool:
+        client = await self._get_client()
+        result = await client.set(
+            self._refresh_lock_key(session_id, platform_id),
+            "1",
+            nx=True,
+            ex=ttl,
+        )
+        return result is not None
+
+    async def release_refresh_lock(self, session_id: str, platform_id: str) -> None:
+        client = await self._get_client()
+        await client.delete(self._refresh_lock_key(session_id, platform_id))
+
 
 class SecureTokenStore:
     """
@@ -365,6 +550,8 @@ class SecureTokenStore:
         self._backend = backend
         self._session_ttl = session_ttl
         self._encryption: MasterKeyEncryption | None = None
+        # Local state index for O(1) lookups (state -> (session_id, platform_id))
+        self._state_index: dict[str, tuple[str, str]] = {}
 
         if master_key:
             self._encryption = MasterKeyEncryption(master_key)
@@ -501,6 +688,10 @@ class SecureTokenStore:
         }
         await self.save_session(session)
 
+        # Store state mapping for O(1) lookup
+        self._state_index[state] = (session_id, platform_id)
+        await self._backend.store_state_mapping(state, session_id, platform_id)
+
     async def get_pending_auth(
         self,
         session_id: str,
@@ -521,6 +712,15 @@ class SecureTokenStore:
         session = await self.get_session(session_id)
         if session is None:
             return
+
+        # Get state before clearing to clean up index
+        pending = session.pending_auth.get(platform_id)
+        if pending:
+            state = pending.get("state")
+            if state:
+                self._state_index.pop(state, None)
+                await self._backend.delete_state_mapping(state)
+
         session.pending_auth.pop(platform_id, None)
         await self.save_session(session)
 
@@ -528,12 +728,30 @@ class SecureTokenStore:
         """
         Find pending OAuth authorization by state parameter.
 
-        Searches all sessions for matching state. Used when callback
-        doesn't include session_id.
+        Uses O(1) indexed lookup first, falling back to O(n) scan for
+        distributed scenarios where state may be stored on another instance.
 
         Returns:
             Dict with session_id, platform_id, state, pkce_verifier or None
         """
+        # Try local state index first (O(1))
+        lookup = self._state_index.get(state)
+
+        # Fall back to backend lookup (supports distributed/Redis scenarios)
+        if not lookup:
+            lookup = await self._backend.lookup_state_mapping(state)
+
+        if lookup:
+            session_id, platform_id = lookup
+            pending = await self.get_pending_auth(session_id, platform_id)
+            if pending and pending.get("state") == state:
+                return {
+                    "session_id": session_id,
+                    "platform_id": platform_id,
+                    **pending,
+                }
+
+        # Final fallback: O(n) scan (for edge cases or data inconsistency)
         keys = await self._backend.keys(f"{self.KEY_PREFIX}*")
 
         for key in keys:
@@ -544,6 +762,8 @@ class SecureTokenStore:
 
             for platform_id, pending in session.pending_auth.items():
                 if pending.get("state") == state:
+                    # Update index for future lookups
+                    self._state_index[state] = (session_id, platform_id)
                     return {
                         "session_id": session_id,
                         "platform_id": platform_id,

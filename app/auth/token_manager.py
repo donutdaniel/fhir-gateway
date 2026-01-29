@@ -62,11 +62,10 @@ class SessionTokenManager:
 
         Args:
             store: Secure token store for session data
-            backend: Storage backend (for locks and signals)
+            backend: Storage backend (for distributed locks and pub/sub signals)
         """
         self._store = store
         self._backend = backend
-        self._refresh_locks: dict[str, asyncio.Lock] = {}
         self._auth_waiters: dict[str, asyncio.Event] = {}
         self._waiter_counts: dict[str, int] = {}
 
@@ -115,18 +114,14 @@ class SessionTokenManager:
         Refresh token with distributed locking.
 
         Ensures only one refresh operation happens at a time per session/platform.
+        Uses backend distributed lock for multi-instance coordination.
         """
-        lock_key = f"{session_id}:{platform_id}"
+        ttl = _get_refresh_lock_ttl()
 
-        # Get or create lock for this session/platform
-        if lock_key not in self._refresh_locks:
-            self._refresh_locks[lock_key] = asyncio.Lock()
-
-        lock = self._refresh_locks[lock_key]
-
-        # Try to acquire lock
-        if lock.locked():
-            # Another refresh in progress, return current token
+        # Try to acquire distributed lock
+        acquired = await self._backend.acquire_refresh_lock(session_id, platform_id, ttl)
+        if not acquired:
+            # Another refresh in progress (possibly on another instance)
             logger.debug(
                 "Token refresh already in progress",
                 session_id=session_id[:16],
@@ -134,59 +129,61 @@ class SessionTokenManager:
             )
             return token
 
-        async with lock:
+        try:
             # Re-check token after acquiring lock (another call may have refreshed)
             current_token = await self._store.get_token(session_id, platform_id)
             if current_token and not self._should_refresh(current_token):
                 return current_token
 
-            try:
-                # Perform refresh
-                settings = get_settings()
+            # Perform refresh
+            settings = get_settings()
 
-                oauth_service = OAuthService(
-                    platform_id=platform_id,
-                    redirect_uri=settings.oauth_redirect_uri,
-                )
+            oauth_service = OAuthService(
+                platform_id=platform_id,
+                redirect_uri=settings.oauth_redirect_uri,
+            )
 
-                new_token = await oauth_service.refresh_token(token.refresh_token)
+            new_token = await oauth_service.refresh_token(token.refresh_token)
 
-                # Store new token
-                await self._store.store_token(session_id, platform_id, new_token)
+            # Store new token
+            await self._store.store_token(session_id, platform_id, new_token)
 
-                audit_log(
-                    AuditEvent.TOKEN_REFRESH,
-                    session_id=session_id,
-                    platform_id=platform_id,
-                    success=True,
-                )
+            audit_log(
+                AuditEvent.TOKEN_REFRESH,
+                session_id=session_id,
+                platform_id=platform_id,
+                success=True,
+            )
 
-                logger.info(
-                    "Token refreshed successfully",
-                    session_id=session_id[:16],
-                    platform_id=platform_id,
-                )
+            logger.info(
+                "Token refreshed successfully",
+                session_id=session_id[:16],
+                platform_id=platform_id,
+            )
 
-                return new_token
+            return new_token
 
-            except Exception as e:
-                audit_log(
-                    AuditEvent.TOKEN_REFRESH_FAILURE,
-                    session_id=session_id,
-                    platform_id=platform_id,
-                    success=False,
-                    error=str(e),
-                )
+        except Exception as e:
+            audit_log(
+                AuditEvent.TOKEN_REFRESH_FAILURE,
+                session_id=session_id,
+                platform_id=platform_id,
+                success=False,
+                error=str(e),
+            )
 
-                logger.error(
-                    "Token refresh failed",
-                    session_id=session_id[:16],
-                    platform_id=platform_id,
-                    error=str(e),
-                )
+            logger.error(
+                "Token refresh failed",
+                session_id=session_id[:16],
+                platform_id=platform_id,
+                error=str(e),
+            )
 
-                # Return original token, let caller handle expiry
-                return token
+            # Return original token, let caller handle expiry
+            return token
+
+        finally:
+            await self._backend.release_refresh_lock(session_id, platform_id)
 
     async def store_token(
         self,
@@ -296,6 +293,7 @@ class SessionTokenManager:
         Wait for OAuth callback to complete.
 
         Uses per-session:platform semaphore to allow only one concurrent waiter.
+        Subscribes to backend pub/sub for distributed signaling (multi-instance).
 
         Args:
             session_id: Session ID
@@ -319,7 +317,7 @@ class SessionTokenManager:
             )
             return None
 
-        # Create event for this wait
+        # Create local event for this wait
         if wait_key not in self._auth_waiters:
             self._auth_waiters[wait_key] = asyncio.Event()
         else:
@@ -333,23 +331,32 @@ class SessionTokenManager:
             if token and not token.is_expired:
                 return token
 
-            # Wait for signal
-            try:
-                await asyncio.wait_for(
-                    self._auth_waiters[wait_key].wait(),
-                    timeout=timeout,
-                )
+            # Subscribe to backend pub/sub for distributed signaling
+            async with self._backend.subscribe_auth_complete(session_id, platform_id) as backend_event:
+                local_event = self._auth_waiters[wait_key]
 
-                # Get token after signal
-                return await self._store.get_token(session_id, platform_id)
+                async def wait_for_either():
+                    """Wait for either local or backend event."""
+                    while True:
+                        # Check both events
+                        if local_event.is_set() or backend_event.is_set():
+                            return
+                        # Wait a short time then check again
+                        await asyncio.sleep(0.1)
 
-            except asyncio.TimeoutError:
-                logger.debug(
-                    "Auth wait timed out",
-                    session_id=session_id[:16],
-                    platform_id=platform_id,
-                )
-                return None
+                try:
+                    await asyncio.wait_for(wait_for_either(), timeout=timeout)
+
+                    # Get token after signal
+                    return await self._store.get_token(session_id, platform_id)
+
+                except asyncio.TimeoutError:
+                    logger.debug(
+                        "Auth wait timed out",
+                        session_id=session_id[:16],
+                        platform_id=platform_id,
+                    )
+                    return None
 
         finally:
             self._waiter_counts[wait_key] = self._waiter_counts.get(wait_key, 1) - 1
@@ -362,8 +369,12 @@ class SessionTokenManager:
         """Signal that authentication completed for a session/platform."""
         wait_key = f"{session_id}:{platform_id}"
 
+        # Signal local waiters
         if wait_key in self._auth_waiters:
             self._auth_waiters[wait_key].set()
+
+        # Publish to backend for distributed signaling (multi-instance)
+        await self._backend.publish_auth_complete(session_id, platform_id)
 
     async def cleanup_expired_sessions(self) -> int:
         """

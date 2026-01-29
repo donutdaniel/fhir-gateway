@@ -4,11 +4,29 @@ Tests for session token manager.
 
 import asyncio
 import time
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.models.auth import OAuthToken
+
+
+def create_mock_backend():
+    """Create a mock backend with all required async methods."""
+    backend = MagicMock()
+    # Add async methods for distributed signaling and locks
+    backend.publish_auth_complete = AsyncMock()
+    backend.acquire_refresh_lock = AsyncMock(return_value=True)
+    backend.release_refresh_lock = AsyncMock()
+
+    # Mock subscribe_auth_complete as an async context manager
+    @asynccontextmanager
+    async def mock_subscribe(session_id, platform_id):
+        yield asyncio.Event()
+
+    backend.subscribe_auth_complete = mock_subscribe
+    return backend
 
 
 @pytest.fixture
@@ -90,8 +108,7 @@ class TestSessionTokenManager:
     @pytest.fixture
     def mock_backend(self):
         """Create mock storage backend."""
-        backend = MagicMock()
-        return backend
+        return create_mock_backend()
 
     @pytest.fixture
     def token_manager(self, mock_store, mock_backend):
@@ -198,7 +215,7 @@ class TestWaitForAuthComplete:
     @pytest.fixture
     def mock_backend(self):
         """Create mock storage backend."""
-        return MagicMock()
+        return create_mock_backend()
 
     @pytest.fixture
     def token_manager(self, mock_store, mock_backend):
@@ -249,7 +266,7 @@ class TestGetAuthStatus:
     @pytest.fixture
     def mock_backend(self):
         """Create mock storage backend."""
-        return MagicMock()
+        return create_mock_backend()
 
     @pytest.fixture
     def token_manager(self, mock_store, mock_backend):
@@ -299,7 +316,7 @@ class TestAutoRefresh:
     @pytest.fixture
     def mock_backend(self):
         """Create mock storage backend."""
-        return MagicMock()
+        return create_mock_backend()
 
     @pytest.fixture
     def token_manager(self, mock_store, mock_backend):
@@ -365,29 +382,26 @@ class TestAutoRefresh:
         mock_store.get_token.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_refresh_with_lock_concurrent(self, token_manager, mock_store, expiring_soon_token):
-        """Should skip refresh if lock is already held."""
+    async def test_refresh_with_lock_concurrent(self, token_manager, mock_store, mock_backend, expiring_soon_token):
+        """Should skip refresh if distributed lock is already held."""
         mock_store.get_token.return_value = expiring_soon_token
 
-        # Manually acquire the lock
-        lock_key = "session-123:aetna"
-        token_manager._refresh_locks[lock_key] = asyncio.Lock()
-        await token_manager._refresh_locks[lock_key].acquire()
+        # Mock acquire_refresh_lock to return False (lock already held)
+        mock_backend.acquire_refresh_lock = AsyncMock(return_value=False)
 
-        try:
-            # Try to refresh while lock is held
-            result = await token_manager._refresh_token_with_lock(
-                "session-123", "aetna", expiring_soon_token
-            )
+        # Try to refresh while lock is held
+        result = await token_manager._refresh_token_with_lock(
+            "session-123", "aetna", expiring_soon_token
+        )
 
-            # Should return original token without refreshing
-            assert result == expiring_soon_token
-            mock_store.store_token.assert_not_called()
-        finally:
-            token_manager._refresh_locks[lock_key].release()
+        # Should return original token without refreshing
+        assert result == expiring_soon_token
+        mock_store.store_token.assert_not_called()
+        # Should not release lock since it wasn't acquired
+        mock_backend.release_refresh_lock.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_refresh_token_failure(self, token_manager, mock_store, expiring_soon_token):
+    async def test_refresh_token_failure(self, token_manager, mock_store, mock_backend, expiring_soon_token):
         """Should return original token on refresh failure."""
         # Return expiring token on re-check after lock acquired
         mock_store.get_token.return_value = expiring_soon_token
@@ -409,9 +423,11 @@ class TestAutoRefresh:
 
         # Should return original token on failure
         assert result == expiring_soon_token
+        # Lock should be released even on failure
+        mock_backend.release_refresh_lock.assert_called_once_with("session-123", "aetna")
 
     @pytest.mark.asyncio
-    async def test_refresh_token_success(self, token_manager, mock_store, expiring_soon_token):
+    async def test_refresh_token_success(self, token_manager, mock_store, mock_backend, expiring_soon_token):
         """Should store new token on successful refresh."""
         # First call returns expiring token, second returns it again (re-check after lock)
         mock_store.get_token.side_effect = [expiring_soon_token, expiring_soon_token]
@@ -440,6 +456,8 @@ class TestAutoRefresh:
 
         assert result == new_token
         mock_store.store_token.assert_called_once_with("session-123", "aetna", new_token)
+        # Lock should be released after success
+        mock_backend.release_refresh_lock.assert_called_once_with("session-123", "aetna")
 
 
 class TestCleanupExpiredSessions:
@@ -455,7 +473,7 @@ class TestCleanupExpiredSessions:
     @pytest.fixture
     def mock_backend(self):
         """Create mock storage backend."""
-        return MagicMock()
+        return create_mock_backend()
 
     @pytest.fixture
     def token_manager(self, mock_store, mock_backend):
@@ -593,7 +611,7 @@ class TestWaitForAuthWithSignal:
     @pytest.fixture
     def mock_backend(self):
         """Create mock storage backend."""
-        return MagicMock()
+        return create_mock_backend()
 
     @pytest.fixture
     def token_manager(self, mock_store, mock_backend):
