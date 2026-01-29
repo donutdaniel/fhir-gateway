@@ -5,14 +5,9 @@ This module provides an MCP server that exposes FHIR operations as tools,
 using the native MCP Python SDK. The MCP tools are thin wrappers around
 the same services used by the REST API.
 
-Usage:
-    # Run standalone MCP server
-    python -m app.mcp.server
-
-    # Or via CLI
-    fhir-gateway-mcp
+The MCP server is mounted at /mcp in the main FastAPI app.
 """
 
-from app.mcp.server import mcp, run_mcp_server, run_mcp_stdio
+from app.mcp.server import mcp
 
-__all__ = ["mcp", "run_mcp_server", "run_mcp_stdio"]
+__all__ = ["mcp"]

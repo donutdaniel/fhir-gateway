@@ -15,11 +15,8 @@ uv sync
 # Install with dev dependencies
 uv sync --all-extras
 
-# Run the REST API server
+# Run the server (REST API + MCP)
 fhir-gateway
-
-# Run the MCP server
-fhir-gateway-mcp
 
 # Or using uvicorn directly
 uvicorn app.main:app --host 0.0.0.0 --port 8000
@@ -83,7 +80,8 @@ The gateway supports session-scoped OAuth token management:
 
 - **`app/routers/`**: API endpoints.
   - `fhir.py`: FHIR REST endpoints (metadata, search, read, create, update, delete, operations)
-  - `auth.py`: OAuth endpoints (login, callback, status, logout, wait, token)
+  - `auth.py`: OAuth endpoints (login, status, logout, wait, token)
+  - `oauth.py`: OAuth callback endpoint (/oauth/callback)
   - `platforms.py`: Platform information endpoints
   - `health.py`: Health check
 
@@ -116,7 +114,7 @@ The gateway supports session-scoped OAuth token management:
 | `/api/fhir/{platform_id}/{resource_type}/{id}` | PUT | Update resource |
 | `/api/fhir/{platform_id}/{resource_type}/{id}` | DELETE | Delete resource |
 | `/auth/{platform_id}/login` | GET | Start OAuth flow |
-| `/auth/callback/{platform_id}` | GET | OAuth callback |
+| `/oauth/callback` | GET | OAuth callback |
 | `/auth/status` | GET | Auth status |
 | `/auth/{platform_id}/wait` | GET | Wait for auth |
 | `/auth/token/{platform_id}` | GET | Get token |

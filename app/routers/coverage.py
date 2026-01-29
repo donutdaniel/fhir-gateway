@@ -18,7 +18,11 @@ from app.services.coverage import (
     fetch_questionnaire_package,
     get_platform_rules,
 )
-from app.services.fhir_client import PlatformNotConfiguredError, PlatformNotFoundError, get_fhir_client
+from app.services.fhir_client import (
+    PlatformNotConfiguredError,
+    PlatformNotFoundError,
+    get_fhir_client,
+)
 from app.utils import extract_bearer_token
 from app.validation import (
     ValidationError,

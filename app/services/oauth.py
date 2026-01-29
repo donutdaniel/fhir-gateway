@@ -8,6 +8,7 @@ Provides OAuth 2.0 authentication including:
 - Endpoint discovery from FHIR metadata
 """
 
+import base64
 import hashlib
 import os
 from dataclasses import dataclass
@@ -59,8 +60,6 @@ def _bytes_to_pkce_verifier(raw_bytes: bytes, target_length: int) -> str:
 
 def _compute_s256_challenge(verifier: str) -> str:
     """Compute S256 code challenge from verifier per RFC 7636."""
-    import base64
-
     digest = hashlib.sha256(verifier.encode("ascii")).digest()
     encoded = base64.urlsafe_b64encode(digest).rstrip(b"=")
     return encoded.decode("ascii")

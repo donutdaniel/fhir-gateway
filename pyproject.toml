@@ -51,7 +51,6 @@ dev = [
 
 [project.scripts]
 fhir-gateway = "app.main:run"
-fhir-gateway-mcp = "app.main:run_mcp"
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
@@ -60,6 +59,13 @@ packages = ["app"]
 asyncio_mode = "auto"
 testpaths = ["tests"]
 addopts = "-v --tb=short"
+markers = [
+    "e2e: end-to-end tests that make real HTTP requests",
+    "network: tests that require network access",
+    "contract: contract tests for API/FHIR compliance",
+    "performance: performance benchmark tests",
+    "benchmark: alias for performance tests",
+]
 
 [tool.ruff]
 line-length = 100

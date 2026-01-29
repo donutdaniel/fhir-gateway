@@ -12,6 +12,20 @@ from app.mcp.tools.fhir import register_fhir_tools
 from app.services.fhir_client import PlatformNotConfiguredError, PlatformNotFoundError
 
 
+@pytest.fixture
+def mock_ctx():
+    """Create mock MCP context with session ID."""
+    ctx = MagicMock()
+    ctx.client_id = "sess-123"
+    ctx.request_id = "req-456"
+    request = MagicMock()
+    request.headers = MagicMock()
+    request.headers.get = MagicMock(return_value=None)
+    ctx.request_context = MagicMock()
+    ctx.request_context.request = request
+    return ctx
+
+
 class TestListPlatforms:
     """Tests for list_platforms tool."""
 
@@ -100,7 +114,7 @@ class TestGetCapabilities:
         }
 
     @pytest.mark.asyncio
-    async def test_get_capabilities_success(self, mcp, mock_capability_statement):
+    async def test_get_capabilities_success(self, mcp, mock_capability_statement, mock_ctx):
         """Should return CapabilityStatement for valid platform."""
         with patch(
             "app.mcp.tools.fhir.fetch_capability_statement",
@@ -111,13 +125,13 @@ class TestGetCapabilities:
                 tools = mcp._tool_manager._tools
                 get_capabilities = tools["get_capabilities"].fn
 
-                result = await get_capabilities(platform_id="aetna")
+                result = await get_capabilities(platform_id="aetna", ctx=mock_ctx)
 
         assert result["resourceType"] == "CapabilityStatement"
         assert result["status"] == "active"
 
     @pytest.mark.asyncio
-    async def test_get_capabilities_with_resource_type(self, mcp, mock_capability_statement):
+    async def test_get_capabilities_with_resource_type(self, mcp, mock_capability_statement, mock_ctx):
         """Should filter capabilities by resource type."""
         with patch(
             "app.mcp.tools.fhir.fetch_capability_statement",
@@ -130,30 +144,32 @@ class TestGetCapabilities:
 
                 result = await get_capabilities(
                     platform_id="aetna",
+                    ctx=mock_ctx,
                     resource_type="Patient",
                 )
 
         assert result["resourceType"] == "CapabilityStatement"
 
     @pytest.mark.asyncio
-    async def test_get_capabilities_invalid_platform_id(self, mcp):
+    async def test_get_capabilities_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         get_capabilities = tools["get_capabilities"].fn
 
-        result = await get_capabilities(platform_id="invalid@platform!")
+        result = await get_capabilities(platform_id="invalid@platform!", ctx=mock_ctx)
 
         assert result["error"] == "validation_error"
         assert "Invalid platform_id" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_get_capabilities_invalid_resource_type(self, mcp):
+    async def test_get_capabilities_invalid_resource_type(self, mcp, mock_ctx):
         """Should return validation error for invalid resource_type."""
         tools = mcp._tool_manager._tools
         get_capabilities = tools["get_capabilities"].fn
 
         result = await get_capabilities(
             platform_id="aetna",
+            ctx=mock_ctx,
             resource_type="invalid_type",
         )
 
@@ -161,7 +177,7 @@ class TestGetCapabilities:
         assert "Invalid resource type" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_get_capabilities_platform_not_found(self, mcp):
+    async def test_get_capabilities_platform_not_found(self, mcp, mock_ctx):
         """Should return error when platform not found."""
         with patch(
             "app.mcp.tools.fhir.fetch_capability_statement",
@@ -171,12 +187,12 @@ class TestGetCapabilities:
             tools = mcp._tool_manager._tools
             get_capabilities = tools["get_capabilities"].fn
 
-            result = await get_capabilities(platform_id="aetna")
+            result = await get_capabilities(platform_id="aetna", ctx=mock_ctx)
 
         assert result["error"] == "platform_not_found"
 
     @pytest.mark.asyncio
-    async def test_get_capabilities_platform_not_configured(self, mcp):
+    async def test_get_capabilities_platform_not_configured(self, mcp, mock_ctx):
         """Should return error when platform has no FHIR endpoint."""
         with patch(
             "app.mcp.tools.fhir.fetch_capability_statement",
@@ -186,7 +202,7 @@ class TestGetCapabilities:
             tools = mcp._tool_manager._tools
             get_capabilities = tools["get_capabilities"].fn
 
-            result = await get_capabilities(platform_id="aetna")
+            result = await get_capabilities(platform_id="aetna", ctx=mock_ctx)
 
         assert result["error"] == "platform_not_configured"
 
@@ -221,7 +237,7 @@ class TestSearch:
         }
 
     @pytest.mark.asyncio
-    async def test_search_success(self, mcp, mock_search_bundle):
+    async def test_search_success(self, mcp, mock_search_bundle, mock_ctx):
         """Should return search results for valid request."""
         with patch(
             "app.mcp.tools.fhir.search_resources",
@@ -235,6 +251,7 @@ class TestSearch:
                 result = await search(
                     platform_id="aetna",
                     resource_type="Patient",
+                    ctx=mock_ctx,
                     params={"name": "Smith"},
                 )
 
@@ -242,7 +259,7 @@ class TestSearch:
         assert result["total"] == 2
 
     @pytest.mark.asyncio
-    async def test_search_invalid_platform_id(self, mcp):
+    async def test_search_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         search = tools["search"].fn
@@ -250,12 +267,13 @@ class TestSearch:
         result = await search(
             platform_id="",
             resource_type="Patient",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_search_invalid_resource_type(self, mcp):
+    async def test_search_invalid_resource_type(self, mcp, mock_ctx):
         """Should return validation error for invalid resource_type."""
         tools = mcp._tool_manager._tools
         search = tools["search"].fn
@@ -263,13 +281,14 @@ class TestSearch:
         result = await search(
             platform_id="aetna",
             resource_type="patient",  # lowercase is invalid
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
         assert "Invalid resource type" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_search_platform_not_found(self, mcp):
+    async def test_search_platform_not_found(self, mcp, mock_ctx):
         """Should return error when platform not found."""
         with patch(
             "app.mcp.tools.fhir.search_resources",
@@ -282,6 +301,7 @@ class TestSearch:
             result = await search(
                 platform_id="unknown",
                 resource_type="Patient",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "platform_not_found"
@@ -313,7 +333,7 @@ class TestRead:
         return client
 
     @pytest.mark.asyncio
-    async def test_read_success(self, mcp, mock_fhir_client):
+    async def test_read_success(self, mcp, mock_fhir_client, mock_ctx):
         """Should return resource for valid request."""
         with patch("app.mcp.tools.fhir.get_fhir_client", return_value=mock_fhir_client):
             with patch("app.mcp.tools.fhir.audit_log"):
@@ -324,13 +344,14 @@ class TestRead:
                     platform_id="aetna",
                     resource_type="Patient",
                     resource_id="123",
+                    ctx=mock_ctx,
                 )
 
         assert result["resourceType"] == "Patient"
         mock_fhir_client.reference.assert_called_once_with("Patient", "123")
 
     @pytest.mark.asyncio
-    async def test_read_invalid_platform_id(self, mcp):
+    async def test_read_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         read = tools["read"].fn
@@ -339,12 +360,13 @@ class TestRead:
             platform_id="bad@id",
             resource_type="Patient",
             resource_id="123",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_read_invalid_resource_type(self, mcp):
+    async def test_read_invalid_resource_type(self, mcp, mock_ctx):
         """Should return validation error for invalid resource_type."""
         tools = mcp._tool_manager._tools
         read = tools["read"].fn
@@ -353,12 +375,13 @@ class TestRead:
             platform_id="aetna",
             resource_type="invalid",
             resource_id="123",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_read_invalid_resource_id(self, mcp):
+    async def test_read_invalid_resource_id(self, mcp, mock_ctx):
         """Should return validation error for invalid resource_id."""
         tools = mcp._tool_manager._tools
         read = tools["read"].fn
@@ -367,12 +390,13 @@ class TestRead:
             platform_id="aetna",
             resource_type="Patient",
             resource_id="",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_read_resource_not_found(self, mcp):
+    async def test_read_resource_not_found(self, mcp, mock_ctx):
         """Should return error when resource not found."""
         mock_client = MagicMock()
         mock_ref = MagicMock()
@@ -387,6 +411,7 @@ class TestRead:
                 platform_id="aetna",
                 resource_type="Patient",
                 resource_id="nonexistent",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "not_found"
@@ -412,7 +437,7 @@ class TestExecuteOperation:
         return client
 
     @pytest.mark.asyncio
-    async def test_execute_operation_success(self, mcp, mock_fhir_client):
+    async def test_execute_operation_success(self, mcp, mock_fhir_client, mock_ctx):
         """Should execute operation successfully."""
         with patch("app.mcp.tools.fhir.get_fhir_client", return_value=mock_fhir_client):
             with patch("app.mcp.tools.fhir.audit_log"):
@@ -424,13 +449,14 @@ class TestExecuteOperation:
                     resource_type="Patient",
                     resource_id="123",
                     operation="$everything",
+                    ctx=mock_ctx,
                 )
 
         assert result["resourceType"] == "Bundle"
         mock_fhir_client.resource.assert_called_once_with("Patient", id="123")
 
     @pytest.mark.asyncio
-    async def test_execute_operation_missing_dollar_sign(self, mcp):
+    async def test_execute_operation_missing_dollar_sign(self, mcp, mock_ctx):
         """Should return validation error for operation without $."""
         tools = mcp._tool_manager._tools
         execute_operation = tools["execute_operation"].fn
@@ -440,13 +466,14 @@ class TestExecuteOperation:
             resource_type="Patient",
             resource_id="123",
             operation="everything",  # Missing $
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
         assert "must start with '$'" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_execute_operation_not_allowed(self, mcp):
+    async def test_execute_operation_not_allowed(self, mcp, mock_ctx):
         """Should return validation error for disallowed operation."""
         tools = mcp._tool_manager._tools
         execute_operation = tools["execute_operation"].fn
@@ -456,13 +483,14 @@ class TestExecuteOperation:
             resource_type="Patient",
             resource_id="123",
             operation="$unknown",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
         assert "not allowed" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_execute_operation_allowed_operations(self, mcp, mock_fhir_client):
+    async def test_execute_operation_allowed_operations(self, mcp, mock_fhir_client, mock_ctx):
         """Should allow all supported operations."""
         allowed_ops = ["$everything", "$validate", "$summary", "$document", "$expand", "$lookup"]
 
@@ -477,11 +505,12 @@ class TestExecuteOperation:
                         resource_type="Patient",
                         resource_id="123",
                         operation=op,
+                        ctx=mock_ctx,
                     )
                     assert "error" not in result, f"Operation {op} should be allowed"
 
     @pytest.mark.asyncio
-    async def test_execute_operation_with_params(self, mcp, mock_fhir_client):
+    async def test_execute_operation_with_params(self, mcp, mock_fhir_client, mock_ctx):
         """Should pass parameters to operation."""
         with patch("app.mcp.tools.fhir.get_fhir_client", return_value=mock_fhir_client):
             with patch("app.mcp.tools.fhir.audit_log"):
@@ -493,6 +522,7 @@ class TestExecuteOperation:
                     resource_type="Patient",
                     resource_id="123",
                     operation="$everything",
+                    ctx=mock_ctx,
                     params={"_count": 10},
                 )
 
@@ -529,7 +559,7 @@ class TestCreate:
         return client
 
     @pytest.mark.asyncio
-    async def test_create_success(self, mcp, mock_fhir_client):
+    async def test_create_success(self, mcp, mock_fhir_client, mock_ctx):
         """Should create resource successfully."""
         with patch("app.mcp.tools.fhir.get_fhir_client", return_value=mock_fhir_client):
             with patch("app.mcp.tools.fhir.audit_log"):
@@ -540,13 +570,14 @@ class TestCreate:
                     platform_id="aetna",
                     resource_type="Patient",
                     resource={"resourceType": "Patient", "name": [{"family": "Smith"}]},
+                    ctx=mock_ctx,
                 )
 
         assert result["resourceType"] == "Patient"
         mock_fhir_client.resource.assert_called_once()
 
     @pytest.mark.asyncio
-    async def test_create_invalid_platform_id(self, mcp):
+    async def test_create_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         create = tools["create"].fn
@@ -555,12 +586,13 @@ class TestCreate:
             platform_id="",
             resource_type="Patient",
             resource={"resourceType": "Patient"},
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_create_invalid_resource_type(self, mcp):
+    async def test_create_invalid_resource_type(self, mcp, mock_ctx):
         """Should return validation error for invalid resource_type."""
         tools = mcp._tool_manager._tools
         create = tools["create"].fn
@@ -569,6 +601,7 @@ class TestCreate:
             platform_id="aetna",
             resource_type="invalid",
             resource={"resourceType": "Patient"},
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
@@ -600,7 +633,7 @@ class TestUpdate:
         return client
 
     @pytest.mark.asyncio
-    async def test_update_success(self, mcp, mock_fhir_client):
+    async def test_update_success(self, mcp, mock_fhir_client, mock_ctx):
         """Should update resource successfully."""
         with patch("app.mcp.tools.fhir.get_fhir_client", return_value=mock_fhir_client):
             with patch("app.mcp.tools.fhir.audit_log"):
@@ -612,12 +645,13 @@ class TestUpdate:
                     resource_type="Patient",
                     resource_id="123",
                     resource={"resourceType": "Patient", "name": [{"family": "Jones"}]},
+                    ctx=mock_ctx,
                 )
 
         assert result["resourceType"] == "Patient"
 
     @pytest.mark.asyncio
-    async def test_update_sets_resource_id(self, mcp, mock_fhir_client):
+    async def test_update_sets_resource_id(self, mcp, mock_fhir_client, mock_ctx):
         """Should set resource ID in the resource data."""
         with patch("app.mcp.tools.fhir.get_fhir_client", return_value=mock_fhir_client):
             with patch("app.mcp.tools.fhir.audit_log"):
@@ -630,13 +664,14 @@ class TestUpdate:
                     resource_type="Patient",
                     resource_id="123",
                     resource=resource_data,
+                    ctx=mock_ctx,
                 )
 
         # Check that id was set in the resource
         assert resource_data["id"] == "123"
 
     @pytest.mark.asyncio
-    async def test_update_invalid_resource_id(self, mcp):
+    async def test_update_invalid_resource_id(self, mcp, mock_ctx):
         """Should return validation error for invalid resource_id."""
         tools = mcp._tool_manager._tools
         update = tools["update"].fn
@@ -646,6 +681,7 @@ class TestUpdate:
             resource_type="Patient",
             resource_id="",
             resource={"resourceType": "Patient"},
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
@@ -671,7 +707,7 @@ class TestDelete:
         return client
 
     @pytest.mark.asyncio
-    async def test_delete_success(self, mcp, mock_fhir_client):
+    async def test_delete_success(self, mcp, mock_fhir_client, mock_ctx):
         """Should delete resource successfully."""
         with patch("app.mcp.tools.fhir.get_fhir_client", return_value=mock_fhir_client):
             with patch("app.mcp.tools.fhir.audit_log"):
@@ -682,13 +718,14 @@ class TestDelete:
                     platform_id="aetna",
                     resource_type="Patient",
                     resource_id="123",
+                    ctx=mock_ctx,
                 )
 
         assert result["success"] is True
         assert "Patient/123" in result["message"]
 
     @pytest.mark.asyncio
-    async def test_delete_invalid_platform_id(self, mcp):
+    async def test_delete_invalid_platform_id(self, mcp, mock_ctx):
         """Should return validation error for invalid platform_id."""
         tools = mcp._tool_manager._tools
         delete = tools["delete"].fn
@@ -697,12 +734,13 @@ class TestDelete:
             platform_id="",
             resource_type="Patient",
             resource_id="123",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_delete_invalid_resource_type(self, mcp):
+    async def test_delete_invalid_resource_type(self, mcp, mock_ctx):
         """Should return validation error for invalid resource_type."""
         tools = mcp._tool_manager._tools
         delete = tools["delete"].fn
@@ -711,12 +749,13 @@ class TestDelete:
             platform_id="aetna",
             resource_type="invalid",
             resource_id="123",
+            ctx=mock_ctx,
         )
 
         assert result["error"] == "validation_error"
 
     @pytest.mark.asyncio
-    async def test_delete_resource_not_found(self, mcp):
+    async def test_delete_resource_not_found(self, mcp, mock_ctx):
         """Should return error when resource not found."""
         mock_client = MagicMock()
         mock_resource = MagicMock()
@@ -731,12 +770,13 @@ class TestDelete:
                 platform_id="aetna",
                 resource_type="Patient",
                 resource_id="nonexistent",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "not_found"
 
     @pytest.mark.asyncio
-    async def test_delete_operation_outcome(self, mcp):
+    async def test_delete_operation_outcome(self, mcp, mock_ctx):
         """Should handle OperationOutcome exception."""
         mock_client = MagicMock()
         mock_resource = MagicMock()
@@ -751,6 +791,7 @@ class TestDelete:
                 platform_id="aetna",
                 resource_type="Patient",
                 resource_id="123",
+                ctx=mock_ctx,
             )
 
         assert result["error"] == "operation_outcome"

@@ -9,6 +9,7 @@ import time
 from collections import deque
 
 from app.config.logging import get_logger
+from app.config.settings import get_settings
 
 logger = get_logger(__name__)
 
@@ -97,8 +98,6 @@ def get_rate_limiter() -> RateLimiter:
     """Get the global rate limiter instance, creating it if needed."""
     global _rate_limiter
     if _rate_limiter is None:
-        from app.config.settings import get_settings
-
         settings = get_settings()
         _rate_limiter = RateLimiter(
             max_requests=settings.rate_limit_max,
@@ -120,8 +119,6 @@ def get_callback_rate_limiter() -> RateLimiter:
     """
     global _callback_rate_limiter
     if _callback_rate_limiter is None:
-        from app.config.settings import get_settings
-
         settings = get_settings()
         _callback_rate_limiter = RateLimiter(
             max_requests=settings.callback_rate_limit_max,

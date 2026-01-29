@@ -10,9 +10,8 @@ Requires the server to be running.
 
 import argparse
 import sys
-from urllib.request import urlopen, Request
 from urllib.error import URLError
-import json
+from urllib.request import Request, urlopen
 
 
 def check_endpoint(url: str, name: str) -> bool:

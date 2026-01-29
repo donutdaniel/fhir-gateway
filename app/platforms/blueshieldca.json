@@ -9,20 +9,20 @@
 
   "states": ["CA"],
 
-  "fhir_base_url": "https://api.blueshieldca.com/bsc/fhir-sandbox/fhir-server/api/v4/cloud/patient-access",
-  "sandbox_url": "https://api-dev.blueshieldca.com/bsc/fhir-sandbox/fhir-server/api/v4/cloud/patient-access",
+  "fhir_base_url": null,
+  "sandbox_url": null,
   "developer_portal": "https://devportal-dev.blueshieldca.com/bsc/fhir-sandbox/",
 
   "oauth": {
-    "authorize_url": "https://dev-ext.blueshieldca.com/as/authorization.oauth2",
-    "token_url": "https://dev-ext.blueshieldca.com/as/token.oauth2",
+    "authorize_url": null,
+    "token_url": null,
     "scopes": ["openid"],
     "redirect_uri": "http://localhost:8000/oauth/callback"
   },
 
   "endpoints": {
-    "patient_access_base": "https://api.blueshieldca.com/bsc/fhir-sandbox/fhir-server/api/v4/cloud/patient-access",
-    "provider_directory_base": "https://api.blueshieldca.com/bsc/fhir-sandbox/fhir-server/api/v4/cloud/provider-directory"
+    "patient_access_base": null,
+    "provider_directory_base": null
   },
 
   "capabilities": {
@@ -39,8 +39,8 @@
     "provider_portal": "https://www.blueshieldca.com/providers"
   },
 
-  "verification_status": "unverified",
-  "last_verified": "2026-01-20",
+  "verification_status": "needs_registration",
+  "last_verified": "2026-01-29",
 
-  "notes": "Blue Shield of California. Payer ID 94036. Production endpoints inferred from sandbox pattern - requires app registration and attestation at devportal-dev.blueshieldca.com. Note: Blue Shield CA is separate from Anthem BCBS of California."
+  "notes": "Blue Shield of California. Payer ID 94036. Requires developer registration and attestation at devportal-dev.blueshieldca.com to obtain production FHIR endpoints. Blue Shield CA is separate from Anthem BCBS of California."
 }

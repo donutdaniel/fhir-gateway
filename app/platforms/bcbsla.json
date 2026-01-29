@@ -15,16 +15,18 @@
   ],
   "payer_ids": ["72076"],
   "states": ["LA"],
-  "fhir_base_url": "https://api-bcbs-prd.safhir.io/v1/api",
+  "fhir_base_url": "https://api-bcbs-prd.safhir.io/v1/api/carin-bb",
   "sandbox_url": null,
   "developer_portal": "https://portal.safhir.io",
   "oauth": {
-    "authorize_url": null,
-    "token_url": null
+    "authorize_url": "https://api-bcbs-prd.safhir.io/v1/authorize",
+    "token_url": "https://api-bcbs-prd.safhir.io/v1/token"
   },
   "endpoints": {
-    "patient_access_base": "https://api-bcbs-prd.safhir.io/v1/api",
-    "metadata": "https://api-bcbs-prd.safhir.io/v1/api/metadata"
+    "patient_access_base": "https://api-bcbs-prd.safhir.io/v1/api/carin-bb",
+    "pdex": "https://api-bcbs-prd.safhir.io/v1/api/pdex",
+    "provider_directory": "https://api-bcbs-prd.safhir.io/v1/api/provider-directory",
+    "metadata": "https://api-bcbs-prd.safhir.io/v1/api/carin-bb/metadata"
   },
   "capabilities": {
     "patient_access": true,
@@ -34,11 +36,12 @@
     "pas": false,
     "cdex": false
   },
-  "verification_status": "unverified",
-  "last_verified": "2026-01-20",
+  "fhir_version": "4.0.1",
+  "verification_status": "verified",
+  "last_verified": "2026-01-29",
   "resources": {
     "safhir_documentation": "https://docs.safhir.io/blueadvantage-bcbsla.html",
     "safhir_portal": "https://portal.safhir.io"
   },
-  "notes": "BCBS Louisiana uses SAFHIR/OnyxOS platform for Patient Access API. Register at portal.safhir.io for app credentials. OAuth endpoints available after registration."
+  "notes": "BCBS Louisiana uses SAFHIR/OnyxOS platform. Uses IG-specific endpoints: carin-bb for claims, pdex for clinical data, provider-directory for provider lookup. Register at portal.safhir.io for app credentials."
 }

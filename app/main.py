@@ -5,6 +5,7 @@ A standalone REST API gateway for FHIR operations with multi-platform routing.
 """
 
 import asyncio
+import os
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -12,15 +13,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.adapters.registry import PlatformAdapterRegistry
+from app.auth.token_manager import cleanup_token_manager, get_token_manager
 from app.config.logging import configure_logging, get_logger
 from app.config.platform import load_config
 from app.config.settings import get_settings
+from app.mcp.server import mcp
 from app.middleware.security import (
     RateLimitMiddleware,
     RequestSizeLimitMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.routers import auth_router, fhir_router, health_router, platforms_router
+from app.routers import auth_router, fhir_router, health_router, oauth_router, platforms_router
 from app.routers.coverage import router as coverage_router
 
 logger = get_logger(__name__)
@@ -31,8 +34,6 @@ _cleanup_task: asyncio.Task | None = None
 
 async def _session_cleanup_loop():
     """Background task to clean up expired sessions periodically."""
-    from app.auth.token_manager import get_token_manager
-
     while True:
         try:
             await asyncio.sleep(300)  # Run every 5 minutes
@@ -68,7 +69,11 @@ async def lifespan(app: FastAPI):
     _cleanup_task = asyncio.create_task(_session_cleanup_loop())
     logger.info("Started session cleanup background task")
 
-    yield
+    # Initialize MCP session manager for streamable-http
+    mcp.streamable_http_app()
+    async with mcp._session_manager.run():
+        logger.info("Started MCP session manager")
+        yield
 
     # Shutdown
     logger.info("Shutting down FHIR Gateway")
@@ -82,8 +87,6 @@ async def lifespan(app: FastAPI):
             pass
 
     # Cleanup token manager
-    from app.auth.token_manager import cleanup_token_manager
-
     await cleanup_token_manager()
     logger.info("Cleaned up token manager")
 
@@ -94,7 +97,7 @@ def create_app() -> FastAPI:
 
     app = FastAPI(
         title="FHIR Gateway",
-        description="Standalone REST API gateway for FHIR operations with multi-platform routing",
+        description="REST API and MCP server for FHIR operations with multi-platform routing",
         version="0.1.0",
         lifespan=lifespan,
         docs_url="/docs",
@@ -121,12 +124,19 @@ def create_app() -> FastAPI:
     # Add request size limit middleware
     app.add_middleware(RequestSizeLimitMiddleware, max_body_size=settings.max_request_body_size)
 
-    # Register routers
+    # Register REST API routers
     app.include_router(health_router)
     app.include_router(platforms_router)
     app.include_router(fhir_router)
     app.include_router(auth_router)
+    app.include_router(oauth_router)
     app.include_router(coverage_router)
+
+    # Mount MCP server at /mcp (streamable-http transport)
+    mcp.settings.streamable_http_path = "/"
+    mcp_app = mcp.streamable_http_app()
+    app.mount("/mcp", mcp_app)
+    logger.info("Mounted MCP server at /mcp")
 
     return app
 
@@ -136,38 +146,40 @@ app = create_app()
 
 
 def run():
-    """Run the REST API server using uvicorn."""
+    """
+    Run the FHIR Gateway server.
+
+    Transport is configured via FHIR_GATEWAY_MCP_TRANSPORT:
+    - "streamable-http" (default): REST API + MCP on same port via uvicorn
+    - "stdio": MCP only via stdio (for CLI/desktop integrations)
+
+    Note: We can't use mcp.run(transport=transport) for both because streamable-http
+    runs the full FastAPI app (REST + MCP) via uvicorn, while stdio runs MCP standalone.
+    """
     settings = get_settings()
     configure_logging(level=settings.log_level, json_format=settings.log_json)
 
-    uvicorn.run(
-        "app.main:app",
-        host=settings.host,
-        port=settings.port,
-        reload=settings.debug,
-        log_level=settings.log_level.lower(),
-    )
+    transport = os.environ.get("FHIR_GATEWAY_MCP_TRANSPORT", "streamable-http")
 
+    if transport == "stdio":
+        # stdio: Run MCP server only (no REST API)
+        config = load_config()
+        logger.info("Loaded platform configuration", platform_count=len(config.platforms))
 
-def run_mcp():
-    """Run the MCP server with stdio transport."""
-    import asyncio
+        count = PlatformAdapterRegistry.auto_register()
+        logger.info("Registered platform adapters", count=count)
 
-    from app.mcp.server import run_mcp_server
-
-    settings = get_settings()
-    configure_logging(level=settings.log_level, json_format=settings.log_json)
-
-    # Load platform configuration
-    config = load_config()
-    logger.info("Loaded platform configuration for MCP", platform_count=len(config.platforms))
-
-    # Auto-register platform adapters
-    count = PlatformAdapterRegistry.auto_register()
-    logger.info("Registered platform adapters", count=count)
-
-    logger.info("Starting FHIR Gateway MCP server")
-    asyncio.run(run_mcp_server())
+        logger.info("Starting FHIR Gateway MCP server (stdio)")
+        asyncio.run(mcp.run_async(transport="stdio"))
+    else:
+        # streamable-http: Run REST API + MCP via uvicorn
+        uvicorn.run(
+            "app.main:app",
+            host=settings.host,
+            port=settings.port,
+            reload=settings.debug,
+            log_level=settings.log_level.lower(),
+        )
 
 
 if __name__ == "__main__":

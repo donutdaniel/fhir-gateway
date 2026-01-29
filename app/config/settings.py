@@ -30,15 +30,12 @@ class Settings(BaseSettings):
                 "Set FHIR_GATEWAY_DEBUG=true for development or provide a secure secret."
             )
 
-        # Prevent CORS wildcard with credentials (security issue)
-        if self.cors_origins == "*" and self.cors_allow_credentials:
-            raise ValueError(
-                "CORS wildcard origin ('*') cannot be used with allow_credentials=True. "
-                "Set FHIR_GATEWAY_CORS_ORIGINS to specific origins or set "
-                "FHIR_GATEWAY_CORS_ALLOW_CREDENTIALS=false."
-            )
-
         return self
+
+    @property
+    def cors_allow_credentials(self) -> bool:
+        """Allow credentials only when specific origins are configured (not wildcard)."""
+        return self.cors_origins != "*"
 
     # Server settings
     host: str = "0.0.0.0"
@@ -59,12 +56,11 @@ class Settings(BaseSettings):
     session_cookie_secure: bool = True  # Set to False for local development over HTTP
 
     # OAuth settings
-    oauth_redirect_uri: str = "http://localhost:8000/auth/callback"
+    oauth_redirect_uri: str = "http://localhost:8000/oauth/callback"
     oauth_allowed_hosts: str = ""  # Comma-separated list of additional allowed redirect hosts
 
     # CORS settings
-    cors_origins: str = "*"
-    cors_allow_credentials: bool = True
+    cors_origins: str = "*"  # Set specific origins in prod to enable credentials
 
     # Redis settings (for production token storage)
     redis_url: str | None = None  # e.g., redis://localhost:6379 or rediss://... for TLS

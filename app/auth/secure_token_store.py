@@ -524,6 +524,34 @@ class SecureTokenStore:
         session.pending_auth.pop(platform_id, None)
         await self.save_session(session)
 
+    async def get_pending_auth_by_state(self, state: str) -> dict[str, Any] | None:
+        """
+        Find pending OAuth authorization by state parameter.
+
+        Searches all sessions for matching state. Used when callback
+        doesn't include session_id.
+
+        Returns:
+            Dict with session_id, platform_id, state, pkce_verifier or None
+        """
+        keys = await self._backend.keys(f"{self.KEY_PREFIX}*")
+
+        for key in keys:
+            session_id = key.replace(self.KEY_PREFIX, "")
+            session = await self.get_session(session_id)
+            if session is None:
+                continue
+
+            for platform_id, pending in session.pending_auth.items():
+                if pending.get("state") == state:
+                    return {
+                        "session_id": session_id,
+                        "platform_id": platform_id,
+                        **pending,
+                    }
+
+        return None
+
     async def cleanup_expired_sessions(self) -> int:
         """
         Clean up expired sessions.

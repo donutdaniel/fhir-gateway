@@ -3,17 +3,17 @@ OAuth authentication endpoints.
 
 Provides OAuth flow endpoints:
 - GET /auth/{platform_id}/login - Redirect to OAuth authorize URL
-- GET /auth/callback - OAuth callback handler
 - GET /auth/status - Get current auth status
 - POST /auth/{platform_id}/logout - Clear session for platform
+
+Note: OAuth callback is handled at /oauth/callback (see oauth.py).
 """
 
-import html
 import uuid
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request, Response
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 
 from app.audit import AuditEvent, audit_log
 from app.auth.token_manager import get_token_manager
@@ -29,8 +29,10 @@ from app.services.oauth import OAuthService
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-def get_session_id(request: Request) -> str:
-    """Get or create session ID from cookie."""
+def get_session_id(request: Request, explicit_session_id: str | None = None) -> str:
+    """Get session ID from explicit param, cookie, or create new one."""
+    if explicit_session_id:
+        return explicit_session_id
     settings = get_settings()
     session_id = request.cookies.get(settings.session_cookie_name)
     if not session_id:
@@ -57,6 +59,7 @@ async def login(
     request: Request,
     redirect: bool = Query(True, description="Redirect to auth URL or return JSON"),
     scopes: str | None = Query(None, description="Space-separated OAuth scopes"),
+    session_id: str | None = Query(None, description="Explicit session ID (for MCP)"),
 ):
     """
     Initiate OAuth login flow for a platform.
@@ -65,6 +68,7 @@ async def login(
         platform_id: The platform identifier
         redirect: If True, redirect to auth URL; if False, return JSON
         scopes: Optional OAuth scopes (space-separated)
+        session_id: Explicit session ID (used by MCP tools)
     """
     platform = get_platform(platform_id)
     if not platform:
@@ -77,8 +81,8 @@ async def login(
         )
 
     settings = get_settings()
-    callback_url = f"{settings.oauth_redirect_uri}/{platform_id}"
-    session_id = get_session_id(request)
+    callback_url = settings.oauth_redirect_uri
+    session_id = get_session_id(request, session_id)
 
     try:
         oauth_service = OAuthService(
@@ -126,181 +130,6 @@ async def login(
         raise HTTPException(status_code=500, detail=f"Failed to build auth URL: {str(e)}")
 
 
-@router.get("/callback/{platform_id}")
-async def oauth_callback(
-    platform_id: str,
-    request: Request,
-    code: str = Query(..., description="Authorization code"),
-    state: str = Query(..., description="State parameter"),
-    error: str | None = Query(None, description="Error code"),
-    error_description: str | None = Query(None, description="Error description"),
-) -> HTMLResponse:
-    """
-    Handle OAuth callback.
-
-    This endpoint receives the authorization code from the OAuth provider
-    and exchanges it for tokens.
-
-    Args:
-        platform_id: The platform identifier
-        code: Authorization code
-        state: State parameter for CSRF validation
-        error: Error code if auth failed
-        error_description: Error description
-    """
-    settings = get_settings()
-    session_id = get_session_id(request)
-    token_manager = get_token_manager()
-
-    # Handle OAuth errors
-    if error:
-        error_msg = html.escape(error_description or error)
-        audit_log(
-            AuditEvent.AUTH_FAILURE,
-            session_id=session_id,
-            platform_id=platform_id,
-            success=False,
-            error=error_msg,
-        )
-        return HTMLResponse(
-            content=f"""
-            <!DOCTYPE html>
-            <html>
-            <head><title>Authentication Failed</title></head>
-            <body>
-                <h1>Authentication Failed</h1>
-                <p>Error: {error_msg}</p>
-                <p>Please close this window and try again.</p>
-            </body>
-            </html>
-            """,
-            status_code=400,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
-        )
-
-    # Get pending auth data
-    pending_auth = await token_manager.get_pending_auth(session_id, platform_id)
-    if not pending_auth:
-        audit_log(
-            AuditEvent.SECURITY_INVALID_STATE,
-            session_id=session_id,
-            platform_id=platform_id,
-            success=False,
-            error="Session not found",
-        )
-        return HTMLResponse(
-            content="""
-            <!DOCTYPE html>
-            <html>
-            <head><title>Session Expired</title></head>
-            <body>
-                <h1>Session Expired</h1>
-                <p>Your session has expired. Please start the login process again.</p>
-            </body>
-            </html>
-            """,
-            status_code=400,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
-        )
-
-    # Verify state
-    expected_state = pending_auth.get("state")
-    if state != expected_state:
-        audit_log(
-            AuditEvent.SECURITY_INVALID_STATE,
-            session_id=session_id,
-            platform_id=platform_id,
-            success=False,
-            error="State mismatch",
-        )
-        return HTMLResponse(
-            content="""
-            <!DOCTYPE html>
-            <html>
-            <head><title>Invalid State</title></head>
-            <body>
-                <h1>Invalid State</h1>
-                <p>The state parameter does not match. This may be a CSRF attack.</p>
-            </body>
-            </html>
-            """,
-            status_code=400,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
-        )
-
-    # Exchange code for tokens
-    try:
-        callback_url = f"{settings.oauth_redirect_uri}/{platform_id}"
-        oauth_service = OAuthService(
-            platform_id=platform_id,
-            redirect_uri=callback_url,
-        )
-
-        pkce_verifier = pending_auth["pkce_verifier"]
-        token = await oauth_service.exchange_code(
-            code=code,
-            code_verifier=pkce_verifier,
-            state=state,
-        )
-
-        # Store token in session via token manager
-        await token_manager.store_token(session_id, platform_id, token)
-
-        # Clear pending auth
-        await token_manager.clear_pending_auth(session_id, platform_id)
-
-        audit_log(
-            AuditEvent.AUTH_SUCCESS,
-            session_id=session_id,
-            platform_id=platform_id,
-        )
-
-        platform = get_platform(platform_id)
-        platform_name = html.escape(platform.display_name if platform else platform_id)
-
-        response = HTMLResponse(
-            content=f"""
-            <!DOCTYPE html>
-            <html>
-            <head><title>Authentication Successful</title></head>
-            <body>
-                <h1>Authentication Successful</h1>
-                <p>You have been authenticated with {platform_name}.</p>
-                <p>You can close this window and return to your application.</p>
-            </body>
-            </html>
-            """,
-            status_code=200,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
-        )
-        set_session_cookie(response, session_id)
-        return response
-
-    except Exception as e:
-        error_msg = html.escape(str(e))
-        audit_log(
-            AuditEvent.AUTH_FAILURE,
-            session_id=session_id,
-            platform_id=platform_id,
-            success=False,
-            error=str(e),
-        )
-        return HTMLResponse(
-            content=f"""
-            <!DOCTYPE html>
-            <html>
-            <head><title>Token Exchange Failed</title></head>
-            <body>
-                <h1>Token Exchange Failed</h1>
-                <p>Error: {error_msg}</p>
-            </body>
-            </html>
-            """,
-            status_code=500,
-            headers={"Content-Security-Policy": "default-src 'none'; style-src 'unsafe-inline'"},
-        )
-
-
 @router.get("/status", response_model=AuthStatusResponse)
 async def get_auth_status(request: Request) -> AuthStatusResponse:
     """
@@ -345,10 +174,9 @@ async def logout(platform_id: str, request: Request) -> dict[str, Any]:
     revoked = False
     if token:
         try:
-            callback_url = f"{settings.oauth_redirect_uri}/{platform_id}"
             oauth_service = OAuthService(
                 platform_id=platform_id,
-                redirect_uri=callback_url,
+                redirect_uri=settings.oauth_redirect_uri,
             )
 
             # Revoke refresh token first (if present), then access token

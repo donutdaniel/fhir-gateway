@@ -9,6 +9,7 @@ method to customize behavior.
 from abc import ABC, abstractmethod
 from typing import Any
 
+import aiohttp
 from fhirpy import AsyncFHIRClient
 
 from app.config.logging import get_logger
@@ -80,8 +81,6 @@ class BasePayerAdapter(ABC):
             access_token: OAuth access token for the platform's API
             timeout: Request timeout in seconds
         """
-        import aiohttp
-
         base_url = self.fhir_base_url
         if not base_url:
             logger.debug(f"{self.adapter_name}: No platform-specific URL, using default client")

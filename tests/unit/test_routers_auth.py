@@ -9,14 +9,16 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from app.models.auth import OAuthToken
-from app.routers.auth import router
+from app.routers.auth import router as auth_router
+from app.routers.oauth import router as oauth_router
 
 
 @pytest.fixture
 def app():
-    """Create test FastAPI app with auth router."""
+    """Create test FastAPI app with auth and oauth routers."""
     app = FastAPI()
-    app.include_router(router)
+    app.include_router(auth_router)
+    app.include_router(oauth_router)
     return app
 
 
@@ -109,7 +111,7 @@ class TestLogin:
             mock_settings.return_value.session_max_age = 3600
             mock_settings.return_value.session_cookie_secure = False
 
-            response = client.get(
+            client.get(
                 "/auth/test-payer/login?redirect=false&scopes=openid%20patient/*.read"
             )
 
@@ -147,52 +149,42 @@ class TestLogin:
 
 
 class TestOAuthCallback:
-    """Tests for GET /auth/callback/{platform_id}."""
+    """Tests for GET /oauth/callback."""
 
     def test_callback_error_response(self, client):
         """Should return HTML error for OAuth error."""
-        with patch("app.routers.auth.get_settings") as mock_settings:
-            mock_settings.return_value.session_cookie_name = "fhir_session"
-            with patch("app.routers.auth.audit_log"):
-                response = client.get(
-                    "/auth/callback/test-payer?code=test&state=test&error=access_denied&error_description=User%20denied"
-                )
+        with patch("app.routers.oauth.audit_log"):
+            response = client.get(
+                "/oauth/callback?code=test&state=test&error=access_denied&error_description=User%20denied"
+            )
 
         assert response.status_code == 400
         assert "Authentication Failed" in response.text
 
     def test_callback_session_not_found(self, client):
-        """Should return error when session not found."""
+        """Should return error when state not found."""
         mock_token_manager = AsyncMock()
-        mock_token_manager.get_pending_auth = AsyncMock(return_value=None)
+        mock_token_manager.get_pending_auth_by_state = AsyncMock(return_value=None)
 
         with (
-            patch("app.routers.auth.get_settings") as mock_settings,
-            patch("app.routers.auth.get_token_manager", return_value=mock_token_manager),
-            patch("app.routers.auth.audit_log"),
+            patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.audit_log"),
         ):
-            mock_settings.return_value.session_cookie_name = "fhir_session"
-
-            response = client.get("/auth/callback/test-payer?code=test-code&state=test-state")
+            response = client.get("/oauth/callback?code=test-code&state=test-state")
 
         assert response.status_code == 400
-        assert "Session Expired" in response.text
+        assert "Invalid State" in response.text
 
     def test_callback_state_mismatch(self, client):
-        """Should return error when state doesn't match."""
+        """Should return error when state not found (no separate mismatch check)."""
         mock_token_manager = AsyncMock()
-        mock_token_manager.get_pending_auth = AsyncMock(
-            return_value={"state": "expected-state", "pkce_verifier": "test"}
-        )
+        mock_token_manager.get_pending_auth_by_state = AsyncMock(return_value=None)
 
         with (
-            patch("app.routers.auth.get_settings") as mock_settings,
-            patch("app.routers.auth.get_token_manager", return_value=mock_token_manager),
-            patch("app.routers.auth.audit_log"),
+            patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.audit_log"),
         ):
-            mock_settings.return_value.session_cookie_name = "fhir_session"
-
-            response = client.get("/auth/callback/test-payer?code=test-code&state=wrong-state")
+            response = client.get("/oauth/callback?code=test-code&state=wrong-state")
 
         assert response.status_code == 400
         assert "Invalid State" in response.text
@@ -203,8 +195,13 @@ class TestOAuthCallback:
         mock_token.access_token = "test-access-token"
 
         mock_token_manager = AsyncMock()
-        mock_token_manager.get_pending_auth = AsyncMock(
-            return_value={"state": "test-state", "pkce_verifier": "test-verifier"}
+        mock_token_manager.get_pending_auth_by_state = AsyncMock(
+            return_value={
+                "session_id": "test-session",
+                "platform_id": "test-payer",
+                "state": "test-state",
+                "pkce_verifier": "test-verifier",
+            }
         )
         mock_token_manager.store_token = AsyncMock()
         mock_token_manager.clear_pending_auth = AsyncMock()
@@ -216,18 +213,18 @@ class TestOAuthCallback:
         mock_platform.display_name = "Test Platform"
 
         with (
-            patch("app.routers.auth.get_settings") as mock_settings,
-            patch("app.routers.auth.get_token_manager", return_value=mock_token_manager),
-            patch("app.routers.auth.OAuthService", return_value=mock_oauth_service),
-            patch("app.routers.auth.get_platform", return_value=mock_platform),
-            patch("app.routers.auth.audit_log"),
+            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.OAuthService", return_value=mock_oauth_service),
+            patch("app.routers.oauth.get_platform", return_value=mock_platform),
+            patch("app.routers.oauth.audit_log"),
         ):
             mock_settings.return_value.session_cookie_name = "fhir_session"
-            mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/auth/callback"
+            mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/oauth/callback"
             mock_settings.return_value.session_max_age = 3600
             mock_settings.return_value.session_cookie_secure = False
 
-            response = client.get("/auth/callback/test-payer?code=test-code&state=test-state")
+            response = client.get("/oauth/callback?code=test-code&state=test-state")
 
         assert response.status_code == 200
         assert "Authentication Successful" in response.text
@@ -237,23 +234,28 @@ class TestOAuthCallback:
     def test_callback_token_exchange_failure(self, client):
         """Should return error when token exchange fails."""
         mock_token_manager = AsyncMock()
-        mock_token_manager.get_pending_auth = AsyncMock(
-            return_value={"state": "test-state", "pkce_verifier": "test-verifier"}
+        mock_token_manager.get_pending_auth_by_state = AsyncMock(
+            return_value={
+                "session_id": "test-session",
+                "platform_id": "test-payer",
+                "state": "test-state",
+                "pkce_verifier": "test-verifier",
+            }
         )
 
         mock_oauth_service = MagicMock()
         mock_oauth_service.exchange_code = AsyncMock(side_effect=Exception("Exchange failed"))
 
         with (
-            patch("app.routers.auth.get_settings") as mock_settings,
-            patch("app.routers.auth.get_token_manager", return_value=mock_token_manager),
-            patch("app.routers.auth.OAuthService", return_value=mock_oauth_service),
-            patch("app.routers.auth.audit_log"),
+            patch("app.routers.oauth.get_settings") as mock_settings,
+            patch("app.routers.oauth.get_token_manager", return_value=mock_token_manager),
+            patch("app.routers.oauth.OAuthService", return_value=mock_oauth_service),
+            patch("app.routers.oauth.audit_log"),
         ):
             mock_settings.return_value.session_cookie_name = "fhir_session"
-            mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/auth/callback"
+            mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/oauth/callback"
 
-            response = client.get("/auth/callback/test-payer?code=test-code&state=test-state")
+            response = client.get("/oauth/callback?code=test-code&state=test-state")
 
         assert response.status_code == 500
         assert "Token Exchange Failed" in response.text
@@ -479,7 +481,7 @@ class TestWaitForAuth:
         ):
             mock_settings.return_value.session_cookie_name = "fhir_session"
 
-            response = client.get("/auth/test-payer/wait?timeout=120")
+            client.get("/auth/test-payer/wait?timeout=120")
 
         mock_token_manager.wait_for_auth_complete.assert_called_once()
         call_args = mock_token_manager.wait_for_auth_complete.call_args[0]

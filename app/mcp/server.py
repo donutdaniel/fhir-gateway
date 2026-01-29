@@ -9,7 +9,8 @@ This is the main entry point that wires together all MCP components:
 Architecture:
 - MCP tools are thin wrappers around services
 - Services handle all business logic (same as REST API)
-- This keeps MCP and REST in sync automatically
+- MCP is mounted in the same FastAPI app as REST API
+- OAuth handled by REST API at /auth/*
 """
 
 from mcp.server.fastmcp import FastMCP
@@ -37,20 +38,3 @@ register_resources(mcp)
 register_prompts(mcp)
 
 logger.debug("MCP server configured with tools, resources, and prompts")
-
-
-async def run_mcp_server():
-    """Run the MCP server with stdio transport."""
-    logger.info("Starting FHIR Gateway MCP server")
-    await mcp.run_async(transport="stdio")
-
-
-def run_mcp_stdio():
-    """Synchronous entry point for stdio transport."""
-    import asyncio
-
-    asyncio.run(run_mcp_server())
-
-
-if __name__ == "__main__":
-    run_mcp_stdio()

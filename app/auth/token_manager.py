@@ -143,11 +143,10 @@ class SessionTokenManager:
             try:
                 # Perform refresh
                 settings = get_settings()
-                callback_url = f"{settings.oauth_redirect_uri}/{platform_id}"
 
                 oauth_service = OAuthService(
                     platform_id=platform_id,
-                    redirect_uri=callback_url,
+                    redirect_uri=settings.oauth_redirect_uri,
                 )
 
                 new_token = await oauth_service.refresh_token(token.refresh_token)
@@ -282,6 +281,10 @@ class SessionTokenManager:
     ) -> None:
         """Clear pending OAuth authorization data."""
         await self._store.clear_pending_auth(session_id, platform_id)
+
+    async def get_pending_auth_by_state(self, state: str) -> dict[str, Any] | None:
+        """Find pending OAuth authorization by state parameter."""
+        return await self._store.get_pending_auth_by_state(state)
 
     async def wait_for_auth_complete(
         self,

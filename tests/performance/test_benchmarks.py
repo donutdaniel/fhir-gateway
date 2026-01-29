@@ -437,7 +437,7 @@ class TestMemoryEfficiency:
         for _ in range(iterations):
             # Find all keys matching a pattern (prefix)
             prefix = "session:50:"
-            matching = [k for k in store.keys() if k.startswith(prefix)]
+            [k for k in store.keys() if k.startswith(prefix)]
 
         elapsed = time.perf_counter() - start
         avg_time = elapsed / iterations
