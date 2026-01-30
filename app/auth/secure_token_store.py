@@ -689,6 +689,7 @@ class SecureTokenStore:
         platform_id: str,
         state: str,
         pkce_verifier: str,
+        mcp_initiated: bool = False,
     ) -> None:
         """Store pending OAuth authorization data."""
         session = await self.get_or_create_session(session_id)
@@ -696,6 +697,7 @@ class SecureTokenStore:
             "state": state,
             "pkce_verifier": pkce_verifier,
             "created_at": time.time(),
+            "mcp_initiated": mcp_initiated,
         }
         await self.save_session(session)
 

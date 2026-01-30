@@ -116,35 +116,42 @@ async def oauth_callback(
     session_id = pending_auth["session_id"]
     platform_id = pending_auth["platform_id"]
     pkce_verifier = pending_auth["pkce_verifier"]
+    mcp_initiated = pending_auth.get("mcp_initiated", False)
 
     # SESSION FIXATION PROTECTION:
     # Verify the browser's session cookie matches the session that initiated OAuth.
     # This prevents attacks where an attacker initiates OAuth on their session,
     # then tricks a victim into completing the callback.
-    current_session = get_session_id(request, create_if_missing=False)
-    if current_session and current_session != session_id:
-        audit_log(
-            AuditEvent.SECURITY_SESSION_MISMATCH,
-            session_id=session_id,
-            success=False,
-            error="Session mismatch - possible session fixation attempt",
-            details={"expected": session_id[:8] + "...", "got": current_session[:8] + "..."},
-        )
-        return HTMLResponse(
-            content="""
-            <!DOCTYPE html>
-            <html>
-            <head><title>Session Mismatch</title></head>
-            <body>
-                <h1>Session Mismatch</h1>
-                <p>The authentication was started in a different browser session.</p>
-                <p>Please start the login process again from your application.</p>
-            </body>
-            </html>
-            """,
-            status_code=400,
-            headers={"Content-Security-Policy": CSP_HEADER},
-        )
+    #
+    # For MCP-initiated auth, we skip this check because:
+    # - MCP sessions are server-side transport sessions, not browser cookies
+    # - The browser will never have the MCP session cookie
+    # - State + PKCE already protect against CSRF/replay attacks
+    if not mcp_initiated:
+        current_session = get_session_id(request, create_if_missing=False)
+        if current_session and current_session != session_id:
+            audit_log(
+                AuditEvent.SECURITY_SESSION_MISMATCH,
+                session_id=session_id,
+                success=False,
+                error="Session mismatch - possible session fixation attempt",
+                details={"expected": session_id[:8] + "...", "got": current_session[:8] + "..."},
+            )
+            return HTMLResponse(
+                content="""
+                <!DOCTYPE html>
+                <html>
+                <head><title>Session Mismatch</title></head>
+                <body>
+                    <h1>Session Mismatch</h1>
+                    <p>The authentication was started in a different browser session.</p>
+                    <p>Please start the login process again from your application.</p>
+                </body>
+                </html>
+                """,
+                status_code=400,
+                headers={"Content-Security-Policy": CSP_HEADER},
+            )
 
     # Validate platform still exists and has OAuth configured
     platform = get_platform(platform_id)

@@ -10,6 +10,10 @@ A unified API gateway for healthcare data across 60+ payers and EHR systems. RES
 
 For AI applications, the gateway also exposes an MCP (Model Context Protocol) interface so LLMs can access healthcare data directly.
 
+### Demo
+
+See [Epic MyChart integration demo](assets/epic-demo.mov) showing the OAuth flow and FHIR data retrieval.
+
 ### How It Works
 
 ```

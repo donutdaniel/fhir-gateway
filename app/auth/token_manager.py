@@ -259,9 +259,12 @@ class SessionTokenManager:
         platform_id: str,
         state: str,
         pkce_verifier: str,
+        mcp_initiated: bool = False,
     ) -> None:
         """Store pending OAuth authorization data."""
-        await self._store.store_pending_auth(session_id, platform_id, state, pkce_verifier)
+        await self._store.store_pending_auth(
+            session_id, platform_id, state, pkce_verifier, mcp_initiated
+        )
 
     async def get_pending_auth(
         self,

@@ -66,6 +66,7 @@ def register_auth_tools(mcp: FastMCP) -> None:
                 platform_id=platform_id,
                 state=state,
                 pkce_verifier=pkce.code_verifier,
+                mcp_initiated=True,  # Skip browser session validation in callback
             )
 
             audit_log(AuditEvent.AUTH_START, platform_id=platform_id, session_id=session_id)
