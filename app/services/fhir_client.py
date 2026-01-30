@@ -192,7 +192,11 @@ async def fetch_capability_statement(
     # Build a compact summary
     rest_list = capability.get("rest", [])
     if not rest_list:
-        return {"resourceType": "CapabilityStatement", "resources": [], "note": "No REST capabilities found"}
+        return {
+            "resourceType": "CapabilityStatement",
+            "resources": [],
+            "note": "No REST capabilities found",
+        }
 
     server_rest = rest_list[0]
     resources = server_rest.get("resource", [])
@@ -202,12 +206,14 @@ async def fetch_capability_statement(
     for r in resources:
         interactions = [i.get("code") for i in r.get("interaction", [])]
         search_params = [p.get("name") for p in r.get("searchParam", [])]
-        resource_summary.append({
-            "type": r.get("type"),
-            "interactions": interactions,
-            "searchParams": search_params[:10] if len(search_params) > 10 else search_params,
-            "searchParamCount": len(search_params),
-        })
+        resource_summary.append(
+            {
+                "type": r.get("type"),
+                "interactions": interactions,
+                "searchParams": search_params[:10] if len(search_params) > 10 else search_params,
+                "searchParamCount": len(search_params),
+            }
+        )
 
     return {
         "resourceType": "CapabilityStatement",

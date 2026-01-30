@@ -1,83 +1,76 @@
-# Contributing to FHIR Gateway
+# Contributing
 
-Thank you for your interest in contributing!
+The main way to contribute is by adding new platforms. There are hundreds of payers and EHRs with FHIR APIs—help us expand coverage.
 
-## Development Setup
+## Adding a Platform
 
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd fhir-gateway
-   ```
+1. Create `app/platforms/{platform_id}.json`:
 
-2. Install dependencies:
-   ```bash
-   uv sync --all-extras
-   ```
-
-3. Run the development server:
-   ```bash
-   make dev
-   ```
-
-## Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run with coverage
-make test-cov
-
-# Run specific tests
-uv run pytest tests/unit/test_oauth.py -v
+```json
+{
+  "id": "platform-id",
+  "name": "Full Platform Name",
+  "display_name": "Display Name",
+  "type": "payer|ehr|sandbox",
+  "fhir_base_url": "https://api.platform.com/fhir/r4",
+  "verification_status": "verified|needs_verification|needs_registration",
+  "developer_portal": "https://developer.platform.com",
+  "oauth": {
+    "authorize_url": "https://auth.platform.com/authorize",
+    "token_url": "https://auth.platform.com/token",
+    "scopes": ["launch/patient", "patient/*.read"]
+  }
+}
 ```
 
-## Code Style
+2. Submit a PR with the new platform file.
 
-We use [Ruff](https://github.com/astral-sh/ruff) for linting and formatting:
+That's it—the platform will be auto-registered on restart.
+
+## Finding Platform Information
+
+Most platforms publish their FHIR endpoints in one of these places:
+
+- **Developer portal** - Search for "{platform name} FHIR API" or "{platform name} developer portal"
+- **CMS Interoperability Rule** - Payers are required to publish patient access APIs
+- **ONC CHPL** - EHRs certified for 21st Century Cures list their FHIR endpoints
+
+## What We Need
+
+If you have access to a platform not listed in [docs/PLATFORMS.md](docs/PLATFORMS.md):
+
+1. **FHIR base URL** - The endpoint for FHIR requests
+2. **OAuth URLs** - Authorization and token endpoints
+3. **Developer portal link** - Where to register for API access
+4. **Scopes** - Required OAuth scopes (if known)
+
+Even partial information helps—submit what you have and note what's missing.
+
+## Testing Your Platform
 
 ```bash
-# Check for issues
-make lint
+# Start the server
+fhir-gateway
 
-# Auto-format code
-make format
+# Test the metadata endpoint (doesn't require auth)
+curl http://localhost:8000/api/fhir/{platform_id}/metadata
+
+# Test OAuth flow
+open http://localhost:8000/auth/{platform_id}/login
 ```
 
-## Docker Development
+## Code Contributions
 
-Start the full development stack (Redis, HAPI FHIR, Keycloak):
+For code changes:
 
 ```bash
-make docker-up
+# Install dev dependencies
+uv sync --all-extras
 
-# View logs
-make docker-logs
+# Run tests
+uv run pytest
 
-# Stop
-make docker-down
+# Format and lint
+ruff format .
+ruff check .
 ```
-
-## Pull Request Process
-
-1. Create a feature branch from `main`
-2. Make your changes
-3. Ensure tests pass: `make test`
-4. Ensure linting passes: `make lint`
-5. Submit a pull request
-
-## Adding a New Payer
-
-1. Create a JSON config file in `app/platforms/{payer_id}.json`
-2. Include at minimum:
-   - `id`: Unique identifier
-   - `name`: Display name
-   - `fhir_base_url`: FHIR server URL
-   - `oauth`: OAuth configuration (if applicable)
-
-See existing payer configs for examples.
-
-## Questions?
-
-Open an issue for questions or discussions.

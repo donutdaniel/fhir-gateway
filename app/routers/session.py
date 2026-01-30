@@ -15,12 +15,12 @@ from app.config.settings import get_settings
 # Default trusted proxy networks (loopback and RFC 1918 private ranges)
 # These are commonly used by load balancers and reverse proxies
 DEFAULT_TRUSTED_PROXIES = [
-    "127.0.0.0/8",      # IPv4 loopback
-    "::1/128",          # IPv6 loopback
-    "10.0.0.0/8",       # Private network (Class A)
-    "172.16.0.0/12",    # Private network (Class B)
-    "192.168.0.0/16",   # Private network (Class C)
-    "fc00::/7",         # IPv6 unique local addresses
+    "127.0.0.0/8",  # IPv4 loopback
+    "::1/128",  # IPv6 loopback
+    "10.0.0.0/8",  # Private network (Class A)
+    "172.16.0.0/12",  # Private network (Class B)
+    "192.168.0.0/16",  # Private network (Class C)
+    "fc00::/7",  # IPv6 unique local addresses
 ]
 
 

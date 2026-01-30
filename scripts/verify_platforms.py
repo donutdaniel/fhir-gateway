@@ -176,13 +176,10 @@ async def verify_all_platforms(timeout: float = 10.0) -> VerificationReport:
     partial = sum(
         1
         for r in results
-        if r.verification_status == "partial"
-        or (r.sandbox_url and not r.metadata_reachable)
+        if r.verification_status == "partial" or (r.sandbox_url and not r.metadata_reachable)
     )
     needs_registration = sum(
-        1
-        for r in results
-        if r.verification_status == "needs_registration" or (not r.fhir_base_url)
+        1 for r in results if r.verification_status == "needs_registration" or (not r.fhir_base_url)
     )
     unreachable = sum(
         1
@@ -246,9 +243,7 @@ def generate_markdown_report(report: VerificationReport) -> str:
         if r.verification_status == "needs_registration" or not r.fhir_base_url
     ]
     other_results = [
-        r
-        for r in report.results
-        if not r.metadata_reachable and r not in needs_reg_results
+        r for r in report.results if not r.metadata_reachable and r not in needs_reg_results
     ]
 
     if verified_results:
@@ -259,9 +254,7 @@ def generate_markdown_report(report: VerificationReport) -> str:
         for r in sorted(verified_results, key=lambda x: x.platform_name):
             status = f"{r.metadata_status_code}" if r.metadata_status_code else "N/A"
             time_ms = (
-                f"{r.metadata_response_time_ms:.0f}ms"
-                if r.metadata_response_time_ms
-                else "N/A"
+                f"{r.metadata_response_time_ms:.0f}ms" if r.metadata_response_time_ms else "N/A"
             )
             version = r.fhir_version or "N/A"
             oauth = "Yes" if r.has_oauth else "No"
@@ -314,9 +307,7 @@ def generate_markdown_report(report: VerificationReport) -> str:
             cdex = "Yes" if cap.cdex else "No"
         else:
             pa = pd = crd = dtr = pas = cdex = "?"
-        lines.append(
-            f"| {r.platform_name} | {pa} | {pd} | {crd} | {dtr} | {pas} | {cdex} |"
-        )
+        lines.append(f"| {r.platform_name} | {pa} | {pd} | {crd} | {dtr} | {pas} | {cdex} |")
 
     lines.append("")
     lines.append("---")
@@ -332,8 +323,7 @@ def generate_platforms_doc(report: VerificationReport) -> str:
     partial = [
         r
         for r in report.results
-        if r.verification_status == "partial"
-        or (r.sandbox_url and not r.metadata_reachable)
+        if r.verification_status == "partial" or (r.sandbox_url and not r.metadata_reachable)
     ]
     needs_reg = [
         r
@@ -373,10 +363,10 @@ def generate_platforms_doc(report: VerificationReport) -> str:
         "",
         "| Category | Count | Percentage |",
         "|----------|-------|------------|",
-        f"| **Working (verified + URL)** | {len(verified)} | {100*len(verified)//report.total_platforms}% |",
-        f"| **Partial (URL but unverified)** | {len(partial)} | {100*len(partial)//report.total_platforms}% |",
-        f"| **Needs Registration** | {len(needs_reg)} | {100*len(needs_reg)//report.total_platforms}% |",
-        f"| **Unverified (no URL)** | {len(unverified)} | {100*len(unverified)//report.total_platforms}% |",
+        f"| **Working (verified + URL)** | {len(verified)} | {100 * len(verified) // report.total_platforms}% |",
+        f"| **Partial (URL but unverified)** | {len(partial)} | {100 * len(partial) // report.total_platforms}% |",
+        f"| **Needs Registration** | {len(needs_reg)} | {100 * len(needs_reg) // report.total_platforms}% |",
+        f"| **Unverified (no URL)** | {len(unverified)} | {100 * len(unverified) // report.total_platforms}% |",
         f"| **Total** | {report.total_platforms} | 100% |",
         "",
         "### By Type",
@@ -393,45 +383,53 @@ def generate_platforms_doc(report: VerificationReport) -> str:
 
     # Working platforms
     if verified:
-        lines.extend([
-            f"## ✅ Working Platforms ({len(verified)})",
-            "",
-            "These platforms are verified and have FHIR URLs configured:",
-            "",
-            "| Platform | ID | Type | FHIR Version | OAuth |",
-            "|----------|-----|------|--------------|-------|",
-        ])
+        lines.extend(
+            [
+                f"## ✅ Working Platforms ({len(verified)})",
+                "",
+                "These platforms are verified and have FHIR URLs configured:",
+                "",
+                "| Platform | ID | Type | FHIR Version | OAuth |",
+                "|----------|-----|------|--------------|-------|",
+            ]
+        )
         for r in sorted(verified, key=lambda x: x.platform_name):
             oauth = "Yes" if r.has_oauth else "No"
             version = r.fhir_version or "N/A"
             ptype = r.platform_type or "unknown"
-            lines.append(f"| {r.platform_name} | `{r.platform_id}` | {ptype} | {version} | {oauth} |")
+            lines.append(
+                f"| {r.platform_name} | `{r.platform_id}` | {ptype} | {version} | {oauth} |"
+            )
         lines.extend(["", "---", ""])
 
     # Partial platforms
     if partial:
-        lines.extend([
-            f"## ⚠️ Partial - Needs Verification ({len(partial)})",
-            "",
-            "These platforms have FHIR URLs configured but need verification:",
-            "",
-            "| Platform | ID | Status |",
-            "|----------|-----|--------|",
-        ])
+        lines.extend(
+            [
+                f"## ⚠️ Partial - Needs Verification ({len(partial)})",
+                "",
+                "These platforms have FHIR URLs configured but need verification:",
+                "",
+                "| Platform | ID | Status |",
+                "|----------|-----|--------|",
+            ]
+        )
         for r in sorted(partial, key=lambda x: x.platform_name):
             lines.append(f"| {r.platform_name} | `{r.platform_id}` | Has URL, needs verification |")
         lines.extend(["", "---", ""])
 
     # Needs registration
     if needs_reg:
-        lines.extend([
-            f"## 🔧 Needs Registration ({len(needs_reg)})",
-            "",
-            "These platforms require developer portal registration to obtain production FHIR URLs:",
-            "",
-            "| Platform | ID | Developer Portal | Notes |",
-            "|----------|-----|------------------|-------|",
-        ])
+        lines.extend(
+            [
+                f"## 🔧 Needs Registration ({len(needs_reg)})",
+                "",
+                "These platforms require developer portal registration to obtain production FHIR URLs:",
+                "",
+                "| Platform | ID | Developer Portal | Notes |",
+                "|----------|-----|------------------|-------|",
+            ]
+        )
         for r in sorted(needs_reg, key=lambda x: x.platform_name):
             portal = r.developer_portal if r.developer_portal else "-"
             notes = r.notes or "-"
@@ -440,64 +438,68 @@ def generate_platforms_doc(report: VerificationReport) -> str:
 
     # Unverified
     if unverified:
-        lines.extend([
-            f"## ❌ Unverified - No URL ({len(unverified)})",
-            "",
-            "These platforms exist but have no working FHIR URL:",
-            "",
-            "| Platform | ID | Error |",
-            "|----------|-----|-------|",
-        ])
+        lines.extend(
+            [
+                f"## ❌ Unverified - No URL ({len(unverified)})",
+                "",
+                "These platforms exist but have no working FHIR URL:",
+                "",
+                "| Platform | ID | Error |",
+                "|----------|-----|-------|",
+            ]
+        )
         for r in sorted(unverified, key=lambda x: x.platform_name):
             error = r.error or "No URL configured"
             lines.append(f"| {r.platform_name} | `{r.platform_id}` | {error} |")
         lines.extend(["", "---", ""])
 
     # Configuration structure
-    lines.extend([
-        "## Configuration Structure",
-        "",
-        "Each platform is defined in a JSON file at `app/platforms/{platform_id}.json`:",
-        "",
-        "```json",
-        "{",
-        '  "id": "platform_id",',
-        '  "name": "Full Platform Name",',
-        '  "display_name": "Display Name",',
-        '  "type": "payer|ehr|sandbox",',
-        '  "aliases": ["alias1", "alias2"],',
-        '  "patterns": ["pattern1"],',
-        '  "fhir_base_url": "https://api.platform.com/fhir/r4",',
-        '  "verification_status": "verified|needs_registration|unverified",',
-        '  "capabilities": {',
-        '    "patient_access": true,',
-        '    "crd": false,',
-        '    "dtr": false,',
-        '    "pas": false,',
-        '    "cdex": false',
-        '  },',
-        '  "developer_portal": "https://developer.platform.com",',
-        '  "oauth": {',
-        '    "authorize_url": "https://auth.platform.com/authorize",',
-        '    "token_url": "https://auth.platform.com/token"',
-        '  }',
-        "}",
-        "```",
-        "",
-        "---",
-        "",
-        "## Adding a New Platform",
-        "",
-        "1. Create `app/platforms/{platform_id}.json` with platform details",
-        "2. Restart the server - the platform will be auto-registered",
-        "",
-        "That's it! The `GenericPayerAdapter` handles everything dynamically.",
-        "",
-        "---",
-        "",
-        f"*Last updated: {datetime.now().strftime('%B %Y')}*",
-        "",
-    ])
+    lines.extend(
+        [
+            "## Configuration Structure",
+            "",
+            "Each platform is defined in a JSON file at `app/platforms/{platform_id}.json`:",
+            "",
+            "```json",
+            "{",
+            '  "id": "platform_id",',
+            '  "name": "Full Platform Name",',
+            '  "display_name": "Display Name",',
+            '  "type": "payer|ehr|sandbox",',
+            '  "aliases": ["alias1", "alias2"],',
+            '  "patterns": ["pattern1"],',
+            '  "fhir_base_url": "https://api.platform.com/fhir/r4",',
+            '  "verification_status": "verified|needs_registration|unverified",',
+            '  "capabilities": {',
+            '    "patient_access": true,',
+            '    "crd": false,',
+            '    "dtr": false,',
+            '    "pas": false,',
+            '    "cdex": false',
+            "  },",
+            '  "developer_portal": "https://developer.platform.com",',
+            '  "oauth": {',
+            '    "authorize_url": "https://auth.platform.com/authorize",',
+            '    "token_url": "https://auth.platform.com/token"',
+            "  }",
+            "}",
+            "```",
+            "",
+            "---",
+            "",
+            "## Adding a New Platform",
+            "",
+            "1. Create `app/platforms/{platform_id}.json` with platform details",
+            "2. Restart the server - the platform will be auto-registered",
+            "",
+            "That's it! The `GenericPayerAdapter` handles everything dynamically.",
+            "",
+            "---",
+            "",
+            f"*Last updated: {datetime.now().strftime('%B %Y')}*",
+            "",
+        ]
+    )
 
     return "\n".join(lines)
 
