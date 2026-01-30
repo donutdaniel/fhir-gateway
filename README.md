@@ -38,6 +38,14 @@ For AI applications, the gateway also exposes an MCP (Model Context Protocol) in
                                               └─────────────────┘
 ```
 
+**Multi-Platform Routing** — Every request includes a `platform_id` (e.g., `epic`, `aetna`, `cerner`) that tells the gateway which FHIR server to route to. The gateway loads platform configurations from JSON files, each defining the FHIR base URL, OAuth endpoints, supported scopes, and any platform-specific quirks.
+
+**OAuth with PKCE** — When a user needs to authenticate, the gateway initiates a SMART on FHIR OAuth flow with PKCE (Proof Key for Code Exchange). The user authorizes in their browser, the callback is handled automatically, and tokens are stored in the user's session. No tokens are ever exposed to the client application.
+
+**Session-Scoped Tokens** — Each browser session (tracked via cookies) maintains its own set of OAuth tokens. Tokens are stored in-memory for development or Redis for production, with optional encryption at rest. The gateway automatically refreshes expired tokens using refresh tokens when available.
+
+**Dual Interface** — The same server exposes both a REST API and an MCP endpoint. REST clients use standard HTTP, while AI agents connect via MCP's streamable-http transport. Both interfaces share the same session and token management, so an OAuth flow initiated via MCP works seamlessly with subsequent REST calls.
+
 ## Quick Start
 
 ```bash
