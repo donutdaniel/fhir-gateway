@@ -26,7 +26,7 @@ CSP_HEADER = "default-src 'none'; style-src 'unsafe-inline'"
 @router.get("/callback")
 async def oauth_callback(
     request: Request,
-    code: str = Query(..., description="Authorization code"),
+    code: str | None = Query(None, description="Authorization code"),
     state: str = Query(..., description="State parameter"),
     error: str | None = Query(None, description="Error code"),
     error_description: str | None = Query(None, description="Error description"),
@@ -81,6 +81,29 @@ async def oauth_callback(
             <body>
                 <h1>Authentication Failed</h1>
                 <p>Error: {error_msg}</p>
+                <p>Please close this window and try again.</p>
+            </body>
+            </html>
+            """,
+            status_code=400,
+            headers={"Content-Security-Policy": CSP_HEADER},
+        )
+
+    # Handle missing code (no error but also no code)
+    if not code:
+        audit_log(
+            AuditEvent.AUTH_FAILURE,
+            success=False,
+            error="Missing authorization code",
+        )
+        return HTMLResponse(
+            content="""
+            <!DOCTYPE html>
+            <html>
+            <head><title>Invalid Request</title></head>
+            <body>
+                <h1>Invalid Request</h1>
+                <p>No authorization code was provided.</p>
                 <p>Please close this window and try again.</p>
             </body>
             </html>

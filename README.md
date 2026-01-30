@@ -12,7 +12,7 @@ For AI applications, the gateway also exposes an MCP (Model Context Protocol) in
 
 ### Demo
 
-See [Epic MyChart integration demo](assets/epic-demo.mov) showing the OAuth flow and FHIR data retrieval.
+See [Epic MyChart integration demo](assets/epic-patient-demo.mp4) showing the OAuth flow and FHIR data retrieval.
 
 ### How It Works
 
