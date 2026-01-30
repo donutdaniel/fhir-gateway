@@ -117,6 +117,7 @@ async def fetch_capability_statement(
     platform_id: str,
     access_token: str | None = None,
     resource_type: str | None = None,
+    summarize: bool = True,
 ) -> dict[str, Any]:
     """
     Fetch the CapabilityStatement from a platform's FHIR server.
@@ -125,6 +126,7 @@ async def fetch_capability_statement(
         platform_id: The platform identifier
         access_token: Optional OAuth access token
         resource_type: Optional resource type to filter capabilities
+        summarize: If True, return a compact summary instead of full CapabilityStatement
 
     Returns:
         CapabilityStatement resource or filtered capabilities
@@ -155,36 +157,67 @@ async def fetch_capability_statement(
                 raise FHIRClientError(f"Failed to fetch metadata: {resp.status} - {error_text}")
             capability = await resp.json()
 
-    if not resource_type:
+    # Filter to specific resource type
+    if resource_type:
+        rest_list = capability.get("rest", [])
+        if rest_list:
+            server_rest = rest_list[0]
+            resources = server_rest.get("resource", [])
+
+            for resource in resources:
+                if resource.get("type") == resource_type:
+                    return {
+                        "resourceType": "CapabilityStatement",
+                        "resource": resource,
+                        "searchParam": resource.get("searchParam", []),
+                        "operation": resource.get("operation", []),
+                        "interaction": resource.get("interaction", []),
+                    }
+
+        return {
+            "resourceType": "OperationOutcome",
+            "issue": [
+                {
+                    "severity": "warning",
+                    "code": "not-found",
+                    "diagnostics": f"Resource type '{resource_type}' not found in CapabilityStatement",
+                }
+            ],
+        }
+
+    # Return full or summarized CapabilityStatement
+    if not summarize:
         return capability
 
-    # Filter to specific resource type
+    # Build a compact summary
     rest_list = capability.get("rest", [])
     if not rest_list:
-        return capability
+        return {"resourceType": "CapabilityStatement", "resources": [], "note": "No REST capabilities found"}
 
     server_rest = rest_list[0]
     resources = server_rest.get("resource", [])
 
-    for resource in resources:
-        if resource.get("type") == resource_type:
-            return {
-                "resourceType": "CapabilityStatement",
-                "resource": resource,
-                "searchParam": resource.get("searchParam", []),
-                "operation": resource.get("operation", []),
-                "interaction": resource.get("interaction", []),
-            }
+    # Extract just the essential info for each resource
+    resource_summary = []
+    for r in resources:
+        interactions = [i.get("code") for i in r.get("interaction", [])]
+        search_params = [p.get("name") for p in r.get("searchParam", [])]
+        resource_summary.append({
+            "type": r.get("type"),
+            "interactions": interactions,
+            "searchParams": search_params[:10] if len(search_params) > 10 else search_params,
+            "searchParamCount": len(search_params),
+        })
 
     return {
-        "resourceType": "OperationOutcome",
-        "issue": [
-            {
-                "severity": "warning",
-                "code": "not-found",
-                "diagnostics": f"Resource type '{resource_type}' not found in CapabilityStatement",
-            }
-        ],
+        "resourceType": "CapabilityStatement",
+        "fhirVersion": capability.get("fhirVersion"),
+        "status": capability.get("status"),
+        "publisher": capability.get("publisher"),
+        "software": capability.get("software", {}).get("name"),
+        "resourceCount": len(resource_summary),
+        "resources": resource_summary,
+        "note": "This is a summary. Use resource_type parameter for full details on a specific resource.",
     }
 
 

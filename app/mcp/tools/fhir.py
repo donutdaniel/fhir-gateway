@@ -58,7 +58,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         return {"platforms": platform_list, "total": len(platform_list)}
 
     @mcp.tool(
-        description="Get FHIR server capabilities for a resource type. Call this first to discover search parameters."
+        description="Get FHIR server capabilities. Returns a summary by default. Use resource_type for details on a specific resource."
     )
     async def get_capabilities(
         platform_id: Annotated[
@@ -66,8 +66,11 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         ],
         ctx: Context,
         resource_type: Annotated[
-            str | None, Field(description="FHIR resource type to filter (e.g., 'Patient')")
+            str | None, Field(description="FHIR resource type for full details (e.g., 'Patient')")
         ] = None,
+        full: Annotated[
+            bool, Field(description="Return full CapabilityStatement instead of summary")
+        ] = False,
     ) -> dict[str, Any]:
         """Fetch CapabilityStatement from platform's FHIR server."""
         if err := validate_platform_id(platform_id):
@@ -81,6 +84,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
                 platform_id=platform_id,
                 access_token=token,
                 resource_type=resource_type,
+                summarize=not full,
             )
             audit_log(
                 AuditEvent.RESOURCE_READ,

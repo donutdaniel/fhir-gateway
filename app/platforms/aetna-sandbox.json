@@ -1,0 +1,40 @@
+{
+  "id": "aetna-sandbox",
+  "name": "Aetna FHIR Sandbox",
+  "display_name": "Aetna Sandbox - Patient Access",
+  "type": "sandbox",
+  "aliases": ["aetna-test"],
+  "patterns": ["aetna"],
+
+  "developer_portal": "https://developerportal.aetna.com",
+  "support_email": "interoperabilitydevelopersupport@aetna.com",
+
+  "fhir_base_url": "https://vteapif1.aetna.com/fhirdemo/v1/patientaccess",
+  "sandbox_url": "https://vteapif1.aetna.com/fhirdemo/v1/patientaccess",
+
+  "oauth": {
+    "authorize_url": "https://vteapif1.aetna.com/fhirdemo/v1/fhirserver_auth/oauth2/authorize",
+    "token_url": "https://vteapif1.aetna.com/fhirdemo/v1/fhirserver_auth/oauth2/token",
+    "client_id": null,
+    "redirect_uri": "http://localhost:8000/oauth/callback",
+    "scopes": ["openid", "fhirUser", "launch/patient", "patient/*.read"],
+    "code_challenge_methods": ["S256"]
+  },
+
+  "fhir_version": "R4",
+  "implementation_guides": ["US Core 5.0.1", "SMART on FHIR"],
+
+  "endpoints": {},
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false
+  },
+
+  "supported_resources": [],
+
+  "verification_status": "pending",
+  "last_verified": "2026-01-29",
+
+  "notes": "Aetna FHIR sandbox for Patient Access API. Test credentials available via 'Download test member data' in the Developer Portal. Note: Sandbox does NOT support refresh tokens - access expires in 5 minutes."
+}
