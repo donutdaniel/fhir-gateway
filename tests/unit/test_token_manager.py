@@ -172,7 +172,7 @@ class TestSessionTokenManager:
         )
 
         mock_store.store_pending_auth.assert_called_once_with(
-            "session-123", "aetna", "oauth-state", "verifier123"
+            "session-123", "aetna", "oauth-state", "verifier123", False
         )
 
     @pytest.mark.asyncio

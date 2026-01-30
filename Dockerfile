@@ -5,8 +5,8 @@ WORKDIR /app
 COPY pyproject.toml uv.lock README.md ./
 COPY app ./app
 
-ENV VIRTUAL_ENV=/opt/venv
-RUN uv venv $VIRTUAL_ENV && uv sync --frozen --no-dev
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
+RUN uv sync --frozen --no-dev
 
 # Runtime stage
 FROM python:3.12-slim-bookworm

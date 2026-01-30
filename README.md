@@ -14,11 +14,11 @@ For AI applications, the gateway also exposes an MCP (Model Context Protocol) in
 
 **Epic MyChart** - Patient OAuth flow and FHIR data retrieval
 
-<video src="assets/epic-patient-demo.mp4" controls width="600"></video>
+<video src="assets/epic-patient-demo.mp4" controls autoplay muted loop width="600"></video>
 
 **SmartHealthIT Clinician** - Clinician access with SMART on FHIR
 
-<video src="assets/smarthealthit-clinician-demo.mp4" controls width="600"></video>
+<video src="assets/smarthealthit-clinician-demo.mp4" controls autoplay muted loop width="600"></video>
 
 ### How It Works
 
@@ -143,7 +143,10 @@ curl http://localhost:8000/api/fhir/smarthealthit-sandbox-patient/Patient
 
 Configure your MCP client to connect to the gateway:
 
-**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
+<details open>
+<summary><strong>Claude Desktop</strong></summary>
+
+`~/Library/Application Support/Claude/claude_desktop_config.json`:
 ```json
 {
   "mcpServers": {
@@ -153,6 +156,70 @@ Configure your MCP client to connect to the gateway:
   }
 }
 ```
+
+</details>
+
+<details>
+<summary><strong>Claude Code</strong></summary>
+
+`~/.claude/settings.json`:
+```json
+{
+  "mcpServers": {
+    "fhir-gateway": {
+      "url": "http://localhost:8000/mcp/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Cursor</strong></summary>
+
+`~/.cursor/mcp.json`:
+```json
+{
+  "mcpServers": {
+    "fhir-gateway": {
+      "url": "http://localhost:8000/mcp/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Windsurf</strong></summary>
+
+`~/.codeium/windsurf/mcp_config.json`:
+```json
+{
+  "mcpServers": {
+    "fhir-gateway": {
+      "url": "http://localhost:8000/mcp/"
+    }
+  }
+}
+```
+
+</details>
+
+<details>
+<summary><strong>Cline (VS Code)</strong></summary>
+
+Open Cline settings → MCP Servers → Add:
+```json
+{
+  "fhir-gateway": {
+    "url": "http://localhost:8000/mcp/"
+  }
+}
+```
+
+</details>
 
 <details>
 <summary><strong>MCP Tools</strong></summary>

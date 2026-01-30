@@ -36,11 +36,11 @@ def test_list_platforms(client):
 
 def test_get_platform_details(client):
     """Test getting details for a specific platform."""
-    response = client.get("/api/platforms/smarthealthit-sandbox")
+    response = client.get("/api/platforms/smarthealthit-sandbox-patient")
     assert response.status_code == 200
     data = response.json()
-    assert data["id"] == "smarthealthit-sandbox"
-    assert data["name"] == "SMART Health IT Sandbox"
+    assert data["id"] == "smarthealthit-sandbox-patient"
+    assert data["name"] == "SMART Health IT Sandbox (Patient)"
     assert data["has_oauth"] is True
 
 
@@ -52,21 +52,21 @@ def test_get_platform_not_found(client):
 
 def test_fhir_search_requires_valid_resource_type(client):
     """Test that invalid resource types are rejected."""
-    response = client.get("/api/fhir/smarthealthit-sandbox/invalid_type")
+    response = client.get("/api/fhir/smarthealthit-sandbox-patient/invalid_type")
     assert response.status_code == 400
     assert "Invalid resource type" in response.json()["detail"]
 
 
 def test_fhir_metadata_endpoint(client):
     """Test fetching metadata (CapabilityStatement)."""
-    response = client.get("/api/fhir/smarthealthit-sandbox/metadata")
+    response = client.get("/api/fhir/smarthealthit-sandbox-patient/metadata")
     # This may fail without network access, but should not return server error
     assert response.status_code in [200, 503]
 
 
 def test_fhir_search_patient(client):
     """Test searching for patients."""
-    response = client.get("/api/fhir/smarthealthit-sandbox/Patient?family=Smith")
+    response = client.get("/api/fhir/smarthealthit-sandbox-patient/Patient?family=Smith")
     # This may fail without network access, but should not return server error
     assert response.status_code in [200, 503]
 
@@ -84,12 +84,12 @@ def test_auth_login_requires_oauth_platform(client):
 
 def test_auth_login_sandbox(client):
     """Test OAuth login initiation for sandbox."""
-    response = client.get("/auth/smarthealthit-sandbox/login?redirect=false")
+    response = client.get("/auth/smarthealthit-sandbox-patient/login?redirect=false")
     assert response.status_code == 200
     data = response.json()
     assert "authorization_url" in data
     assert "state" in data
-    assert data["platform_id"] == "smarthealthit-sandbox"
+    assert data["platform_id"] == "smarthealthit-sandbox-patient"
 
 
 def test_auth_status_empty_session(client):

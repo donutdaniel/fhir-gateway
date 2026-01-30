@@ -29,7 +29,7 @@ def client():
 @pytest.fixture
 def sandbox_platform():
     """The sandbox platform ID to test against."""
-    return "smarthealthit-sandbox"
+    return "smarthealthit-sandbox-patient"
 
 
 class TestFHIRMetadata:
@@ -58,12 +58,11 @@ class TestFHIRMetadata:
             pytest.skip("Sandbox server unavailable")
 
         data = response.json()
-        assert "rest" in data
-        assert len(data["rest"]) > 0
-
-        rest = data["rest"][0]
-        assert rest["mode"] == "server"
-        assert "resource" in rest
+        # Response is a summary format
+        assert "resourceCount" in data
+        assert data["resourceCount"] > 0
+        assert "resources" in data
+        assert len(data["resources"]) > 0
 
     def test_capability_statement_resource_filter(self, client, sandbox_platform):
         """Should filter capabilities by resource type."""

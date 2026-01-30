@@ -125,7 +125,7 @@ class TestAuthLoginResponseContract:
     def test_login_response_structure(self, client):
         """Login response should have expected structure."""
         # Use the sandbox platform which is known to have working OAuth
-        oauth_platform = "smarthealthit-sandbox"
+        oauth_platform = "smarthealthit-sandbox-patient"
 
         response = client.get(f"/auth/{oauth_platform}/login?redirect=false")
 
@@ -184,7 +184,7 @@ class TestFHIRSearchResponseContract:
     def test_search_response_is_bundle(self, client):
         """Search response should be a Bundle."""
         # Use sandbox platform
-        response = client.get("/api/fhir/smarthealthit-sandbox/Patient?_count=1")
+        response = client.get("/api/fhir/smarthealthit-sandbox-patient/Patient?_count=1")
 
         if response.status_code == 503:
             pytest.skip("FHIR server unavailable")
@@ -198,7 +198,7 @@ class TestFHIRSearchResponseContract:
 
     def test_search_error_response(self, client):
         """Search error should have expected structure."""
-        response = client.get("/api/fhir/smarthealthit-sandbox/invalid_type")
+        response = client.get("/api/fhir/smarthealthit-sandbox-patient/invalid_type")
 
         assert response.status_code == 400
         data = response.json()
