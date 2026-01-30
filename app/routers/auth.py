@@ -28,10 +28,9 @@ from app.services.oauth import OAuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# CSRF protection header - must be present on state-changing requests
-# Browsers won't send custom headers in simple cross-origin requests without CORS preflight
+# CSRF protection: require custom header on state-changing requests
+# Browsers won't send custom headers cross-origin without CORS preflight
 CSRF_HEADER_NAME = "x-requested-with"
-CSRF_HEADER_VALUE = "XMLHttpRequest"
 
 
 @router.get("/{platform_id}/login", response_model=None)
