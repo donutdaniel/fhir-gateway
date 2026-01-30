@@ -6,8 +6,13 @@ Environment variables are prefixed with FHIR_GATEWAY_.
 
 from functools import lru_cache
 
+from dotenv import load_dotenv
 from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Load .env into os.environ so platform config can read dynamic credentials
+# (e.g., FHIR_GATEWAY_PLATFORM_EPIC_SANDBOX_PATIENT_CLIENT_ID)
+load_dotenv()
 
 
 class Settings(BaseSettings):
