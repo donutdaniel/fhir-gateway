@@ -7,7 +7,6 @@ Environment variables are prefixed with FHIR_GATEWAY_.
 from functools import lru_cache
 
 from dotenv import load_dotenv
-from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # Load .env into os.environ so platform config can read dynamic credentials
@@ -24,18 +23,6 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
-
-    @model_validator(mode="after")
-    def validate_production_settings(self) -> "Settings":
-        """Validate settings for production safety."""
-        # Fail if using default session secret in non-debug mode
-        if not self.debug and self.session_secret == "change-me-in-production":
-            raise ValueError(
-                "FHIR_GATEWAY_SESSION_SECRET must be set to a secure value in production. "
-                "Set FHIR_GATEWAY_DEBUG=true for development or provide a secure secret."
-            )
-
-        return self
 
     @property
     def cors_allow_credentials(self) -> bool:
@@ -55,14 +42,12 @@ class Settings(BaseSettings):
     request_timeout: int = 30
 
     # Session settings
-    session_secret: str = "change-me-in-production"
     session_cookie_name: str = "app_session"
     session_max_age: int = 3600  # 1 hour
     session_cookie_secure: bool = True  # Set to False for local development over HTTP
 
     # OAuth settings
     oauth_redirect_uri: str = "http://localhost:8000/oauth/callback"
-    oauth_allowed_hosts: str = ""  # Comma-separated list of additional allowed redirect hosts
 
     # CORS settings
     cors_origins: str = "*"  # Set specific origins in prod to enable credentials

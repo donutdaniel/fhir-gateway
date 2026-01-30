@@ -114,6 +114,11 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
 
+        # HSTS - only set when behind HTTPS (check X-Forwarded-Proto for reverse proxies)
+        scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+        if scheme == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
         # Content Security Policy for API responses
         if "text/html" in response.headers.get("content-type", ""):
             response.headers["Content-Security-Policy"] = (

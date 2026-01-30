@@ -82,7 +82,6 @@ Environment variables (prefix: `FHIR_GATEWAY_`):
 |----------|-------------|---------|
 | `HOST` | Server host | `0.0.0.0` |
 | `PORT` | Server port | `8000` |
-| `SESSION_SECRET` | Session signing secret | (change in production) |
 | `REDIS_URL` | Redis URL for token storage | (optional) |
 | `MASTER_KEY` | Encryption key for tokens at rest | (optional) |
 

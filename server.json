@@ -16,12 +16,6 @@
       },
       "environmentVariables": [
         {
-          "name": "FHIR_GATEWAY_SESSION_SECRET",
-          "description": "Secret key for session signing (required in production)",
-          "isRequired": true,
-          "isSecret": true
-        },
-        {
           "name": "FHIR_GATEWAY_REDIS_URL",
           "description": "Redis URL for token storage (optional, uses in-memory if not set)",
           "isRequired": false,

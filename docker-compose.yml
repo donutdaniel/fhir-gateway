@@ -52,6 +52,5 @@ services:
     environment:
       FHIR_GATEWAY_REDIS_URL: "redis://redis:6379"
       FHIR_GATEWAY_LOG_LEVEL: "INFO"
-      FHIR_GATEWAY_SESSION_SECRET: "docker-dev-secret-change-in-prod"
       FHIR_GATEWAY_SESSION_COOKIE_SECURE: "false"
       FHIR_GATEWAY_OAUTH_REDIRECT_URI: "http://localhost:8000/auth/callback"

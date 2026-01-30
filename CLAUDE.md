@@ -165,7 +165,6 @@ Run `fhir-gateway` separately before starting Claude Desktop.
 | `FHIR_GATEWAY_LOG_LEVEL` | Log level | `INFO` |
 | `FHIR_GATEWAY_LOG_JSON` | JSON logging | `true` |
 | `FHIR_GATEWAY_DEBUG` | Debug mode | `false` |
-| `FHIR_GATEWAY_SESSION_SECRET` | Session secret | (change in prod) |
 | `FHIR_GATEWAY_SESSION_MAX_AGE` | Session TTL | `3600` |
 | `FHIR_GATEWAY_OAUTH_REDIRECT_URI` | OAuth callback URL | `http://localhost:8000/auth/callback` |
 | `FHIR_GATEWAY_REDIS_URL` | Redis URL | (optional) |
