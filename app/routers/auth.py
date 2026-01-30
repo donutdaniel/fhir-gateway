@@ -91,11 +91,13 @@ async def login(
             set_session_cookie(response, session_id)
             return response
 
-        return LoginResponse(
+        response = LoginResponse(
             authorization_url=auth_url,
             state=state,
             platform_id=platform_id,
         )
+        # Note: Session cookie set via middleware for JSON responses
+        return response
 
     except Exception as e:
         audit_log(
@@ -105,7 +107,7 @@ async def login(
             success=False,
             error=str(e),
         )
-        raise HTTPException(status_code=500, detail=f"Failed to build auth URL: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to build authorization URL")
 
 
 @router.get("/status", response_model=AuthStatusResponse)
@@ -205,6 +207,14 @@ async def logout(
     # Always remove from local storage
     await token_manager.delete_token(session_id, platform_id)
 
+    audit_log(
+        AuditEvent.AUTH_REVOKE,
+        session_id=session_id,
+        platform_id=platform_id,
+        success=True,
+        details={"token_revoked_remotely": revoked},
+    )
+
     return {
         "success": True,
         "message": f"Logged out from {platform_id}",
@@ -216,7 +226,7 @@ async def logout(
 async def wait_for_auth(
     platform_id: str,
     request: Request,
-    timeout: float = Query(300, description="Timeout in seconds"),
+    timeout: float = Query(300, le=300, description="Timeout in seconds (max 300)"),
 ) -> dict[str, Any]:
     """
     Wait for OAuth callback to complete.
