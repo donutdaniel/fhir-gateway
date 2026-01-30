@@ -14,11 +14,11 @@ For AI applications, the gateway also exposes an MCP (Model Context Protocol) in
 
 **Epic MyChart** - Patient OAuth flow and FHIR data retrieval
 
-<video src="assets/epic-patient-demo.mp4" controls autoplay muted loop width="600"></video>
+<video src="https://github.com/user-attachments/assets/d7afda80-d04f-4f27-9c9f-e1ab0c652f49" controls autoplay muted loop width="600"></video>
 
 **SmartHealthIT Clinician** - Clinician access with SMART on FHIR
 
-<video src="assets/smarthealthit-clinician-demo.mp4" controls autoplay muted loop width="600"></video>
+<video src="https://github.com/user-attachments/assets/d3258a29-7c48-4db9-ad12-70a7dbc663ba" controls autoplay muted loop width="600"></video>
 
 ### How It Works
 
