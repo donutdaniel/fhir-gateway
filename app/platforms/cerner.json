@@ -11,7 +11,7 @@
   "documentation": "https://docs.oracle.com/en/industries/health/millennium-platform-apis/mfrap/r4_overview.html",
   "support_email": null,
 
-  "fhir_base_url": "https://fhir-ehr-code.cerner.com/r4/{tenant_id}/",
+  "fhir_base_url": "https://fhir-open.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d/",
   "sandbox_url": "https://fhir-open.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d/",
 
   "oauth": {
@@ -81,5 +81,5 @@
   "verification_status": "sandbox_verified",
   "last_verified": "2026-01-31",
 
-  "notes": "Oracle Health (formerly Cerner) Millennium platform - FHIR R4 with broad resource support. Multi-tenant architecture requires tenant_id in URLs. Open sandbox available for unauthenticated testing. OAuth endpoints discovered from FHIR metadata. Does not support $everything operation. Register apps at code-console.cerner.com; config propagates in ~15 minutes."
+  "notes": "Oracle Health (formerly Cerner) Millennium platform - FHIR R4. Default config uses open sandbox (no auth required). Production use requires tenant-specific URLs: replace fhir_base_url with https://fhir-ehr-code.cerner.com/r4/{TENANT_ID}/ and configure OAuth. OAuth endpoints should be discovered from FHIR metadata. Does not support $everything. Register apps at code-console.cerner.com."
 }
