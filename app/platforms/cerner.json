@@ -6,17 +6,20 @@
   "aliases": ["oracle health", "oracle cerner", "millennium"],
   "patterns": ["cerner", "oracle health"],
 
-  "developer_portal": "http://fhir.cerner.com/millennium/r4/",
+  "developer_portal": "https://fhir.cerner.com/millennium/r4/",
+  "code_console": "https://code-console.cerner.com/",
+  "documentation": "https://docs.oracle.com/en/industries/health/millennium-platform-apis/mfrap/r4_overview.html",
   "support_email": null,
 
-  "fhir_base_url": null,
-  "sandbox_url": null,
+  "fhir_base_url": "https://fhir-open.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d/",
+  "sandbox_url": "https://fhir-open.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d/",
 
   "oauth": {
-    "authorize_url": null,
-    "token_url": null,
+    "authorize_url": "https://authorization.cerner.com/tenants/{tenant_id}/protocols/oauth2/profiles/smart-v1/personas/provider/authorize",
+    "token_url": "https://authorization.cerner.com/tenants/{tenant_id}/protocols/oauth2/profiles/smart-v1/token",
+    "discovery_url": "https://authorization.cerner.com/tenants/{tenant_id}/oidc/idsps/{tenant_id}/.well-known/openid-configuration",
     "scopes_supported": [
-      "openid", "fhirUser", "offline_access",
+      "openid", "fhirUser", "offline_access", "launch", "launch/patient",
       "patient/Account.read", "patient/AllergyIntolerance.read",
       "patient/Appointment.read", "patient/Binary.read",
       "patient/CarePlan.read", "patient/CareTeam.read",
@@ -35,27 +38,39 @@
       "patient/Slot.read",
       "user/Organization.read", "user/Location.read", "user/Practitioner.read"
     ],
-    "code_challenge_methods": ["S256"]
+    "code_challenge_methods": ["S256"],
+    "pkce_required": true
   },
 
   "fhir_version": "R4",
-  "implementation_guides": ["US Core", "SMART on FHIR"],
+  "implementation_guides": ["US Core", "SMART on FHIR v1", "SMART on FHIR v2"],
 
-  "endpoints": {},
+  "endpoints": {
+    "open_sandbox": "https://fhir-open.cerner.com/r4/ec2458f2-1e24-41c8-b71b-0e701af7583d/",
+    "provider_sandbox": "https://fhir-ehr-code.cerner.com/r4/{tenant_id}/",
+    "patient_sandbox": "https://fhir-myrecord.cerner.com/r4/{tenant_id}/"
+  },
 
-  "api_products": ["Patient Access API", "Provider Directory API"],
+  "api_products": ["Patient Access API", "Provider Directory API", "Clinical Data API"],
 
   "capabilities": {
     "patient_access": true,
     "provider_directory": true,
     "patient_everything": false,
-    "bulk_data": true
+    "bulk_data": true,
+    "smart_v1": true,
+    "smart_v2": true
   },
 
   "supported_resources": [
-    "Consent", "FamilyMemberHistory", "InsurancePlan",
-    "MedicationAdministration", "MedicationRequest", "NutritionOrder",
-    "Person", "Provenance", "QuestionnaireResponse", "RelatedPerson",
+    "Account", "AllergyIntolerance", "Appointment", "Binary",
+    "CarePlan", "CareTeam", "Condition", "Consent", "Coverage",
+    "Device", "DiagnosticReport", "DocumentReference", "Encounter",
+    "FamilyMemberHistory", "Goal", "Immunization", "InsurancePlan",
+    "Location", "MedicationAdministration", "MedicationRequest",
+    "NutritionOrder", "Observation", "Organization", "Patient",
+    "Person", "Practitioner", "Procedure", "Provenance",
+    "Questionnaire", "QuestionnaireResponse", "RelatedPerson",
     "Schedule", "ServiceRequest", "Slot"
   ],
 
@@ -63,8 +78,8 @@
     "Accept": "application/fhir+json"
   },
 
-  "verification_status": "needs_registration",
-  "last_verified": "2026-01-22",
+  "verification_status": "sandbox_verified",
+  "last_verified": "2026-01-31",
 
-  "notes": "Oracle Health (formerly Cerner) Millennium platform - FHIR R4 with broad resource support. Does not support $everything operation. Multi-tenant with per-organization endpoints."
+  "notes": "Oracle Health (formerly Cerner) Millennium platform - FHIR R4. Default config uses open sandbox (no auth required). Production use requires tenant-specific URLs: replace fhir_base_url with https://fhir-ehr-code.cerner.com/r4/{TENANT_ID}/ and configure OAuth. OAuth endpoints should be discovered from FHIR metadata. Does not support $everything. Register apps at code-console.cerner.com."
 }
