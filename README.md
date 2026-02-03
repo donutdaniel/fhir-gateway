@@ -178,12 +178,16 @@ curl http://localhost:8000/api/fhir/smarthealthit-sandbox-patient/Patient
 
 > **Note**: The gateway uses streamable-http transport (not stdio) because OAuth callbacks require an HTTP server to receive browser redirects. Run `fhir-gateway` before starting your MCP client.
 
-Configure your MCP client to connect to the gateway:
+**MCP URL**: `http://localhost:8000/mcp/`
 
 <details open>
-<summary><strong>Claude Desktop</strong></summary>
+<summary><strong>Claude</strong></summary>
 
-`~/Library/Application Support/Claude/claude_desktop_config.json`:
+**Claude.ai / Claude Pro**: Settings → Connectors → Add Custom Connector
+- Name: `FHIR Gateway`
+- Remote MCP URL: `http://localhost:8000/mcp/`
+
+**Claude Desktop** (`~/Library/Application Support/Claude/claude_desktop_config.json`):
 ```json
 {
   "mcpServers": {
@@ -194,12 +198,7 @@ Configure your MCP client to connect to the gateway:
 }
 ```
 
-</details>
-
-<details>
-<summary><strong>Claude Code</strong></summary>
-
-`~/.claude/settings.json`:
+**Claude Code** (`~/.claude/settings.json`):
 ```json
 {
   "mcpServers": {
