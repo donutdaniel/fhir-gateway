@@ -12,7 +12,7 @@ from fhirpy import AsyncFHIRClient
 
 from app.config.logging import get_logger
 from app.config.platform import get_platform
-from app.config.settings import get_settings
+from app.constants import REQUEST_TIMEOUT_SECONDS
 from app.errors import PlatformNotConfiguredError, PlatformNotFoundError
 
 logger = get_logger(__name__)
@@ -56,8 +56,7 @@ class FHIRClientFactory:
         if not platform.fhir_base_url:
             raise PlatformNotConfiguredError(platform_id)
 
-        settings = get_settings()
-        timeout_val = timeout or settings.request_timeout
+        timeout_val = timeout or REQUEST_TIMEOUT_SECONDS
 
         # Build client kwargs
         client_kwargs: dict[str, Any] = {
@@ -139,8 +138,7 @@ async def fetch_capability_statement(
         raise PlatformNotConfiguredError(platform_id)
 
     # Fetch metadata directly using aiohttp since fhirpy doesn't have a clean metadata method
-    settings = get_settings()
-    timeout_val = settings.request_timeout
+    timeout_val = REQUEST_TIMEOUT_SECONDS
 
     headers = {
         "Accept": "application/fhir+json",

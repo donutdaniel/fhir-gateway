@@ -12,17 +12,26 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.adapters.registry import PlatformAdapterRegistry
+from app.auth.secure_token_store import validate_master_key_strength
 from app.auth.token_manager import cleanup_token_manager, get_token_manager
 from app.config.logging import configure_logging, get_logger
 from app.config.platform import load_config
 from app.config.settings import get_settings
+from app.constants import MAX_REQUEST_BODY_SIZE, SESSION_COOKIE_NAME
 from app.mcp.server import mcp
 from app.middleware.security import (
     RateLimitMiddleware,
     RequestSizeLimitMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.routers import auth_router, fhir_router, health_router, oauth_router, pages_router, platforms_router
+from app.routers import (
+    auth_router,
+    fhir_router,
+    health_router,
+    oauth_router,
+    pages_router,
+    platforms_router,
+)
 from app.routers.coverage import router as coverage_router
 
 logger = get_logger(__name__)
@@ -54,6 +63,14 @@ async def lifespan(app: FastAPI):
     # Startup
     settings = get_settings()
     configure_logging(level=settings.log_level, json_format=settings.log_json)
+
+    # Validate encryption configuration for SOC 2/HIPAA compliance
+    if not settings.master_key:
+        raise RuntimeError(
+            "FHIR_GATEWAY_MASTER_KEY is required. Generate one with: openssl rand -base64 32"
+        )
+    validate_master_key_strength(settings.master_key)
+
     logger.info("Starting FHIR Gateway", host=settings.host, port=settings.port)
 
     # Load platform configuration
@@ -118,10 +135,10 @@ def create_app() -> FastAPI:
     app.add_middleware(SecurityHeadersMiddleware)
 
     # Add rate limiting middleware
-    app.add_middleware(RateLimitMiddleware, session_cookie_name=settings.session_cookie_name)
+    app.add_middleware(RateLimitMiddleware, session_cookie_name=SESSION_COOKIE_NAME)
 
     # Add request size limit middleware
-    app.add_middleware(RequestSizeLimitMiddleware, max_body_size=settings.max_request_body_size)
+    app.add_middleware(RequestSizeLimitMiddleware, max_body_size=MAX_REQUEST_BODY_SIZE)
 
     # Register REST API routers
     app.include_router(pages_router)

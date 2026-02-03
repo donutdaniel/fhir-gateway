@@ -11,6 +11,7 @@ from fastapi import Request
 from fastapi.responses import Response
 
 from app.config.settings import get_settings
+from app.constants import SESSION_COOKIE_NAME
 
 # Default trusted proxy networks (loopback and RFC 1918 private ranges)
 # These are commonly used by load balancers and reverse proxies
@@ -35,8 +36,7 @@ def get_session_id(request: Request, create_if_missing: bool = True) -> str | No
     Returns:
         Session ID string, or None if not found and create_if_missing=False
     """
-    settings = get_settings()
-    session_id = request.cookies.get(settings.session_cookie_name)
+    session_id = request.cookies.get(SESSION_COOKIE_NAME)
     if not session_id and create_if_missing:
         session_id = str(uuid.uuid4())
     return session_id
@@ -46,7 +46,7 @@ def set_session_cookie(response: Response, session_id: str) -> None:
     """Set session cookie on response."""
     settings = get_settings()
     response.set_cookie(
-        key=settings.session_cookie_name,
+        key=SESSION_COOKIE_NAME,
         value=session_id,
         max_age=settings.session_max_age,
         httponly=True,

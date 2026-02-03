@@ -12,6 +12,7 @@ import asyncio
 from typing import Any
 
 from app.audit import AuditEvent, audit_log, truncate_session_id
+from app.auth.identity import UserIdentity
 from app.auth.secure_token_store import (
     InMemoryTokenStorage,
     RedisTokenStorage,
@@ -20,6 +21,11 @@ from app.auth.secure_token_store import (
 )
 from app.config.logging import get_logger
 from app.config.settings import get_settings
+from app.constants import (
+    AUTH_WAIT_TIMEOUT_SECONDS,
+    REFRESH_LOCK_TTL_SECONDS,
+    TOKEN_REFRESH_BUFFER_SECONDS,
+)
 from app.models.auth import OAuthToken
 from app.services.oauth import OAuthService
 
@@ -27,21 +33,6 @@ logger = get_logger(__name__)
 
 # Singleton instance
 _token_manager: "SessionTokenManager | None" = None
-
-
-def _get_token_refresh_buffer() -> int:
-    """Get token refresh buffer from settings."""
-    return get_settings().token_refresh_buffer_seconds
-
-
-def _get_refresh_lock_ttl() -> int:
-    """Get refresh lock TTL from settings."""
-    return get_settings().refresh_lock_ttl_seconds
-
-
-def _get_auth_wait_timeout() -> int:
-    """Get auth wait timeout from settings."""
-    return get_settings().auth_wait_timeout_seconds
 
 
 class SessionTokenManager:
@@ -102,7 +93,7 @@ class SessionTokenManager:
         seconds_remaining = token.seconds_until_expiry()
         if seconds_remaining is None:
             return False
-        return seconds_remaining < _get_token_refresh_buffer()
+        return seconds_remaining < TOKEN_REFRESH_BUFFER_SECONDS
 
     async def _refresh_token_with_lock(
         self,
@@ -116,7 +107,7 @@ class SessionTokenManager:
         Ensures only one refresh operation happens at a time per session/platform.
         Uses backend distributed lock for multi-instance coordination.
         """
-        ttl = _get_refresh_lock_ttl()
+        ttl = REFRESH_LOCK_TTL_SECONDS
 
         # Try to acquire distributed lock
         acquired = await self._backend.acquire_refresh_lock(session_id, platform_id, ttl)
@@ -224,6 +215,39 @@ class SessionTokenManager:
             platform_id=platform_id,
         )
 
+    async def store_user_identity(
+        self,
+        session_id: str,
+        platform_id: str,
+        identity: UserIdentity,
+    ) -> None:
+        """
+        Store user identity for a platform.
+
+        Args:
+            session_id: Session ID
+            platform_id: Platform ID
+            identity: User identity to store
+        """
+        await self._store.store_user_identity(session_id, platform_id, identity)
+
+    async def get_user_identity(
+        self,
+        session_id: str,
+        platform_id: str,
+    ) -> UserIdentity | None:
+        """
+        Get user identity for a platform.
+
+        Args:
+            session_id: Session ID
+            platform_id: Platform ID
+
+        Returns:
+            User identity or None if not found
+        """
+        return await self._store.get_user_identity(session_id, platform_id)
+
     async def get_auth_status(
         self,
         session_id: str,
@@ -307,7 +331,7 @@ class SessionTokenManager:
             OAuth token if auth completed, None if timeout or already waiting
         """
         if timeout is None:
-            timeout = _get_auth_wait_timeout()
+            timeout = AUTH_WAIT_TIMEOUT_SECONDS
 
         wait_key = f"{session_id}:{platform_id}"
 
@@ -431,6 +455,7 @@ def get_token_manager() -> SessionTokenManager:
     store = SecureTokenStore(
         backend=backend,
         master_key=settings.master_key,
+        master_keys=settings.master_keys,
         session_ttl=settings.session_max_age,
     )
 

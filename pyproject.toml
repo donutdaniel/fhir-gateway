@@ -38,6 +38,7 @@ dependencies = [
     "redis>=5.0.0",
     "cryptography>=42.0.0",
     "mcp>=1.0.0",
+    "pyjwt>=2.8.0",
 ]
 
 [project.optional-dependencies]

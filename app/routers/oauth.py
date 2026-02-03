@@ -11,6 +11,7 @@ from fastapi import APIRouter, Query, Request
 from fastapi.responses import HTMLResponse
 
 from app.audit import AuditEvent, audit_log
+from app.auth.identity import extract_user_identity
 from app.auth.token_manager import get_token_manager
 from app.config.platform import get_platform
 from app.config.settings import get_settings
@@ -217,6 +218,19 @@ async def oauth_callback(
         # Store token in session via token manager
         await token_manager.store_token(session_id, platform_id, token)
 
+        # Extract and store user identity from id_token if available
+        user_id = None
+        if token.id_token:
+            # Build token_response dict from OAuthToken fields for identity extraction
+            token_response = {
+                "id_token": token.id_token,
+                "scope": token.scope,
+            }
+            identity = extract_user_identity(token_response)
+            if identity:
+                await token_manager.store_user_identity(session_id, platform_id, identity)
+                user_id = identity.user_id
+
         # Clear pending auth
         await token_manager.clear_pending_auth(session_id, platform_id)
 
@@ -224,6 +238,7 @@ async def oauth_callback(
             AuditEvent.AUTH_SUCCESS,
             session_id=session_id,
             platform_id=platform_id,
+            user_id=user_id,
         )
 
         # platform was already validated above, use it directly

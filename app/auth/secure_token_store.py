@@ -19,15 +19,36 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.audit import truncate_session_id
+from app.auth.identity import UserIdentity
 from app.config.logging import get_logger
-from app.config.settings import get_settings
+from app.constants import PBKDF2_ITERATIONS, SESSION_TTL_SECONDS
 from app.models.auth import OAuthToken
 
 logger = get_logger(__name__)
 
-# Session constants
-SESSION_TTL_SECONDS = 3600  # 1 hour
-STATE_MAPPING_TTL_SECONDS = 900  # 15 minutes for OAuth state mappings
+# OAuth state mapping TTL (15 minutes)
+STATE_MAPPING_TTL_SECONDS = 900
+
+# Security constants
+MIN_MASTER_KEY_LENGTH = 32  # Minimum 256 bits of entropy
+
+
+def validate_master_key_strength(key: str) -> None:
+    """
+    Validate that a master key meets minimum security requirements.
+
+    Args:
+        key: Master key string to validate
+
+    Raises:
+        ValueError: If key does not meet minimum length requirement
+    """
+    if len(key) < MIN_MASTER_KEY_LENGTH:
+        raise ValueError(
+            f"Master key must be at least {MIN_MASTER_KEY_LENGTH} characters. "
+            f"Got {len(key)} characters. "
+            "Use a cryptographically secure random string (e.g., openssl rand -base64 32)"
+        )
 
 
 class MasterKeyEncryption:
@@ -44,12 +65,12 @@ class MasterKeyEncryption:
 
         Args:
             master_key: Master key for deriving per-session keys
-            pbkdf2_iterations: Number of PBKDF2 iterations (uses settings default if not provided)
+            pbkdf2_iterations: Number of PBKDF2 iterations (defaults to PBKDF2_ITERATIONS constant)
         """
         if not master_key:
             raise ValueError("Master key cannot be empty")
         self._master_key = master_key.encode() if isinstance(master_key, str) else master_key
-        self._pbkdf2_iterations = pbkdf2_iterations or get_settings().pbkdf2_iterations
+        self._pbkdf2_iterations = pbkdf2_iterations or PBKDF2_ITERATIONS
 
     def _derive_key(self, salt: bytes) -> bytes:
         """Derive a Fernet-compatible key using PBKDF2."""
@@ -127,6 +148,188 @@ class MasterKeyEncryption:
 
 
 @dataclass
+class KeyConfig:
+    """Configuration for a single encryption key."""
+
+    id: str
+    key: str
+    primary: bool = False
+
+
+class MultiKeyEncryption:
+    """
+    Encryption supporting multiple keys for graceful key rotation.
+
+    Uses v2 format: v2:{key_id}:{salt}:{ciphertext}
+
+    Key rotation workflow:
+    1. Add new key to master_keys with primary=false
+    2. Deploy and verify new key can decrypt
+    3. Set new key as primary=true
+    4. Old data is automatically re-encrypted on next access
+    5. After sufficient time, remove old key
+
+    Maintains backward compatibility with v1 format using the first
+    available key for decryption.
+    """
+
+    def __init__(self, keys: list[KeyConfig], pbkdf2_iterations: int | None = None):
+        """
+        Initialize with multiple keys.
+
+        Args:
+            keys: List of key configurations (must have exactly one primary)
+            pbkdf2_iterations: PBKDF2 iterations for key derivation
+        """
+        if not keys:
+            raise ValueError("At least one key must be configured")
+
+        self._keys = {k.id: k for k in keys}
+        self._pbkdf2_iterations = pbkdf2_iterations or PBKDF2_ITERATIONS
+
+        # Find primary key
+        primary_keys = [k for k in keys if k.primary]
+        if len(primary_keys) != 1:
+            raise ValueError("Exactly one key must be marked as primary")
+        self._primary_key = primary_keys[0]
+
+        # Validate all keys
+        for key_config in keys:
+            validate_master_key_strength(key_config.key)
+
+        # Create MasterKeyEncryption instances for each key
+        self._encryptors = {k.id: MasterKeyEncryption(k.key, self._pbkdf2_iterations) for k in keys}
+
+        logger.info(
+            "Multi-key encryption initialized",
+            key_count=len(keys),
+            primary_key_id=self._primary_key.id,
+        )
+
+    def encrypt(self, data: str, session_id: str) -> str:
+        """
+        Encrypt data using the primary key.
+
+        Args:
+            data: Plain text to encrypt
+            session_id: Session ID (for API compatibility)
+
+        Returns:
+            Encrypted data in v2 format: v2:{key_id}:{salt}:{ciphertext}
+        """
+        try:
+            from cryptography.fernet import Fernet
+        except ImportError:
+            raise ImportError("cryptography package required for encryption")
+
+        primary = self._encryptors[self._primary_key.id]
+
+        # Use cryptographically random salt
+        salt = os.urandom(16)
+        key = primary._derive_key(salt)
+        f = Fernet(key)
+
+        encrypted = f.encrypt(data.encode())
+        salt_b64 = base64.urlsafe_b64encode(salt).decode()
+
+        # Format: v2:key_id:salt_b64:ciphertext_b64
+        return f"v2:{self._primary_key.id}:{salt_b64}:{encrypted.decode()}"
+
+    def decrypt(self, encrypted_data: str, session_id: str) -> str:
+        """
+        Decrypt data using the appropriate key.
+
+        Supports both v1 and v2 formats for backward compatibility.
+
+        Args:
+            encrypted_data: Encrypted data string
+            session_id: Session ID (for API compatibility)
+
+        Returns:
+            Decrypted plain text
+
+        Raises:
+            ValueError: If decryption fails or key not found
+        """
+        try:
+            from cryptography.fernet import Fernet, InvalidToken
+        except ImportError:
+            raise ImportError("cryptography package required for encryption")
+
+        parts = encrypted_data.split(":")
+
+        # Handle v2 format: v2:key_id:salt:ciphertext
+        if len(parts) == 4 and parts[0] == "v2":
+            key_id, salt_b64, ciphertext = parts[1], parts[2], parts[3]
+
+            if key_id not in self._encryptors:
+                raise ValueError(f"Unknown key ID: {key_id}")
+
+            encryptor = self._encryptors[key_id]
+            try:
+                salt = base64.urlsafe_b64decode(salt_b64)
+                key = encryptor._derive_key(salt)
+                f = Fernet(key)
+                decrypted = f.decrypt(ciphertext.encode())
+                return decrypted.decode()
+            except InvalidToken:
+                raise ValueError(f"Decryption failed with key {key_id}")
+
+        # Handle v1 format for backward compatibility: v1:salt:ciphertext
+        if len(parts) == 3 and parts[0] == "v1":
+            # Try each key until one works (for migrated data)
+            last_error = None
+            for encryptor in self._encryptors.values():
+                try:
+                    return encryptor.decrypt(encrypted_data, session_id)
+                except ValueError as e:
+                    last_error = e
+                    continue
+            raise ValueError(f"Decryption failed with all keys: {last_error}")
+
+        raise ValueError("Invalid encrypted data format")
+
+    @classmethod
+    def from_json(cls, json_str: str) -> "MultiKeyEncryption":
+        """
+        Create MultiKeyEncryption from JSON configuration string.
+
+        Args:
+            json_str: JSON array of key objects
+
+        Returns:
+            MultiKeyEncryption instance
+
+        Example JSON:
+            [
+                {"id": "key1", "key": "...", "primary": true},
+                {"id": "key2", "key": "..."}
+            ]
+        """
+        try:
+            key_data = json.loads(json_str)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON in master_keys configuration: {e}")
+
+        if not isinstance(key_data, list):
+            raise ValueError("master_keys must be a JSON array")
+
+        keys = []
+        for item in key_data:
+            if not isinstance(item, dict) or "id" not in item or "key" not in item:
+                raise ValueError("Each key must have 'id' and 'key' fields")
+            keys.append(
+                KeyConfig(
+                    id=item["id"],
+                    key=item["key"],
+                    primary=item.get("primary", False),
+                )
+            )
+
+        return cls(keys)
+
+
+@dataclass
 class SecureSession:
     """
     Session with cryptographic binding to prevent tampering.
@@ -139,6 +342,7 @@ class SecureSession:
     last_accessed: float = field(default_factory=time.time)
     platform_tokens: dict[str, OAuthToken] = field(default_factory=dict)
     pending_auth: dict[str, dict[str, Any]] = field(default_factory=dict)
+    user_identities: dict[str, UserIdentity] = field(default_factory=dict)
     _verification_hash: str = ""
 
     def __post_init__(self):
@@ -173,6 +377,10 @@ class SecureSession:
                 for platform_id, token in self.platform_tokens.items()
             },
             "pending_auth": self.pending_auth,
+            "user_identities": {
+                platform_id: identity.to_dict()
+                for platform_id, identity in self.user_identities.items()
+            },
             "_verification_hash": self._verification_hash,
         }
 
@@ -183,12 +391,17 @@ class SecureSession:
         for platform_id, token_data in data.get("platform_tokens", {}).items():
             platform_tokens[platform_id] = OAuthToken(**token_data)
 
+        user_identities = {}
+        for platform_id, identity_data in data.get("user_identities", {}).items():
+            user_identities[platform_id] = UserIdentity.from_dict(identity_data)
+
         session = cls(
             session_id=data["session_id"],
             created_at=data.get("created_at", time.time()),
             last_accessed=data.get("last_accessed", time.time()),
             platform_tokens=platform_tokens,
             pending_auth=data.get("pending_auth", {}),
+            user_identities=user_identities,
             _verification_hash=data.get("_verification_hash", ""),
         )
         return session
@@ -546,6 +759,7 @@ class SecureTokenStore:
         self,
         backend: TokenStorageBackend,
         master_key: str | None = None,
+        master_keys: str | None = None,
         session_ttl: int = SESSION_TTL_SECONDS,
     ):
         """
@@ -553,16 +767,24 @@ class SecureTokenStore:
 
         Args:
             backend: Storage backend (InMemoryTokenStorage or RedisTokenStorage)
-            master_key: Optional master key for encryption
+            master_key: Optional single master key for encryption
+            master_keys: Optional JSON array of keys for key rotation
             session_ttl: Session TTL in seconds
+
+        Note:
+            If both master_key and master_keys are set, master_keys takes precedence.
         """
         self._backend = backend
         self._session_ttl = session_ttl
-        self._encryption: MasterKeyEncryption | None = None
+        self._encryption: MasterKeyEncryption | MultiKeyEncryption | None = None
         # Local state index for O(1) lookups (state -> (session_id, platform_id))
         self._state_index: dict[str, tuple[str, str]] = {}
 
-        if master_key:
+        # Prefer multi-key configuration for key rotation support
+        if master_keys:
+            self._encryption = MultiKeyEncryption.from_json(master_keys)
+            logger.info("Token encryption enabled with multi-key rotation support")
+        elif master_key:
             self._encryption = MasterKeyEncryption(master_key)
             logger.info("Token encryption enabled with master key")
         else:
@@ -581,7 +803,7 @@ class SecureTokenStore:
 
     def _deserialize(self, data: str, session_id: str) -> SecureSession:
         """Deserialize session data, decrypting if needed."""
-        if self._encryption and data.startswith("v1:"):
+        if self._encryption and (data.startswith("v1:") or data.startswith("v2:")):
             data = self._encryption.decrypt(data, session_id)
         return SecureSession.from_dict(json.loads(data))
 
@@ -681,7 +903,38 @@ class SecureTokenStore:
         if session is None:
             return
         session.platform_tokens.pop(platform_id, None)
+        session.user_identities.pop(platform_id, None)
         await self.save_session(session)
+
+    async def store_user_identity(
+        self,
+        session_id: str,
+        platform_id: str,
+        identity: UserIdentity,
+    ) -> None:
+        """Store user identity for a platform in session."""
+        session = await self.get_or_create_session(session_id)
+        session.user_identities[platform_id] = identity
+        await self.save_session(session)
+        logger.debug(
+            "User identity stored",
+            session_id=truncate_session_id(session_id),
+            platform_id=platform_id,
+            user_id=identity.user_id[:16] + "..."
+            if len(identity.user_id) > 16
+            else identity.user_id,
+        )
+
+    async def get_user_identity(
+        self,
+        session_id: str,
+        platform_id: str,
+    ) -> UserIdentity | None:
+        """Get user identity for a platform from session."""
+        session = await self.get_session(session_id)
+        if session is None:
+            return None
+        return session.user_identities.get(platform_id)
 
     async def store_pending_auth(
         self,

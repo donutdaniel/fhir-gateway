@@ -87,6 +87,7 @@ class TestLifespan:
             mock_settings.return_value.log_json = True
             mock_settings.return_value.host = "0.0.0.0"
             mock_settings.return_value.port = 8000
+            mock_settings.return_value.master_key = "test-key-that-is-at-least-32-characters-long"
             mock_load_config.return_value.platforms = {"aetna": MagicMock()}
             mock_registry.auto_register.return_value = 5
 
@@ -127,6 +128,7 @@ class TestLifespan:
             mock_settings.return_value.log_json = True
             mock_settings.return_value.host = "0.0.0.0"
             mock_settings.return_value.port = 8000
+            mock_settings.return_value.master_key = "test-key-that-is-at-least-32-characters-long"
             mock_load_config.return_value.platforms = {}
             mock_registry.auto_register.return_value = 0
 

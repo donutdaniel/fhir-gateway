@@ -21,9 +21,7 @@ router = APIRouter(prefix="/api/platforms", tags=["platforms"])
 async def list_platforms(
     registered_only: Annotated[
         bool,
-        Query(
-            description="If true, only return platforms with OAuth credentials configured"
-        ),
+        Query(description="If true, only return platforms with OAuth credentials configured"),
     ] = False,
 ) -> PlatformListResponse:
     """

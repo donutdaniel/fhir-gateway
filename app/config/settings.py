@@ -39,11 +39,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_json: bool = True
 
-    # Request settings
-    request_timeout: int = 30
-
     # Session settings
-    session_cookie_name: str = "app_session"
     session_max_age: int = 3600  # 1 hour
     session_cookie_secure: bool = True  # Set to False for local development over HTTP
 
@@ -57,25 +53,13 @@ class Settings(BaseSettings):
     redis_url: str | None = None  # e.g., redis://localhost:6379 or rediss://... for TLS
     require_redis_tls: bool = False  # Require rediss:// scheme
 
-    # Encryption settings
+    # Encryption settings (required)
     master_key: str | None = None  # Master key for encrypting session secrets at rest
 
-    # Rate limiting
-    rate_limit_max: int = 100  # Max requests per window per session
-    rate_limit_window: int = 60  # Window duration in seconds
-    callback_rate_limit_max: int = 20  # Max OAuth callback requests per window
-    callback_rate_limit_window: int = 60  # Callback rate limit window in seconds
-
-    # Request limits
-    max_request_body_size: int = 10 * 1024 * 1024  # 10 MB default
-
-    # Token/auth settings
-    token_refresh_buffer_seconds: int = 60  # Refresh token this many seconds before expiry
-    refresh_lock_ttl_seconds: int = 30  # Lock TTL for concurrent refresh prevention
-    auth_wait_timeout_seconds: int = 300  # Default OAuth wait timeout
-
-    # Encryption settings
-    pbkdf2_iterations: int = 100_000  # PBKDF2 iteration count for key derivation
+    # Multi-key configuration for key rotation (JSON array)
+    # Format: [{"id": "key1", "key": "...", "primary": true}, {"id": "key2", "key": "..."}]
+    # When set, this takes precedence over master_key
+    master_keys: str | None = None
 
     # Proxy settings (for secure IP detection behind load balancers)
     # Comma-separated CIDR ranges. Empty string = use defaults (loopback + private ranges)

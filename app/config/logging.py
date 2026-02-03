@@ -6,6 +6,7 @@ production-ready logging with request correlation IDs.
 """
 
 import logging
+import re
 import sys
 import uuid
 from collections.abc import Callable
@@ -14,6 +15,31 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import structlog
+
+# Patterns for sensitive data that should be redacted in logs
+# Each tuple is (compiled_regex, replacement)
+SENSITIVE_PATTERNS: list[tuple[re.Pattern, str]] = [
+    # access_token, refresh_token, id_token in various formats
+    (re.compile(r'(access_token["\']?\s*[:=]\s*["\']?)([^"\'}\s,]+)'), r"\1[REDACTED]"),
+    (re.compile(r'(refresh_token["\']?\s*[:=]\s*["\']?)([^"\'}\s,]+)'), r"\1[REDACTED]"),
+    (re.compile(r'(id_token["\']?\s*[:=]\s*["\']?)([^"\'}\s,]+)'), r"\1[REDACTED]"),
+    # Bearer tokens in authorization headers
+    (re.compile(r'(bearer\s+)([^\s,\'"]+)', re.IGNORECASE), r"\1[REDACTED]"),
+    # Client secrets
+    (re.compile(r'(client_secret["\']?\s*[:=]\s*["\']?)([^"\'}\s,]+)'), r"\1[REDACTED]"),
+    # API keys
+    (re.compile(r'(api_key["\']?\s*[:=]\s*["\']?)([^"\'}\s,]+)', re.IGNORECASE), r"\1[REDACTED]"),
+    # Authorization header values
+    (
+        re.compile(r'(authorization["\']?\s*[:=]\s*["\']?)([^"\'}\s,]+)', re.IGNORECASE),
+        r"\1[REDACTED]",
+    ),
+    # Master key references
+    (
+        re.compile(r'(master_key["\']?\s*[:=]\s*["\']?)([^"\'}\s,]+)', re.IGNORECASE),
+        r"\1[REDACTED]",
+    ),
+]
 
 
 @dataclass
@@ -64,6 +90,46 @@ def add_request_id(
     return event_dict
 
 
+def _redact_string(value: str) -> str:
+    """Apply all sensitive patterns to redact a string."""
+    result = value
+    for pattern, replacement in SENSITIVE_PATTERNS:
+        result = pattern.sub(replacement, result)
+    return result
+
+
+def _redact_value(value: Any) -> Any:
+    """Recursively redact sensitive data from a value."""
+    if isinstance(value, str):
+        return _redact_string(value)
+    elif isinstance(value, dict):
+        return {k: _redact_value(v) for k, v in value.items()}
+    elif isinstance(value, list):
+        return [_redact_value(item) for item in value]
+    elif isinstance(value, tuple):
+        return tuple(_redact_value(item) for item in value)
+    return value
+
+
+def redact_sensitive_data(
+    logger: logging.Logger, method_name: str, event_dict: dict[str, Any]
+) -> dict[str, Any]:
+    """
+    Structlog processor to redact sensitive data from log events.
+
+    Redacts:
+    - access_token, refresh_token, id_token values
+    - Bearer tokens in authorization headers
+    - client_secret values
+    - api_key values
+    - master_key values
+
+    This processor should be added before the final renderer to ensure
+    sensitive data is not exposed in logs.
+    """
+    return _redact_value(event_dict)
+
+
 def configure_logging(
     level: str = "INFO",
     json_format: bool = True,
@@ -86,6 +152,7 @@ def configure_logging(
         structlog.processors.TimeStamper(fmt="iso"),
         structlog.processors.StackInfoRenderer(),
         add_request_id,
+        redact_sensitive_data,  # Must be before final renderer to redact secrets
     ]
 
     if json_format:

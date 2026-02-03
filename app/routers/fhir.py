@@ -14,7 +14,10 @@ from typing import Any
 
 from fastapi import APIRouter, Header, HTTPException, Query, Request
 
-from app.audit import AuditEvent, audit_log
+from app.audit import AuditEvent, audit_log, compute_change_summary
+from app.auth.scope_validator import validate_scope_for_operation
+from app.auth.token_manager import get_token_manager
+from app.routers.session import get_session_id
 from app.routers.validation import (
     handle_fhir_error,
     validate_operation,
@@ -28,6 +31,26 @@ from app.services.fhir_client import (
 from app.utils import extract_bearer_token
 
 router = APIRouter(prefix="/api/fhir", tags=["fhir"])
+
+
+async def get_current_user_id(request: Request, platform_id: str) -> str | None:
+    """
+    Get the current user ID from session for audit logging.
+
+    Args:
+        request: FastAPI request
+        platform_id: Platform ID to look up user identity for
+
+    Returns:
+        User ID string or None if not authenticated
+    """
+    session_id = get_session_id(request, create_if_missing=False)
+    if not session_id:
+        return None
+
+    token_manager = get_token_manager()
+    identity = await token_manager.get_user_identity(session_id, platform_id)
+    return identity.user_id if identity else None
 
 
 @router.get("/{platform_id}/metadata")
@@ -76,6 +99,17 @@ async def search_resources(
     validate_resource_type(resource_type)
 
     access_token = extract_bearer_token(authorization)
+    session_id = get_session_id(request, create_if_missing=False)
+    user_id = await get_current_user_id(request, platform_id)
+
+    # Validate scope before operation
+    await validate_scope_for_operation(
+        session_id=session_id,
+        platform_id=platform_id,
+        resource_type=resource_type,
+        operation="search",
+        user_id=user_id,
+    )
 
     # Get all query params as search params
     search_params = dict(request.query_params)
@@ -104,6 +138,7 @@ async def search_resources(
             AuditEvent.RESOURCE_SEARCH,
             platform_id=platform_id,
             resource_type=resource_type,
+            user_id=user_id,
             details={"count": len(entries)},
         )
 
@@ -123,6 +158,7 @@ async def read_resource(
     platform_id: str,
     resource_type: str,
     resource_id: str,
+    request: Request,
     authorization: str | None = Header(None),
 ) -> dict[str, Any]:
     """
@@ -138,6 +174,17 @@ async def read_resource(
     validate_resource_id(resource_id)
 
     access_token = extract_bearer_token(authorization)
+    session_id = get_session_id(request, create_if_missing=False)
+    user_id = await get_current_user_id(request, platform_id)
+
+    # Validate scope before operation
+    await validate_scope_for_operation(
+        session_id=session_id,
+        platform_id=platform_id,
+        resource_type=resource_type,
+        operation="read",
+        user_id=user_id,
+    )
 
     try:
         client = get_fhir_client(platform_id, access_token)
@@ -148,6 +195,7 @@ async def read_resource(
             platform_id=platform_id,
             resource_type=resource_type,
             resource_id=resource_id,
+            user_id=user_id,
         )
 
         return resource
@@ -182,6 +230,17 @@ async def execute_operation(
     validate_operation(operation)
 
     access_token = extract_bearer_token(authorization)
+    session_id = get_session_id(request, create_if_missing=False)
+    user_id = await get_current_user_id(request, platform_id)
+
+    # Validate scope before operation (operations typically require read permission)
+    await validate_scope_for_operation(
+        session_id=session_id,
+        platform_id=platform_id,
+        resource_type=resource_type,
+        operation="read",
+        user_id=user_id,
+    )
 
     params = dict(request.query_params)
 
@@ -198,6 +257,7 @@ async def execute_operation(
             platform_id=platform_id,
             resource_type=resource_type,
             resource_id=resource_id,
+            user_id=user_id,
             details={"operation": operation},
         )
 
@@ -214,6 +274,7 @@ async def create_resource(
     platform_id: str,
     resource_type: str,
     resource: dict[str, Any],
+    request: Request,
     authorization: str | None = Header(None),
 ) -> dict[str, Any]:
     """
@@ -228,6 +289,17 @@ async def create_resource(
     validate_resource_type(resource_type)
 
     access_token = extract_bearer_token(authorization)
+    session_id = get_session_id(request, create_if_missing=False)
+    user_id = await get_current_user_id(request, platform_id)
+
+    # Validate scope before operation
+    await validate_scope_for_operation(
+        session_id=session_id,
+        platform_id=platform_id,
+        resource_type=resource_type,
+        operation="create",
+        user_id=user_id,
+    )
 
     # Validate resource type matches
     if resource.get("resourceType") != resource_type:
@@ -241,11 +313,17 @@ async def create_resource(
         client = get_fhir_client(platform_id, access_token)
         created = await client.resource(resource_type, **resource).save()
 
+        # Convert fhirpy resource to dict for audit logging
+        created_dict = dict(created) if hasattr(created, "__iter__") else created
+
         audit_log(
             AuditEvent.RESOURCE_CREATE,
             platform_id=platform_id,
             resource_type=resource_type,
             resource_id=created.get("id"),
+            user_id=user_id,
+            new_state=created_dict,
+            change_summary=compute_change_summary(None, created_dict),
         )
 
         return created
@@ -260,6 +338,7 @@ async def update_resource(
     resource_type: str,
     resource_id: str,
     resource: dict[str, Any],
+    request: Request,
     authorization: str | None = Header(None),
 ) -> dict[str, Any]:
     """
@@ -276,6 +355,17 @@ async def update_resource(
     validate_resource_id(resource_id)
 
     access_token = extract_bearer_token(authorization)
+    session_id = get_session_id(request, create_if_missing=False)
+    user_id = await get_current_user_id(request, platform_id)
+
+    # Validate scope before operation
+    await validate_scope_for_operation(
+        session_id=session_id,
+        platform_id=platform_id,
+        resource_type=resource_type,
+        operation="update",
+        user_id=user_id,
+    )
 
     # Validate resource type and ID match
     if resource.get("resourceType") != resource_type:
@@ -297,13 +387,31 @@ async def update_resource(
 
     try:
         client = get_fhir_client(platform_id, access_token)
+
+        # Fetch previous state for audit trail (best-effort, don't fail if not possible)
+        previous_state = None
+        try:
+            previous_resource = await client.get(resource_type, resource_id)
+            previous_state = (
+                dict(previous_resource)
+                if hasattr(previous_resource, "__iter__")
+                else previous_resource
+            )
+        except Exception:
+            pass  # Resource may not exist yet (upsert) or we may lack read permission
+
         updated = await client.resource(resource_type, **resource).save()
+        updated_dict = dict(updated) if hasattr(updated, "__iter__") else updated
 
         audit_log(
             AuditEvent.RESOURCE_UPDATE,
             platform_id=platform_id,
             resource_type=resource_type,
             resource_id=resource_id,
+            user_id=user_id,
+            previous_state=previous_state,
+            new_state=updated_dict,
+            change_summary=compute_change_summary(previous_state, updated_dict),
         )
 
         return updated
@@ -319,6 +427,7 @@ async def delete_resource(
     platform_id: str,
     resource_type: str,
     resource_id: str,
+    request: Request,
     authorization: str | None = Header(None),
 ) -> dict[str, Any]:
     """
@@ -334,9 +443,33 @@ async def delete_resource(
     validate_resource_id(resource_id)
 
     access_token = extract_bearer_token(authorization)
+    session_id = get_session_id(request, create_if_missing=False)
+    user_id = await get_current_user_id(request, platform_id)
+
+    # Validate scope before operation
+    await validate_scope_for_operation(
+        session_id=session_id,
+        platform_id=platform_id,
+        resource_type=resource_type,
+        operation="delete",
+        user_id=user_id,
+    )
 
     try:
         client = get_fhir_client(platform_id, access_token)
+
+        # Fetch resource state before deletion for audit trail
+        previous_state = None
+        try:
+            previous_resource = await client.get(resource_type, resource_id)
+            previous_state = (
+                dict(previous_resource)
+                if hasattr(previous_resource, "__iter__")
+                else previous_resource
+            )
+        except Exception:
+            pass  # Resource may already be deleted or we may lack read permission
+
         await client.resource(resource_type, id=resource_id).delete()
 
         audit_log(
@@ -344,6 +477,9 @@ async def delete_resource(
             platform_id=platform_id,
             resource_type=resource_type,
             resource_id=resource_id,
+            user_id=user_id,
+            previous_state=previous_state,
+            change_summary=compute_change_summary(previous_state, None),
         )
 
         return {

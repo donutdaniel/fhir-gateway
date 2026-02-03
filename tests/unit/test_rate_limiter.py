@@ -3,7 +3,6 @@ Tests for the rate limiter module.
 """
 
 import time
-from unittest.mock import MagicMock, patch
 
 from app.rate_limiter import (
     RateLimiter,
@@ -130,29 +129,19 @@ class TestGetRateLimiter:
 
     def test_creates_singleton(self):
         """Should create and return singleton instance."""
-        with patch("app.rate_limiter.get_settings") as mock_settings:
-            mock_settings.return_value = MagicMock(
-                rate_limit_max=100,
-                rate_limit_window=60,
-            )
+        limiter1 = get_rate_limiter()
+        limiter2 = get_rate_limiter()
 
-            limiter1 = get_rate_limiter()
-            limiter2 = get_rate_limiter()
+        assert limiter1 is limiter2
 
-            assert limiter1 is limiter2
+    def test_uses_constants(self):
+        """Should use constants for configuration."""
+        from app.constants import RATE_LIMIT_MAX_REQUESTS, RATE_LIMIT_WINDOW_SECONDS
 
-    def test_uses_settings(self):
-        """Should use settings for configuration."""
-        with patch("app.rate_limiter.get_settings") as mock_settings:
-            mock_settings.return_value = MagicMock(
-                rate_limit_max=50,
-                rate_limit_window=30,
-            )
+        limiter = get_rate_limiter()
 
-            limiter = get_rate_limiter()
-
-            assert limiter.max_requests == 50
-            assert limiter.window_seconds == 30
+        assert limiter.max_requests == RATE_LIMIT_MAX_REQUESTS
+        assert limiter.window_seconds == RATE_LIMIT_WINDOW_SECONDS
 
 
 class TestGetCallbackRateLimiter:
@@ -194,19 +183,13 @@ class TestResetRateLimiter:
 
     def test_resets_both_limiters(self):
         """Should reset both rate limiters."""
-        with patch("app.rate_limiter.get_settings") as mock_settings:
-            mock_settings.return_value = MagicMock(
-                rate_limit_max=100,
-                rate_limit_window=60,
-            )
+        limiter1 = get_rate_limiter()
+        callback_limiter1 = get_callback_rate_limiter()
 
-            limiter1 = get_rate_limiter()
-            callback_limiter1 = get_callback_rate_limiter()
+        reset_rate_limiter()
 
-            reset_rate_limiter()
+        limiter2 = get_rate_limiter()
+        callback_limiter2 = get_callback_rate_limiter()
 
-            limiter2 = get_rate_limiter()
-            callback_limiter2 = get_callback_rate_limiter()
-
-            assert limiter1 is not limiter2
-            assert callback_limiter1 is not callback_limiter2
+        assert limiter1 is not limiter2
+        assert callback_limiter1 is not callback_limiter2

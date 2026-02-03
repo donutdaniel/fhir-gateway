@@ -328,11 +328,11 @@ class TestAutoRefresh:
     @pytest.fixture
     def expiring_soon_token(self):
         """Create a token that's expiring soon."""
-        # Token that expires in 60 seconds (less than default 120s buffer)
+        # Token that expires in 30 seconds (less than TOKEN_REFRESH_BUFFER_SECONDS of 60s)
         return OAuthToken(
             access_token="expiring-token",
             token_type="Bearer",
-            expires_in=60,
+            expires_in=30,
             refresh_token="refresh-token",
             scope="openid",
         )
@@ -340,17 +340,13 @@ class TestAutoRefresh:
     @pytest.mark.asyncio
     async def test_should_refresh_true_for_expiring_token(self, token_manager, expiring_soon_token):
         """Should return True for token expiring within buffer."""
-        with patch("app.auth.token_manager._get_token_refresh_buffer", return_value=120):
-            result = token_manager._should_refresh(expiring_soon_token)
-
+        result = token_manager._should_refresh(expiring_soon_token)
         assert result is True
 
     @pytest.mark.asyncio
     async def test_should_refresh_false_for_fresh_token(self, token_manager, sample_oauth_token):
         """Should return False for fresh token."""
-        with patch("app.auth.token_manager._get_token_refresh_buffer", return_value=120):
-            result = token_manager._should_refresh(sample_oauth_token)
-
+        result = token_manager._should_refresh(sample_oauth_token)
         assert result is False
 
     @pytest.mark.asyncio
@@ -416,7 +412,6 @@ class TestAutoRefresh:
         with (
             patch("app.auth.token_manager.OAuthService", return_value=mock_oauth_service),
             patch("app.auth.token_manager.get_settings") as mock_settings,
-            patch("app.auth.token_manager._get_token_refresh_buffer", return_value=120),
             patch("app.auth.token_manager.audit_log"),
         ):
             mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/auth/callback"
@@ -451,7 +446,6 @@ class TestAutoRefresh:
         with (
             patch("app.auth.token_manager.OAuthService", return_value=mock_oauth_service),
             patch("app.auth.token_manager.get_settings") as mock_settings,
-            patch("app.auth.token_manager._get_token_refresh_buffer", return_value=120),
             patch("app.auth.token_manager.audit_log"),
         ):
             mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/auth/callback"
@@ -525,6 +519,7 @@ class TestTokenManagerFactory:
                 redis_url=None,
                 require_redis_tls=False,
                 master_key=None,
+                master_keys=None,
                 session_max_age=3600,
             )
 
@@ -551,6 +546,7 @@ class TestTokenManagerFactory:
                 redis_url="redis://localhost:6379",
                 require_redis_tls=False,
                 master_key=None,
+                master_keys=None,
                 session_max_age=3600,
             )
             MockRedis.return_value = MagicMock()
