@@ -1,0 +1,43 @@
+{
+  "id": "medicare-sandbox",
+  "name": "Medicare Blue Button Sandbox",
+  "display_name": "CMS Blue Button - Sandbox",
+  "type": "sandbox",
+  "aliases": ["cms sandbox", "blue button sandbox"],
+  "patterns": ["medicare sandbox", "blue button sandbox", "cms sandbox"],
+
+  "developer_portal": "https://bluebutton.cms.gov/developers/",
+
+  "fhir_base_url": "https://sandbox.bluebutton.cms.gov/v2/fhir/",
+
+  "fhir_version": "R4",
+  "implementation_guides": ["CARIN Blue Button", "US Core"],
+
+  "oauth": {
+    "authorize_url": "https://sandbox.bluebutton.cms.gov/v2/o/authorize/",
+    "token_url": "https://sandbox.bluebutton.cms.gov/v2/o/token/",
+    "scopes": ["patient/Patient.read", "patient/ExplanationOfBenefit.read", "patient/Coverage.read", "profile"],
+    "scopes_supported": [
+      "profile", "patient/Patient.read",
+      "patient/ExplanationOfBenefit.read", "patient/Coverage.read"
+    ],
+    "code_challenge_methods": ["S256"],
+    "confidential": true
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false,
+    "claims_data": true
+  },
+
+  "supported_resources": [
+    "ExplanationOfBenefit", "Coverage", "Patient"
+  ],
+
+  "verification_status": "verified",
+  "last_verified": "2026-02-03",
+
+  "notes": "CMS Medicare Blue Button 2.0 Sandbox. Test with synthetic Medicare beneficiary data. Confidential client with PKCE."
+}

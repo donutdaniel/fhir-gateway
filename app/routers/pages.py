@@ -48,11 +48,14 @@ def _base_html(title: str, content: str, scripts: str = "") -> str:
         code {{ font-family: 'SF Mono', Consolas, monospace; }}
         .inline-code {{ background: #f5f5f5; padding: 0.1rem 0.3rem; font-size: 0.9rem; }}
         .subtitle {{ color: #666; margin-bottom: 1.5rem; }}
-        .platform {{ padding: 0.5rem 0; border-bottom: 1px solid #eee; }}
-        .platform:last-child {{ border-bottom: none; }}
+        .platform {{ padding: 0.4rem 0; display: flex; align-items: center; gap: 0.5rem; }}
         .platform-name {{ font-weight: 500; }}
         .platform-type {{ color: #666; font-size: 0.85rem; }}
-        .platform-ready {{ font-size: 0.8rem; }}
+        .status {{ display: inline-block; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }}
+        .status-ready {{ background: #22c55e; }}
+        .status-pending {{ background: #d1d5db; }}
+        .group {{ margin-bottom: 2rem; }}
+        .group-title {{ font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid #ddd; }}
         .loading {{ color: #666; font-style: italic; }}
         footer {{ margin-top: 3rem; padding-top: 1rem; border-top: 1px solid #ddd; font-size: 0.85rem; color: #666; }}
         footer a {{ color: #666; }}
@@ -61,6 +64,7 @@ def _base_html(title: str, content: str, scripts: str = "") -> str:
 <body>
     {content}
     <footer>
+        <a href="/privacy-policy">Privacy Policy</a> ·
         <a href="/terms-conditions">Terms & Conditions</a> ·
         <a href="https://github.com/donutdaniel/fhir-gateway">GitHub</a>
     </footer>
@@ -71,7 +75,7 @@ def _base_html(title: str, content: str, scripts: str = "") -> str:
 
 @router.get("/", response_class=HTMLResponse)
 async def landing_page() -> str:
-    """Landing page with MCP connection instructions and platform list."""
+    """Landing page with MCP connection instructions."""
     settings = get_settings()
     public_url = settings.public_url.rstrip("/")
     mcp_url = f"{public_url}/mcp"
@@ -107,47 +111,83 @@ async def landing_page() -> str:
         <strong>Windows:</strong> <code class="inline-code">%APPDATA%\\Claude\\claude_desktop_config.json</code>
     </p>
 
-    <h2>Platforms</h2>
-    <div id="platforms"><span class="loading">Loading platforms...</span></div>
+    <p style="margin-top: 2rem;"><a href="/platforms">View supported platforms →</a></p>
     """
 
-    scripts = """
-    <script>
-        async function loadPlatforms() {
-            try {
-                const res = await fetch('/api/platforms');
-                const data = await res.json();
-                const container = document.getElementById('platforms');
+    return _base_html("FHIR Gateway", content)
 
-                if (!data.platforms || data.platforms.length === 0) {
-                    container.innerHTML = '<p>No platforms configured.</p>';
-                    return;
-                }
 
-                // Sort: ready platforms first, then by name
-                const platforms = data.platforms.sort((a, b) => {
-                    if (a.oauth_registered !== b.oauth_registered) {
-                        return b.oauth_registered ? 1 : -1;
-                    }
-                    return (a.name || a.id).localeCompare(b.name || b.id);
-                });
+@router.get("/platforms", response_class=HTMLResponse)
+async def platforms_page() -> str:
+    """Platforms listing page."""
+    from app.config.platform import get_all_platforms
 
-                container.innerHTML = platforms.map(p => `
-                    <div class="platform">
-                        <span class="platform-name">${p.name || p.id}</span>
-                        <span class="platform-type">${p.type || ''}</span>
-                        ${p.oauth_registered ? '<span class="platform-ready">· Ready</span>' : ''}
-                    </div>
-                `).join('');
-            } catch (e) {
-                document.getElementById('platforms').innerHTML = '<p>Failed to load platforms.</p>';
+    all_platforms = get_all_platforms()
+
+    # Build platform list grouped by type
+    by_type: dict[str, list[dict]] = {}
+    ready_count = 0
+
+    for platform_id, platform in all_platforms.items():
+        oauth_registered = bool(platform.oauth and platform.oauth.is_registered)
+        if oauth_registered:
+            ready_count += 1
+
+        platform_type = platform.type or "other"
+        if platform_type not in by_type:
+            by_type[platform_type] = []
+
+        by_type[platform_type].append(
+            {
+                "id": platform_id,
+                "name": platform.display_name or platform.name,
+                "ready": oauth_registered,
             }
-        }
-        loadPlatforms();
-    </script>
+        )
+
+    # Sort platforms within each group: ready first, then by name
+    for platforms in by_type.values():
+        platforms.sort(key=lambda p: (not p["ready"], p["name"] or p["id"]))
+
+    # Order of type groups
+    type_order = ["sandbox", "ehr", "payer", "other"]
+    type_labels = {
+        "sandbox": "Sandboxes",
+        "ehr": "EHR Systems",
+        "payer": "Payers",
+        "other": "Other",
+    }
+
+    groups_html = []
+    for ptype in type_order:
+        if ptype not in by_type:
+            continue
+        platforms = by_type[ptype]
+        rows = []
+        for p in platforms:
+            status_class = "status-ready" if p["ready"] else "status-pending"
+            rows.append(
+                f'<div class="platform">'
+                f'<span class="status {status_class}"></span>'
+                f'<span class="platform-name">{html.escape(p["name"] or p["id"])}</span>'
+                f"</div>"
+            )
+        groups_html.append(
+            f'<div class="group">'
+            f'<div class="group-title">{type_labels.get(ptype, ptype.title())}</div>'
+            f"{''.join(rows)}"
+            f"</div>"
+        )
+
+    total = len(all_platforms)
+    content = f"""
+    <h1>Platforms</h1>
+    <p class="subtitle">{ready_count} ready · {total} total</p>
+    {"".join(groups_html)}
+    <p><a href="/">← Back</a></p>
     """
 
-    return _base_html("FHIR Gateway", content, scripts)
+    return _base_html("Platforms - FHIR Gateway", content)
 
 
 @router.get("/terms-conditions", response_class=HTMLResponse)
@@ -227,3 +267,135 @@ async def terms_conditions() -> str:
     """
 
     return _base_html("Terms & Conditions - FHIR Gateway", content)
+
+
+@router.get("/privacy-policy", response_class=HTMLResponse)
+async def privacy_policy() -> str:
+    """Privacy Policy page."""
+    content = """
+    <h1>Privacy Policy</h1>
+    <p class="subtitle">Last updated: February 2026</p>
+
+    <h2>1. Overview</h2>
+    <p>
+        FHIR Gateway ("Service") is an API gateway that connects users to healthcare FHIR endpoints.
+        This policy explains what data we collect, how we use it, and your rights regarding that data.
+    </p>
+
+    <h2>2. Data We Collect</h2>
+    <p>We collect the following data to operate the Service:</p>
+    <ul>
+        <li><strong>Session identifiers</strong> - Random tokens stored in cookies to maintain your session</li>
+        <li><strong>OAuth tokens</strong> - Access and refresh tokens from healthcare platforms you authorize, stored temporarily in your session</li>
+        <li><strong>Request logs</strong> - Timestamp, platform ID, resource type, and response status for operational monitoring (no PHI)</li>
+    </ul>
+    <p>
+        We do <strong>not</strong> store, cache, or retain any Protected Health Information (PHI) or personal
+        health data. All healthcare data flows through the Service in real-time and is not persisted.
+    </p>
+
+    <h2>3. How We Use Your Data</h2>
+    <p>We use collected data solely to:</p>
+    <ul>
+        <li>Route your requests to the healthcare platforms you authorize</li>
+        <li>Maintain your authenticated session</li>
+        <li>Monitor service reliability and performance</li>
+        <li>Troubleshoot technical issues</li>
+    </ul>
+    <p>
+        We do <strong>not</strong> use your data for marketing, advertising, analytics profiling,
+        or any purpose other than providing the Service.
+    </p>
+
+    <h2>4. Data Disclosure</h2>
+    <p>We disclose data only in the following circumstances:</p>
+    <ul>
+        <li><strong>To healthcare platforms</strong> - When you authorize a connection, we transmit your OAuth tokens to that platform to retrieve your data</li>
+        <li><strong>As required by law</strong> - If legally compelled by valid legal process</li>
+    </ul>
+    <p>
+        We do <strong>not</strong> sell, rent, or share your personal data or health information with
+        third parties for marketing or any other commercial purpose.
+    </p>
+
+    <h2>5. Consent</h2>
+    <p>
+        You explicitly consent to each healthcare platform connection through the OAuth authorization flow.
+        Each platform requires separate authorization. We only access data from platforms you have authorized.
+    </p>
+
+    <h2>6. Withdrawing Consent</h2>
+    <p>You can withdraw consent at any time by:</p>
+    <ul>
+        <li>Using the logout function to revoke platform access</li>
+        <li>Clearing your browser cookies to end your session</li>
+        <li>Revoking access through the healthcare platform's settings</li>
+    </ul>
+    <p>
+        When you withdraw consent, your session tokens are immediately deleted. Since we do not
+        persistently store PHI, there is no health data to delete.
+    </p>
+
+    <h2>7. Data Retention</h2>
+    <ul>
+        <li><strong>Session tokens</strong> - Automatically expire after 1 hour of inactivity</li>
+        <li><strong>OAuth tokens</strong> - Deleted when you log out or your session expires</li>
+        <li><strong>Request logs</strong> - Retained for up to 30 days for operational purposes, contain no PHI</li>
+    </ul>
+
+    <h2>8. Data Security</h2>
+    <p>We protect your data through:</p>
+    <ul>
+        <li>Encryption of OAuth tokens at rest (when configured)</li>
+        <li>TLS encryption for all data in transit</li>
+        <li>Session isolation - your tokens are not accessible to other users</li>
+        <li>No persistent storage of PHI</li>
+    </ul>
+
+    <h2>9. De-identified Information</h2>
+    <p>
+        We do not collect, use, or disclose de-identified health information. Request logs contain
+        only operational metadata (timestamps, resource types, status codes) and cannot be used to
+        identify individuals or their health conditions.
+    </p>
+
+    <h2>10. Third-Party Service Providers</h2>
+    <p>
+        Any third-party service providers (such as hosting providers) are contractually obligated
+        to protect your data and may only use it to provide services to us.
+    </p>
+
+    <h2>11. Changes in Ownership</h2>
+    <p>
+        If the Service undergoes a change in ownership or ceases operation:
+    </p>
+    <ul>
+        <li>All session data and OAuth tokens will be deleted</li>
+        <li>Users will be notified if possible before any transfer</li>
+        <li>Any successor would be bound by this privacy policy for existing data</li>
+    </ul>
+
+    <h2>12. Policy Updates</h2>
+    <p>
+        We may update this policy from time to time. Material changes will be noted with an updated
+        "Last updated" date. Continued use of the Service after changes constitutes acceptance of
+        the updated policy. For significant changes affecting data use, we will seek re-affirmation
+        of consent where feasible.
+    </p>
+
+    <h2>13. Your Rights</h2>
+    <p>You have the right to:</p>
+    <ul>
+        <li>Know what data we collect about you</li>
+        <li>Withdraw consent and have your session data deleted</li>
+        <li>Request information about our data practices</li>
+    </ul>
+
+    <h2>14. Contact</h2>
+    <p>
+        For questions about this privacy policy or to exercise your rights, please open an issue on our
+        <a href="https://github.com/donutdaniel/fhir-gateway">GitHub repository</a> or contact the maintainers.
+    </p>
+    """
+
+    return _base_html("Privacy Policy - FHIR Gateway", content)

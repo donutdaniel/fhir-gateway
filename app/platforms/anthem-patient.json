@@ -1,0 +1,44 @@
+{
+  "id": "anthem-patient",
+  "name": "Anthem Blue Cross Blue Shield (Patient Access)",
+  "display_name": "Anthem BCBS - Patient",
+  "type": "payer",
+  "aliases": ["anthem"],
+  "patterns": ["anthem patient", "anthem claims", "anthem medical"],
+  "payer_ids": ["47198", "00834", "00332"],
+
+  "states": ["CA", "CO", "CT", "GA", "IN", "KY", "ME", "MO", "NH", "NV", "NY", "OH", "VA", "WI"],
+
+  "fhir_base_url": "https://patient360c.anthem.com/P360Member/api/fhir",
+  "developer_portal": "https://www.anthem.com/developers",
+
+  "fhir_version": "R4",
+  "implementation_guides": ["SMART on FHIR", "CARIN Blue Button STU1"],
+
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": ["patient/*.read", "openid", "fhirUser"]
+  },
+
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "formulary": false,
+    "claims_data": true
+  },
+
+  "supported_resources": [
+    "Patient", "ExplanationOfBenefit", "Coverage", "Condition", "Observation",
+    "MedicationRequest", "Procedure", "AllergyIntolerance", "Immunization"
+  ],
+
+  "resources": {
+    "interoperability_info": "https://www.anthem.com/microsites/interoperability/"
+  },
+
+  "verification_status": "needs_registration",
+  "last_verified": "2026-02-03",
+
+  "notes": "Anthem/Elevance Health Patient Access API. Enables members to access up to 5 years of medical, pharmacy, dental, and vision claims and clinical data. Requires SMART on FHIR user authorization."
+}

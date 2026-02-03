@@ -22,10 +22,10 @@ app/
 
 | Category | Count | Percentage |
 |----------|-------|------------|
-| **Working (verified + URL)** | 24 | 37% |
-| **Partial (URL but unverified)** | 12 | 18% |
-| **Needs Registration** | 42 | 65% |
-| **Unverified (no URL)** | 2 | 3% |
+| **Working (verified + URL)** | 25 | 39% |
+| **Partial (URL but unverified)** | 9 | 14% |
+| **Needs Registration** | 41 | 64% |
+| **Unverified (no URL)** | 1 | 2% |
 | **Total** | 64 | 100% |
 
 ### By Type
@@ -41,16 +41,17 @@ app/
 | Status | Count |
 |--------|-------|
 | OAuth Configured | 16 |
-| **Credentials Registered (ready to use)** | 6 |
+| **Credentials Registered (ready to use)** | 7 |
 
 ---
 
-## ✅ Working Platforms (24)
+## ✅ Working Platforms (25)
 
 These platforms are verified and have FHIR URLs configured:
 
 | Platform | ID | Type | FHIR Version | OAuth | Registered |
 |----------|-----|------|--------------|-------|------------|
+| Aetna | `aetna` | payer | 4.0.1 | Yes | ✓ |
 | Aetna FHIR Sandbox | `aetna-sandbox` | sandbox | 4.0.1 | Yes | ✓ |
 | Anthem Blue Cross Blue Shield | `anthem` | payer | 1.0.2 | No | - |
 | Arkansas Blue Cross and Blue Shield | `bcbsar` | payer | N/A | No | - |
@@ -78,35 +79,31 @@ These platforms are verified and have FHIR URLs configured:
 
 ---
 
-## ⚠️ Partial - Needs Verification (12)
+## ⚠️ Partial - Needs Verification (9)
 
 These platforms have FHIR URLs configured but need verification:
 
 | Platform | ID | Status |
 |----------|-----|--------|
-| Aetna | `aetna` | Has URL, needs verification |
 | Blue Cross Blue Shield of North Dakota | `bcbsnd` | Has URL, needs verification |
 | Blue Cross NC | `bcbsnc` | Has URL, needs verification |
 | DrChrono | `drchrono` | Has URL, needs verification |
 | Dynamic Health IT | `dynamichealthit` | Has URL, needs verification |
-| HAPI FHIR Server | `hapi-fhir` | Has URL, needs verification |
 | InteliChart | `intelichart` | Has URL, needs verification |
 | MEDHOST | `medhost` | Has URL, needs verification |
 | MaximEyes | `maximeyes` | Has URL, needs verification |
 | MeldRx | `meldrx` | Has URL, needs verification |
-| Test HAPI FHIR Server | `test` | Has URL, needs verification |
 | eClinicalWorks | `eclinicalworks` | Has URL, needs verification |
 
 ---
 
-## 🔧 Needs Registration (42)
+## 🔧 Needs Registration (41)
 
 These platforms require developer portal registration to obtain production FHIR URLs:
 
 | Platform | ID | Developer Portal | Notes |
 |----------|-----|------------------|-------|
 | AdvancedMD | `advancedmd` | https://developers.advancedmd.com/fhir/base-urls | No FHIR base URL configured - developer registration required |
-| Aetna | `aetna` | https://developerportal.aetna.com | No FHIR base URL configured - developer registration required |
 | Allscripts | `allscripts` | https://developer.veradigm.com | No FHIR base URL configured - developer registration required |
 | Blue Cross Blue Shield of Alabama | `bcbsal` | https://www.bcbsal.org/web/accessing-my-information | No FHIR base URL configured - developer registration required |
 | Blue Cross Blue Shield of Massachusetts | `bcbsma` | https://developer.bluecrossma.com/interops-fhir | No FHIR base URL configured - developer registration required |
@@ -150,14 +147,13 @@ These platforms require developer portal registration to obtain production FHIR 
 
 ---
 
-## ❌ Unverified - No URL (2)
+## ❌ Unverified - No URL (1)
 
 These platforms exist but have no working FHIR URL:
 
 | Platform | ID | Error |
 |----------|-----|-------|
-| HAPI FHIR Server | `hapi-fhir` | Connection error: Cannot connect to host localhost:8080 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8080), [Errno 61] Connect call failed ('::1', 8080, 0, 0)] |
-| Test HAPI FHIR Server | `test` | Connection error: Cannot connect to host localhost:8080 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8080, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8080)] |
+| Local Test Server | `test` | Requires local docker-compose stack (localhost:8080) |
 
 ---
 

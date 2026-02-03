@@ -1,7 +1,7 @@
 {
   "id": "test",
   "name": "Test HAPI FHIR Server",
-  "display_name": "Test Payer (Local HAPI)",
+  "display_name": "Local Test Server",
   "type": "sandbox",
   "aliases": ["hapi", "local", "demo"],
   "patterns": ["test", "hapi", "local"],
