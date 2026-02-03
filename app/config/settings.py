@@ -66,6 +66,10 @@ class Settings(BaseSettings):
     # Set to "none" to disable proxy header trust entirely
     trusted_proxy_cidrs: str = ""
 
+    # MCP allowed hosts (comma-separated) for DNS rebinding protection
+    # Auto-derived from public_url if not set. Use "*" to disable protection.
+    mcp_allowed_hosts: str | None = None
+
 
 @lru_cache
 def get_settings() -> Settings:
