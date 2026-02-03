@@ -53,6 +53,7 @@ class EndpointResult:
 
     # OAuth
     has_oauth: bool = False
+    oauth_registered: bool = False
 
     # Errors
     error: str | None = None
@@ -90,6 +91,7 @@ async def test_endpoint(
         developer_portal=platform.developer_portal,
         verification_status=platform.verification_status,
         has_oauth=bool(platform.oauth and platform.oauth.authorize_url),
+        oauth_registered=bool(platform.oauth and platform.oauth.is_registered),
     )
 
     if not platform.fhir_base_url:
@@ -377,9 +379,24 @@ def generate_platforms_doc(report: VerificationReport) -> str:
         f"| EHRs | {report.ehr_count} |",
         f"| Sandboxes | {report.sandbox_count} |",
         "",
-        "---",
+        "### OAuth Registration",
         "",
     ]
+
+    # Count registered platforms
+    registered = [r for r in report.results if r.oauth_registered]
+    has_oauth_list = [r for r in report.results if r.has_oauth]
+    lines.extend(
+        [
+            "| Status | Count |",
+            "|--------|-------|",
+            f"| OAuth Configured | {len(has_oauth_list)} |",
+            f"| **Credentials Registered (ready to use)** | {len(registered)} |",
+            "",
+            "---",
+            "",
+        ]
+    )
 
     # Working platforms
     if verified:
@@ -389,16 +406,17 @@ def generate_platforms_doc(report: VerificationReport) -> str:
                 "",
                 "These platforms are verified and have FHIR URLs configured:",
                 "",
-                "| Platform | ID | Type | FHIR Version | OAuth |",
-                "|----------|-----|------|--------------|-------|",
+                "| Platform | ID | Type | FHIR Version | OAuth | Registered |",
+                "|----------|-----|------|--------------|-------|------------|",
             ]
         )
         for r in sorted(verified, key=lambda x: x.platform_name):
             oauth = "Yes" if r.has_oauth else "No"
+            registered = "✓" if r.oauth_registered else "-"
             version = r.fhir_version or "N/A"
             ptype = r.platform_type or "unknown"
             lines.append(
-                f"| {r.platform_name} | `{r.platform_id}` | {ptype} | {version} | {oauth} |"
+                f"| {r.platform_name} | `{r.platform_id}` | {ptype} | {version} | {oauth} | {registered} |"
             )
         lines.extend(["", "---", ""])
 

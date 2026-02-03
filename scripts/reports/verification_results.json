@@ -1,14 +1,14 @@
 {
-  "timestamp": "2026-01-29T06:31:13.189774+00:00",
+  "timestamp": "2026-02-03T16:30:47.658087+00:00",
   "summary": {
-    "total_platforms": 62,
+    "total_platforms": 64,
     "verified_count": 24,
-    "partial_count": 10,
+    "partial_count": 12,
     "needs_registration_count": 42,
-    "unreachable_count": 0,
+    "unreachable_count": 2,
     "payer_count": 32,
     "ehr_count": 20,
-    "sandbox_count": 7
+    "sandbox_count": 9
   },
   "results": [
     {
@@ -27,6 +27,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -46,6 +47,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -65,6 +67,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -84,6 +87,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -97,7 +101,7 @@
       "verification_status": "needs_registration",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 218.52608300105203,
+      "metadata_response_time_ms": 1001.13995897118,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -107,6 +111,7 @@
         "Patient"
       ],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -126,6 +131,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -139,7 +145,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 160.21550000004936,
+      "metadata_response_time_ms": 213.11866596806794,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -156,6 +162,7 @@
         "Immunization"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -175,6 +182,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -188,7 +196,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 136.03566700476222,
+      "metadata_response_time_ms": 188.29283298691735,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "1.0.2",
@@ -205,6 +213,7 @@
         "DiagnosticReport"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -218,7 +227,7 @@
       "verification_status": "needs_registration",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 125.24900000425987,
+      "metadata_response_time_ms": 163.1421250058338,
       "smart_config_reachable": false,
       "smart_config_status_code": 404,
       "fhir_version": "4.0.1",
@@ -228,6 +237,7 @@
         "Observation"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -241,7 +251,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 149.0902920049848,
+      "metadata_response_time_ms": 187.1543750166893,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "1.0.2",
@@ -258,6 +268,7 @@
         "DiagnosticReport"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -271,7 +282,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 1058.4207919891924,
+      "metadata_response_time_ms": 1111.7558340192772,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -288,6 +299,7 @@
         "Immunization"
       ],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -307,6 +319,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -320,7 +333,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 126.38225000409875,
+      "metadata_response_time_ms": 202.0152080222033,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -332,6 +345,7 @@
         "Practitioner"
       ],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -345,12 +359,13 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 403,
-      "metadata_response_time_ms": 468.76520800287835,
+      "metadata_response_time_ms": 355.08191701956093,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -370,6 +385,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -383,7 +399,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 257.20533399726264,
+      "metadata_response_time_ms": 413.8628750224598,
       "smart_config_reachable": true,
       "smart_config_status_code": 401,
       "fhir_version": "4.0.1",
@@ -400,6 +416,7 @@
         "Goal"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -419,6 +436,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -438,8 +456,40 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
+    },
+    {
+      "platform_id": "aetna-sandbox",
+      "platform_name": "Aetna FHIR Sandbox",
+      "platform_type": "sandbox",
+      "fhir_base_url": "https://vteapif1.aetna.com/fhirdemo/v1/patientaccess",
+      "sandbox_url": "https://vteapif1.aetna.com/fhirdemo/v1/patientaccess",
+      "developer_portal": "https://developerportal.aetna.com",
+      "verification_status": "pending",
+      "metadata_reachable": true,
+      "metadata_status_code": 200,
+      "metadata_response_time_ms": 176.1385419522412,
+      "smart_config_reachable": false,
+      "smart_config_status_code": 404,
+      "fhir_version": "4.0.1",
+      "supported_resources": [
+        "CapabilityStatement",
+        "Patient",
+        "CareTeam",
+        "Coverage",
+        "Condition",
+        "Practitioner",
+        "PractitionerRole",
+        "ExplanationOfBenefit",
+        "Procedure",
+        "MedicationRequest"
+      ],
+      "has_oauth": true,
+      "oauth_registered": true,
+      "error": null,
+      "notes": null
     },
     {
       "platform_id": "premera",
@@ -457,38 +507,9 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
-    },
-    {
-      "platform_id": "smarthealthit-sandbox",
-      "platform_name": "SMART Health IT Sandbox",
-      "platform_type": "sandbox",
-      "fhir_base_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0/fhir",
-      "sandbox_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0/fhir",
-      "developer_portal": "https://launch.smarthealthit.org",
-      "verification_status": "verified",
-      "metadata_reachable": true,
-      "metadata_status_code": 200,
-      "metadata_response_time_ms": 355.84645898779854,
-      "smart_config_reachable": true,
-      "smart_config_status_code": 200,
-      "fhir_version": "4.0.0",
-      "supported_resources": [
-        "Account",
-        "ActivityDefinition",
-        "AdverseEvent",
-        "AllergyIntolerance",
-        "Appointment",
-        "AppointmentResponse",
-        "AuditEvent",
-        "Basic",
-        "Binary",
-        "BiologicallyDerivedProduct"
-      ],
-      "has_oauth": true,
-      "error": null,
-      "notes": null
     },
     {
       "platform_id": "cigna",
@@ -500,7 +521,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 192.2246250032913,
+      "metadata_response_time_ms": 242.58545803604648,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -517,6 +538,7 @@
         "ExplanationOfBenefit"
       ],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -536,6 +558,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -547,26 +570,16 @@
       "sandbox_url": "http://localhost:8080/fhir",
       "developer_portal": null,
       "verification_status": "verified",
-      "metadata_reachable": true,
-      "metadata_status_code": 200,
-      "metadata_response_time_ms": 20.767459005583078,
+      "metadata_reachable": false,
+      "metadata_status_code": null,
+      "metadata_response_time_ms": null,
       "smart_config_reachable": false,
-      "smart_config_status_code": 404,
-      "fhir_version": "4.0.1",
-      "supported_resources": [
-        "Account",
-        "ActivityDefinition",
-        "AdverseEvent",
-        "AllergyIntolerance",
-        "Appointment",
-        "AppointmentResponse",
-        "AuditEvent",
-        "Basic",
-        "Binary",
-        "BiologicallyDerivedProduct"
-      ],
+      "smart_config_status_code": null,
+      "fhir_version": null,
+      "supported_resources": [],
       "has_oauth": true,
-      "error": null,
+      "oauth_registered": true,
+      "error": "Connection error: Cannot connect to host localhost:8080 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8080, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8080)]",
       "notes": null
     },
     {
@@ -579,7 +592,7 @@
       "verification_status": "needs_registration",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 160.37483399850316,
+      "metadata_response_time_ms": 187.82716698478907,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -596,6 +609,7 @@
         "Encounter"
       ],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -615,6 +629,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -634,6 +649,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -647,12 +663,44 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 403,
-      "metadata_response_time_ms": 113.32454200601205,
+      "metadata_response_time_ms": 142.86008302588016,
       "smart_config_reachable": true,
       "smart_config_status_code": 403,
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": true,
+      "oauth_registered": false,
+      "error": null,
+      "notes": null
+    },
+    {
+      "platform_id": "smarthealthit-sandbox-patient",
+      "platform_name": "SMART Health IT Sandbox (Patient)",
+      "platform_type": "sandbox",
+      "fhir_base_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/fhir",
+      "sandbox_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/fhir",
+      "developer_portal": "https://launch.smarthealthit.org",
+      "verification_status": "verified",
+      "metadata_reachable": true,
+      "metadata_status_code": 200,
+      "metadata_response_time_ms": 256.4194159931503,
+      "smart_config_reachable": true,
+      "smart_config_status_code": 200,
+      "fhir_version": "4.0.0",
+      "supported_resources": [
+        "Account",
+        "ActivityDefinition",
+        "AdverseEvent",
+        "AllergyIntolerance",
+        "Appointment",
+        "AppointmentResponse",
+        "AuditEvent",
+        "Basic",
+        "Binary",
+        "BiologicallyDerivedProduct"
+      ],
+      "has_oauth": true,
+      "oauth_registered": true,
       "error": null,
       "notes": null
     },
@@ -672,6 +720,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -691,6 +740,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -704,7 +754,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 675.2520419977373,
+      "metadata_response_time_ms": 362.3506249859929,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -721,6 +771,7 @@
         "ExplanationOfBenefit"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -732,26 +783,16 @@
       "sandbox_url": "http://localhost:8080/fhir",
       "developer_portal": "https://hapifhir.io",
       "verification_status": "unverified",
-      "metadata_reachable": true,
-      "metadata_status_code": 200,
-      "metadata_response_time_ms": 20.307041995692998,
+      "metadata_reachable": false,
+      "metadata_status_code": null,
+      "metadata_response_time_ms": null,
       "smart_config_reachable": false,
-      "smart_config_status_code": 404,
-      "fhir_version": "4.0.1",
-      "supported_resources": [
-        "Account",
-        "ActivityDefinition",
-        "AdverseEvent",
-        "AllergyIntolerance",
-        "Appointment",
-        "AppointmentResponse",
-        "AuditEvent",
-        "Basic",
-        "Binary",
-        "BiologicallyDerivedProduct"
-      ],
+      "smart_config_status_code": null,
+      "fhir_version": null,
+      "supported_resources": [],
       "has_oauth": false,
-      "error": null,
+      "oauth_registered": false,
+      "error": "Connection error: Cannot connect to host localhost:8080 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8080), [Errno 61] Connect call failed ('::1', 8080, 0, 0)]",
       "notes": null
     },
     {
@@ -764,7 +805,7 @@
       "verification_status": "pending",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 191.569165996043,
+      "metadata_response_time_ms": 211.48008399177343,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -781,6 +822,7 @@
         "Communication"
       ],
       "has_oauth": true,
+      "oauth_registered": true,
       "error": null,
       "notes": null
     },
@@ -800,6 +842,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -813,7 +856,7 @@
       "verification_status": "pending",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 497.9844170011347,
+      "metadata_response_time_ms": 211.78795798914507,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -830,6 +873,7 @@
         "Communication"
       ],
       "has_oauth": true,
+      "oauth_registered": true,
       "error": null,
       "notes": null
     },
@@ -849,6 +893,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -868,6 +913,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -887,6 +933,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -906,8 +953,40 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
+    },
+    {
+      "platform_id": "smarthealthit-sandbox-clinician",
+      "platform_name": "SMART Health IT Sandbox (Clinician)",
+      "platform_type": "sandbox",
+      "fhir_base_url": "https://launch.smarthealthit.org/v/r4/sim/WzIsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/fhir",
+      "sandbox_url": "https://launch.smarthealthit.org/v/r4/sim/WzIsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/fhir",
+      "developer_portal": "https://launch.smarthealthit.org",
+      "verification_status": "verified",
+      "metadata_reachable": true,
+      "metadata_status_code": 200,
+      "metadata_response_time_ms": 264.9292090209201,
+      "smart_config_reachable": true,
+      "smart_config_status_code": 200,
+      "fhir_version": "4.0.0",
+      "supported_resources": [
+        "Account",
+        "ActivityDefinition",
+        "AdverseEvent",
+        "AllergyIntolerance",
+        "Appointment",
+        "AppointmentResponse",
+        "AuditEvent",
+        "Basic",
+        "Binary",
+        "BiologicallyDerivedProduct"
+      ],
+      "has_oauth": true,
+      "oauth_registered": true,
+      "error": null,
+      "notes": null
     },
     {
       "platform_id": "eclinicalworks",
@@ -925,6 +1004,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -944,6 +1024,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -963,6 +1044,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -982,6 +1064,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1001,6 +1084,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1014,12 +1098,13 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 401,
-      "metadata_response_time_ms": 268.98008400166873,
+      "metadata_response_time_ms": 233.68958302307874,
       "smart_config_reachable": true,
       "smart_config_status_code": 401,
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -1033,7 +1118,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 228.38829099782743,
+      "metadata_response_time_ms": 241.8760409927927,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -1050,6 +1135,7 @@
         "Patient"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -1069,6 +1155,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1088,6 +1175,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1107,6 +1195,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1120,7 +1209,7 @@
       "verification_status": "needs_registration",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 143.37508399330545,
+      "metadata_response_time_ms": 152.19425002578646,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.1",
@@ -1137,6 +1226,7 @@
         "Device"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -1150,7 +1240,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 1494.4095000100788,
+      "metadata_response_time_ms": 594.2169160116464,
       "smart_config_reachable": false,
       "smart_config_status_code": 404,
       "fhir_version": "4.0.1",
@@ -1167,6 +1257,7 @@
         "Endpoint"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -1186,6 +1277,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1205,6 +1297,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1224,6 +1317,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1243,6 +1337,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1256,7 +1351,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 126.21687499631662,
+      "metadata_response_time_ms": 166.4231659960933,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "1.0.2",
@@ -1273,6 +1368,7 @@
         "DiagnosticReport"
       ],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -1292,6 +1388,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1311,6 +1408,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1324,7 +1422,7 @@
       "verification_status": "verified",
       "metadata_reachable": true,
       "metadata_status_code": 200,
-      "metadata_response_time_ms": 369.17366700072307,
+      "metadata_response_time_ms": 362.18599998392165,
       "smart_config_reachable": true,
       "smart_config_status_code": 200,
       "fhir_version": "4.0.0",
@@ -1341,6 +1439,7 @@
         "Location"
       ],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": null
     },
@@ -1360,6 +1459,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1379,6 +1479,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": false,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     },
@@ -1398,6 +1499,7 @@
       "fhir_version": null,
       "supported_resources": [],
       "has_oauth": true,
+      "oauth_registered": false,
       "error": null,
       "notes": "No FHIR base URL configured - developer registration required"
     }

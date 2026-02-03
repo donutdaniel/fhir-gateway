@@ -2,7 +2,9 @@
 Platform information endpoints.
 """
 
-from fastapi import APIRouter, HTTPException
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Query
 
 from app.config.platform import get_all_platforms, get_platform
 from app.models.platform import (
@@ -16,16 +18,31 @@ router = APIRouter(prefix="/api/platforms", tags=["platforms"])
 
 
 @router.get("", response_model=PlatformListResponse)
-async def list_platforms() -> PlatformListResponse:
+async def list_platforms(
+    registered_only: Annotated[
+        bool,
+        Query(
+            description="If true, only return platforms with OAuth credentials configured"
+        ),
+    ] = False,
+) -> PlatformListResponse:
     """
     List all available platforms.
 
     Returns basic information about all registered platforms.
+    Use registered_only=true to filter to only platforms with OAuth credentials configured.
     """
     all_platforms = get_all_platforms()
 
     platforms = []
     for platform_id, platform in all_platforms.items():
+        has_oauth = bool(platform.oauth and platform.oauth.authorize_url)
+        oauth_registered = bool(platform.oauth and platform.oauth.is_registered)
+
+        # Skip unregistered platforms if filter is enabled
+        if registered_only and not oauth_registered:
+            continue
+
         platforms.append(
             PlatformInfo(
                 id=platform_id,
@@ -33,7 +50,8 @@ async def list_platforms() -> PlatformListResponse:
                 type=platform.type,
                 fhir_base_url=platform.fhir_base_url,
                 developer_portal=platform.developer_portal,
-                has_oauth=bool(platform.oauth and platform.oauth.authorize_url),
+                has_oauth=has_oauth,
+                oauth_registered=oauth_registered,
                 verification_status=platform.verification_status,
             )
         )
@@ -81,6 +99,7 @@ async def get_platform_details(platform_id: str) -> PlatformDetailResponse:
         fhir_version=platform.fhir_version,
         capabilities=capabilities,
         has_oauth=bool(platform.oauth and platform.oauth.authorize_url),
+        oauth_registered=bool(platform.oauth and platform.oauth.is_registered),
         oauth_authorize_url=platform.oauth.authorize_url if platform.oauth else None,
         verification_status=platform.verification_status,
     )

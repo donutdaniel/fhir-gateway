@@ -1,16 +1,16 @@
 # FHIR Gateway - Platform Verification Report
 
-**Generated:** 2026-01-29T06:31:13.189774+00:00
+**Generated:** 2026-02-03T16:30:47.658087+00:00
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
-| Total Platforms | 62 |
+| Total Platforms | 64 |
 | Verified (Reachable) | 24 |
-| Partial (Sandbox Only) | 10 |
+| Partial (Sandbox Only) | 12 |
 | Needs Registration | 42 |
-| Unreachable | 0 |
+| Unreachable | 2 |
 
 ### By Type
 
@@ -18,36 +18,36 @@
 |------|-------|
 | Payers | 32 |
 | EHRs | 20 |
-| Sandboxes | 7 |
+| Sandboxes | 9 |
 
 ## Verified (Reachable)
 
 | Platform | Type | Status | Response Time | FHIR Version | OAuth |
 |----------|------|--------|---------------|--------------|-------|
-| Anthem Blue Cross Blue Shield | payer | 200 | 126ms | 1.0.2 | No |
-| Arkansas Blue Cross and Blue Shield | payer | 401 | 269ms | N/A | No |
-| Blue Cross Blue Shield of Arizona | payer | 403 | 469ms | N/A | No |
-| Blue Cross Blue Shield of Kansas City | payer | 200 | 136ms | 1.0.2 | No |
-| Blue Cross Blue Shield of Michigan | payer | 200 | 1494ms | 4.0.1 | No |
-| Blue Cross Blue Shield of Minnesota | payer | 200 | 675ms | 4.0.1 | No |
-| Blue Cross and Blue Shield of Kansas | payer | 200 | 149ms | 1.0.2 | No |
-| Blue Cross and Blue Shield of Louisiana | payer | 200 | 126ms | 4.0.1 | Yes |
-| BlueCross BlueShield of South Carolina | payer | 200 | 228ms | 4.0.1 | No |
-| Capital BlueCross | payer | 200 | 160ms | 4.0.1 | No |
-| Cigna | payer | 200 | 192ms | 4.0.1 | Yes |
-| Epic FHIR Sandbox (Clinician Access) | sandbox | 200 | 192ms | 4.0.1 | Yes |
-| Epic FHIR Sandbox (Patient Access) | sandbox | 200 | 498ms | 4.0.1 | Yes |
-| Excellus BlueCross BlueShield | payer | 200 | 369ms | 4.0.0 | Yes |
-| Flatiron Health | ehr | 200 | 143ms | 4.0.1 | No |
-| HAPI FHIR Server | sandbox | 200 | 20ms | 4.0.1 | No |
-| Humana | payer | 200 | 1058ms | 4.0.1 | Yes |
-| Medicare | government | 200 | 219ms | 4.0.1 | Yes |
-| Netsmart | ehr | 200 | 160ms | 4.0.1 | Yes |
-| Quest Diagnostics | lab | 200 | 125ms | 4.0.1 | No |
-| SMART Health IT Sandbox | sandbox | 200 | 356ms | 4.0.0 | Yes |
-| Test HAPI FHIR Server | sandbox | 200 | 21ms | 4.0.1 | Yes |
-| UnitedHealthcare | payer | 403 | 113ms | N/A | Yes |
-| Wellmark Blue Cross Blue Shield | payer | 200 | 257ms | 4.0.1 | No |
+| Aetna FHIR Sandbox | sandbox | 200 | 176ms | 4.0.1 | Yes |
+| Anthem Blue Cross Blue Shield | payer | 200 | 166ms | 1.0.2 | No |
+| Arkansas Blue Cross and Blue Shield | payer | 401 | 234ms | N/A | No |
+| Blue Cross Blue Shield of Arizona | payer | 403 | 355ms | N/A | No |
+| Blue Cross Blue Shield of Kansas City | payer | 200 | 188ms | 1.0.2 | No |
+| Blue Cross Blue Shield of Michigan | payer | 200 | 594ms | 4.0.1 | No |
+| Blue Cross Blue Shield of Minnesota | payer | 200 | 362ms | 4.0.1 | No |
+| Blue Cross and Blue Shield of Kansas | payer | 200 | 187ms | 1.0.2 | No |
+| Blue Cross and Blue Shield of Louisiana | payer | 200 | 202ms | 4.0.1 | Yes |
+| BlueCross BlueShield of South Carolina | payer | 200 | 242ms | 4.0.1 | No |
+| Capital BlueCross | payer | 200 | 213ms | 4.0.1 | No |
+| Cigna | payer | 200 | 243ms | 4.0.1 | Yes |
+| Epic FHIR Sandbox (Clinician Access) | sandbox | 200 | 211ms | 4.0.1 | Yes |
+| Epic FHIR Sandbox (Patient Access) | sandbox | 200 | 212ms | 4.0.1 | Yes |
+| Excellus BlueCross BlueShield | payer | 200 | 362ms | 4.0.0 | Yes |
+| Flatiron Health | ehr | 200 | 152ms | 4.0.1 | No |
+| Humana | payer | 200 | 1112ms | 4.0.1 | Yes |
+| Medicare | government | 200 | 1001ms | 4.0.1 | Yes |
+| Netsmart | ehr | 200 | 188ms | 4.0.1 | Yes |
+| Quest Diagnostics | lab | 200 | 163ms | 4.0.1 | No |
+| SMART Health IT Sandbox (Clinician) | sandbox | 200 | 265ms | 4.0.0 | Yes |
+| SMART Health IT Sandbox (Patient) | sandbox | 200 | 256ms | 4.0.0 | Yes |
+| UnitedHealthcare | payer | 403 | 143ms | N/A | Yes |
+| Wellmark Blue Cross Blue Shield | payer | 200 | 414ms | 4.0.1 | No |
 
 ## Needs Registration
 
@@ -96,12 +96,20 @@
 | athenahealth | ehr | https://developer.athenahealth.com | No FHIR base URL configured - developer registration required |
 | eClinicalWorks | ehr | https://fhir.eclinicalworks.com/ecwopendev/documentation | No FHIR base URL configured - developer registration required |
 
+## Other/Unreachable
+
+| Platform | Type | URL | Error |
+|----------|------|-----|-------|
+| HAPI FHIR Server | sandbox | http://localhost:8080/fhir | Connection error: Cannot connect to host localhost:8080 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('127.0.0.1', 8080), [Errno 61] Connect call failed ('::1', 8080, 0, 0)] |
+| Test HAPI FHIR Server | sandbox | http://localhost:8080/fhir | Connection error: Cannot connect to host localhost:8080 ssl:default [Multiple exceptions: [Errno 61] Connect call failed ('::1', 8080, 0, 0), [Errno 61] Connect call failed ('127.0.0.1', 8080)] |
+
 ## Capability Matrix
 
 | Platform | Patient Access | Provider Dir | CRD | DTR | PAS | CDex |
 |----------|---------------|--------------|-----|-----|-----|------|
 | AdvancedMD | Yes | No | No | No | No | No |
 | Aetna | Yes | Yes | Yes | Yes | Yes | Yes |
+| Aetna FHIR Sandbox | Yes | No | No | No | No | No |
 | Allscripts | Yes | No | No | No | No | No |
 | Anthem Blue Cross Blue Shield | Yes | Yes | No | No | No | No |
 | Arkansas Blue Cross and Blue Shield | Yes | Yes | No | No | No | No |
@@ -155,7 +163,8 @@
 | Qualifacts Credible | Yes | No | No | No | No | No |
 | Qualifacts InSync | Yes | No | No | No | No | No |
 | Quest Diagnostics | Yes | No | No | No | No | No |
-| SMART Health IT Sandbox | Yes | No | No | No | No | No |
+| SMART Health IT Sandbox (Clinician) | Yes | Yes | No | No | No | No |
+| SMART Health IT Sandbox (Patient) | Yes | No | No | No | No | No |
 | Test HAPI FHIR Server | Yes | Yes | Yes | Yes | Yes | Yes |
 | UnitedHealthcare | Yes | Yes | Yes | Yes | Yes | Yes |
 | VA Health | Yes | No | No | No | No | No |

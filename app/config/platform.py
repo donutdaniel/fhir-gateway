@@ -97,6 +97,19 @@ class OAuthConfig:
     confidential: bool = False
     cors_relay_required: bool = False
 
+    @property
+    def is_registered(self) -> bool:
+        """Check if OAuth credentials are configured.
+
+        For public clients (PKCE-only), only client_id is required.
+        For confidential clients, both client_id and client_secret are required.
+        """
+        if not self.client_id:
+            return False
+        if self.confidential and not self.client_secret:
+            return False
+        return True
+
     @classmethod
     def from_dict(
         cls, data: dict[str, Any] | None, platform_id: str | None = None

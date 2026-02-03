@@ -14,6 +14,10 @@ class PlatformInfo(BaseModel):
     fhir_base_url: str | None = Field(default=None, description="FHIR API base URL")
     developer_portal: str | None = Field(default=None, description="Developer portal URL")
     has_oauth: bool = Field(default=False, description="Whether OAuth is configured")
+    oauth_registered: bool = Field(
+        default=False,
+        description="Whether OAuth credentials (client_id/secret) are registered",
+    )
     verification_status: str | None = Field(default=None, description="Verification status")
 
 
@@ -42,6 +46,10 @@ class PlatformDetailResponse(BaseModel):
         default_factory=PlatformCapabilitiesResponse, description="FHIR capabilities"
     )
     has_oauth: bool = Field(default=False, description="Whether OAuth is configured")
+    oauth_registered: bool = Field(
+        default=False,
+        description="Whether OAuth credentials (client_id/secret) are registered",
+    )
     oauth_authorize_url: str | None = Field(default=None, description="OAuth authorize URL")
     verification_status: str | None = Field(default=None)
 

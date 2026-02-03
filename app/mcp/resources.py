@@ -29,6 +29,7 @@ def register_resources(mcp: FastMCP) -> None:
                 "name": p.display_name or p.name,
                 "has_fhir": p.fhir_base_url is not None,
                 "has_oauth": p.oauth is not None and p.oauth.authorize_url is not None,
+                "oauth_registered": p.oauth is not None and p.oauth.is_registered,
             }
             for pid, p in platforms.items()
         ]
@@ -51,6 +52,7 @@ def register_resources(mcp: FastMCP) -> None:
             "name": platform.display_name or platform.name,
             "fhir_base_url": platform.fhir_base_url,
             "has_oauth": platform.oauth is not None and platform.oauth.authorize_url is not None,
+            "oauth_registered": platform.oauth is not None and platform.oauth.is_registered,
         }
         if platform.capabilities:
             details["capabilities"] = {
