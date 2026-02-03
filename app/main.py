@@ -22,7 +22,7 @@ from app.middleware.security import (
     RequestSizeLimitMiddleware,
     SecurityHeadersMiddleware,
 )
-from app.routers import auth_router, fhir_router, health_router, oauth_router, platforms_router
+from app.routers import auth_router, fhir_router, health_router, oauth_router, pages_router, platforms_router
 from app.routers.coverage import router as coverage_router
 
 logger = get_logger(__name__)
@@ -124,6 +124,7 @@ def create_app() -> FastAPI:
     app.add_middleware(RequestSizeLimitMiddleware, max_body_size=settings.max_request_body_size)
 
     # Register REST API routers
+    app.include_router(pages_router)
     app.include_router(health_router)
     app.include_router(platforms_router)
     app.include_router(fhir_router)

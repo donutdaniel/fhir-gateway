@@ -1,15 +1,15 @@
 # FHIR Gateway - Platform Verification Report
 
-**Generated:** 2026-02-03T16:30:47.658087+00:00
+**Generated:** 2026-02-03T17:57:06.726765+00:00
 
 ## Summary
 
 | Metric | Count |
 |--------|-------|
 | Total Platforms | 64 |
-| Verified (Reachable) | 24 |
+| Verified (Reachable) | 25 |
 | Partial (Sandbox Only) | 12 |
-| Needs Registration | 42 |
+| Needs Registration | 41 |
 | Unreachable | 2 |
 
 ### By Type
@@ -24,30 +24,31 @@
 
 | Platform | Type | Status | Response Time | FHIR Version | OAuth |
 |----------|------|--------|---------------|--------------|-------|
-| Aetna FHIR Sandbox | sandbox | 200 | 176ms | 4.0.1 | Yes |
-| Anthem Blue Cross Blue Shield | payer | 200 | 166ms | 1.0.2 | No |
-| Arkansas Blue Cross and Blue Shield | payer | 401 | 234ms | N/A | No |
-| Blue Cross Blue Shield of Arizona | payer | 403 | 355ms | N/A | No |
-| Blue Cross Blue Shield of Kansas City | payer | 200 | 188ms | 1.0.2 | No |
-| Blue Cross Blue Shield of Michigan | payer | 200 | 594ms | 4.0.1 | No |
-| Blue Cross Blue Shield of Minnesota | payer | 200 | 362ms | 4.0.1 | No |
-| Blue Cross and Blue Shield of Kansas | payer | 200 | 187ms | 1.0.2 | No |
-| Blue Cross and Blue Shield of Louisiana | payer | 200 | 202ms | 4.0.1 | Yes |
-| BlueCross BlueShield of South Carolina | payer | 200 | 242ms | 4.0.1 | No |
-| Capital BlueCross | payer | 200 | 213ms | 4.0.1 | No |
-| Cigna | payer | 200 | 243ms | 4.0.1 | Yes |
-| Epic FHIR Sandbox (Clinician Access) | sandbox | 200 | 211ms | 4.0.1 | Yes |
-| Epic FHIR Sandbox (Patient Access) | sandbox | 200 | 212ms | 4.0.1 | Yes |
-| Excellus BlueCross BlueShield | payer | 200 | 362ms | 4.0.0 | Yes |
-| Flatiron Health | ehr | 200 | 152ms | 4.0.1 | No |
-| Humana | payer | 200 | 1112ms | 4.0.1 | Yes |
-| Medicare | government | 200 | 1001ms | 4.0.1 | Yes |
-| Netsmart | ehr | 200 | 188ms | 4.0.1 | Yes |
-| Quest Diagnostics | lab | 200 | 163ms | 4.0.1 | No |
-| SMART Health IT Sandbox (Clinician) | sandbox | 200 | 265ms | 4.0.0 | Yes |
-| SMART Health IT Sandbox (Patient) | sandbox | 200 | 256ms | 4.0.0 | Yes |
-| UnitedHealthcare | payer | 403 | 143ms | N/A | Yes |
-| Wellmark Blue Cross Blue Shield | payer | 200 | 414ms | 4.0.1 | No |
+| Aetna FHIR Sandbox | sandbox | 200 | 116ms | 4.0.1 | Yes |
+| Anthem Blue Cross Blue Shield | payer | 200 | 195ms | 1.0.2 | No |
+| Arkansas Blue Cross and Blue Shield | payer | 401 | 275ms | N/A | No |
+| Blue Cross Blue Shield of Arizona | payer | 403 | 487ms | N/A | No |
+| Blue Cross Blue Shield of Kansas City | payer | 200 | 218ms | 1.0.2 | No |
+| Blue Cross Blue Shield of Michigan | payer | 200 | 708ms | 4.0.1 | No |
+| Blue Cross Blue Shield of Minnesota | payer | 200 | 581ms | 4.0.1 | No |
+| Blue Cross and Blue Shield of Kansas | payer | 200 | 257ms | 1.0.2 | No |
+| Blue Cross and Blue Shield of Louisiana | payer | 200 | 210ms | 4.0.1 | Yes |
+| BlueCross BlueShield of South Carolina | payer | 200 | 368ms | 4.0.1 | No |
+| Capital BlueCross | payer | 200 | 163ms | 4.0.1 | No |
+| Cerner | ehr | 200 | 705ms | 4.0.1 | Yes |
+| Cigna | payer | 200 | 367ms | 4.0.1 | Yes |
+| Epic FHIR Sandbox (Clinician Access) | sandbox | 200 | 222ms | 4.0.1 | Yes |
+| Epic FHIR Sandbox (Patient Access) | sandbox | 200 | 213ms | 4.0.1 | Yes |
+| Excellus BlueCross BlueShield | payer | 200 | 270ms | 4.0.0 | Yes |
+| Flatiron Health | ehr | 200 | 461ms | 4.0.1 | No |
+| Humana | payer | 200 | 675ms | 4.0.1 | Yes |
+| Medicare | government | 200 | 1010ms | 4.0.1 | Yes |
+| Netsmart | ehr | 200 | 212ms | 4.0.1 | Yes |
+| Quest Diagnostics | lab | 200 | 114ms | 4.0.1 | No |
+| SMART Health IT Sandbox (Clinician) | sandbox | 200 | 366ms | 4.0.0 | Yes |
+| SMART Health IT Sandbox (Patient) | sandbox | 200 | 366ms | 4.0.0 | Yes |
+| UnitedHealthcare | payer | 403 | 130ms | N/A | Yes |
+| Wellmark Blue Cross Blue Shield | payer | 200 | 7715ms | 4.0.1 | No |
 
 ## Needs Registration
 
@@ -64,7 +65,6 @@
 | BlueCross BlueShield of Tennessee | payer | https://www.bcbst.com/developer-resources | No FHIR base URL configured - developer registration required |
 | CareFirst BlueCross BlueShield | payer | https://developer.carefirst.com | No FHIR base URL configured - developer registration required |
 | Centene Corporation | payer | https://partners.centene.com/ | No FHIR base URL configured - developer registration required |
-| Cerner | ehr | http://fhir.cerner.com/millennium/r4/ | No FHIR base URL configured - developer registration required |
 | DrChrono | ehr | https://drchrono-fhirpresentation.everhealthsoftware.com/drchrono/basepractice/r4/Home/ApiDocumentation | No FHIR base URL configured - developer registration required |
 | Dynamic Health IT | ehr | https://dynamicfhirpresentation.dynamicfhirsandbox.com/dhithealth/practiceone/r4/Home/ApiDocumentation | No FHIR base URL configured - developer registration required |
 | Epic | ehr | https://fhir.epic.com | No FHIR base URL configured - developer registration required |

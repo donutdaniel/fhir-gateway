@@ -101,6 +101,36 @@ FHIR_GATEWAY_PLATFORM_AETNA_CLIENT_SECRET=your-client-secret
 
 </details>
 
+<details>
+<summary><strong>EHR Platforms (Epic, Cerner, etc.)</strong></summary>
+
+EHR platforms like Epic and Cerner are **multi-tenant** — each hospital or health system runs their own instance with a unique FHIR endpoint. This is different from payers (Aetna, Cigna) which have a single centralized API.
+
+**What this means:**
+- There's no single "Epic production URL" — each organization (Kaiser, Stanford Health, etc.) has its own
+- Production access requires onboarding with each specific healthcare organization
+- The gateway includes sandbox configs (`epic-sandbox-patient`, `epic-sandbox-clinician`) for development
+
+**Epic-specific:**
+- Register apps at [fhir.epic.com](https://fhir.epic.com)
+- Patient vs Clinician access requires separate app registrations with different "Application Audience" settings
+- Patient apps use `patient/*.read` scopes, Clinician apps use `user/*.read` scopes
+- Use the **Non-Production Client ID** for sandbox testing
+
+```bash
+# Epic sandbox credentials
+FHIR_GATEWAY_PLATFORM_EPIC_SANDBOX_PATIENT_CLIENT_ID=your-patient-app-id
+FHIR_GATEWAY_PLATFORM_EPIC_SANDBOX_CLINICIAN_CLIENT_ID=your-clinician-app-id
+```
+
+**Cerner/Oracle Health:**
+- Similar multi-tenant model
+- Register at [fhir.cerner.com](https://fhir.cerner.com)
+
+For production EHR access, create organization-specific platform configs (e.g., `epic-kaiser.json`) with the specific FHIR endpoint URL provided during onboarding.
+
+</details>
+
 ## API Reference
 
 <details>

@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
     debug: bool = False
+    public_url: str = "http://localhost:8000"  # Public endpoint URL for MCP connection instructions
 
     # Logging
     log_level: str = "INFO"

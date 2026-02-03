@@ -170,6 +170,39 @@ Run `fhir-gateway` separately before starting Claude Desktop.
 | `FHIR_GATEWAY_REDIS_URL` | Redis URL | (optional) |
 | `FHIR_GATEWAY_REQUIRE_REDIS_TLS` | Require rediss:// | `false` |
 | `FHIR_GATEWAY_MASTER_KEY` | Encryption key | (optional) |
+| `FHIR_GATEWAY_PUBLIC_URL` | Public URL for MCP instructions | `http://localhost:8000` |
+
+### Platform OAuth Credentials
+
+Platform-specific OAuth client IDs and secrets are configured via environment variables:
+
+```
+FHIR_GATEWAY_PLATFORM_{PLATFORM_ID}_CLIENT_ID=xxx
+FHIR_GATEWAY_PLATFORM_{PLATFORM_ID}_CLIENT_SECRET=yyy
+```
+
+Platform ID is uppercased with hyphens converted to underscores.
+
+**Examples:**
+
+```bash
+# Epic sandbox (Patient Access app - use Non-Production Client ID from fhir.epic.com)
+FHIR_GATEWAY_PLATFORM_EPIC_SANDBOX_PATIENT_CLIENT_ID=your-patient-app-id
+
+# Epic sandbox (Clinician Access app - separate registration required)
+FHIR_GATEWAY_PLATFORM_EPIC_SANDBOX_CLINICIAN_CLIENT_ID=your-clinician-app-id
+
+# Aetna sandbox
+FHIR_GATEWAY_PLATFORM_AETNA_SANDBOX_CLIENT_ID=your-aetna-client-id
+
+# SMART Health IT sandbox (no credentials needed - public sandbox)
+```
+
+**Epic-specific notes:**
+- Epic requires separate app registrations for Patient vs Clinician access
+- "Application Audience" in Epic determines which scopes are available
+- Patient apps use `patient/*.read` scopes, Clinician apps use `user/*.read` scopes
+- Production Epic access requires per-organization onboarding (each hospital/health system has its own FHIR endpoint)
 
 ### Test Structure
 
