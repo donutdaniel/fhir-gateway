@@ -56,7 +56,7 @@ The gateway supports session-scoped OAuth token management:
 ### Security Features
 
 - **Input validation**: `app/validation.py` provides `validate_resource_type()`, `validate_resource_id()`, `validate_platform_id()`, and `validate_procedure_code()`. All endpoints validate inputs before processing.
-- **Encryption at rest**: `app/auth/secure_token_store.py` provides `MasterKeyEncryption` using PBKDF2-derived Fernet keys when `FHIR_GATEWAY_MASTER_KEY` is set.
+- **Encryption at rest**: `app/auth/secure_token_store.py` provides `MasterKeyEncryption` using PBKDF2-derived Fernet keys. Requires `FHIR_GATEWAY_MASTER_KEY`.
 - **XSS protection**: OAuth callback HTML responses use `html.escape()` and include CSP headers.
 - **Audit logging**: `app/audit.py` provides `audit_log()` for security-relevant events.
 - **Redis TLS enforcement**: `token_manager.py` warns on non-TLS Redis URLs and can require `rediss://` via `FHIR_GATEWAY_REQUIRE_REDIS_TLS`.
@@ -66,6 +66,8 @@ The gateway supports session-scoped OAuth token management:
 - **`app/main.py`**: FastAPI app entry point. Creates app, registers routers, handles startup/shutdown with session cleanup background task.
 
 - **`app/audit.py`**: Audit logging with `AuditEvent` constants and `audit_log()` function.
+
+- **`app/constants.py`**: Non-configurable constants (rate limits, timeouts, session settings).
 
 - **`app/validation.py`**: Input validation for platform IDs, resource types, resource IDs, and procedure codes.
 
@@ -169,7 +171,7 @@ Run `fhir-gateway` separately before starting Claude Desktop.
 | `FHIR_GATEWAY_OAUTH_REDIRECT_URI` | OAuth callback URL | `http://localhost:8000/auth/callback` |
 | `FHIR_GATEWAY_REDIS_URL` | Redis URL | (optional) |
 | `FHIR_GATEWAY_REQUIRE_REDIS_TLS` | Require rediss:// | `false` |
-| `FHIR_GATEWAY_MASTER_KEY` | Encryption key | (optional) |
+| `FHIR_GATEWAY_MASTER_KEY` | Encryption key (min 32 chars) | (required) |
 | `FHIR_GATEWAY_PUBLIC_URL` | Public URL for MCP instructions | `http://localhost:8000` |
 
 ### Platform OAuth Credentials

@@ -91,7 +91,7 @@ Environment variables (prefix: `FHIR_GATEWAY_`):
 | `HOST` | Server host | `0.0.0.0` |
 | `PORT` | Server port | `8000` |
 | `REDIS_URL` | Redis URL for token storage | (optional) |
-| `MASTER_KEY` | Encryption key for tokens at rest | (optional) |
+| `MASTER_KEY` | Encryption key for tokens at rest (min 32 chars) | (required) |
 
 Platform-specific OAuth credentials:
 ```bash
