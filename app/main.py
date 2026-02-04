@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.adapters.registry import PlatformAdapterRegistry
 from app.auth.secure_token_store import validate_master_key_strength
@@ -139,6 +140,10 @@ def create_app() -> FastAPI:
 
     # Add request size limit middleware
     app.add_middleware(RequestSizeLimitMiddleware, max_body_size=MAX_REQUEST_BODY_SIZE)
+
+    # Add proxy headers middleware for Railway/cloud deployments
+    # This ensures redirects use https:// when behind a reverse proxy
+    app.add_middleware(ProxyHeadersMiddleware, trusted_hosts=["*"])
 
     # Register REST API routers
     app.include_router(pages_router)
