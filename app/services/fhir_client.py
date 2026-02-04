@@ -230,6 +230,7 @@ async def search_resources(
     resource_type: str,
     search_params: dict[str, Any] | None = None,
     access_token: str | None = None,
+    limit: int | None = None,
 ) -> dict[str, Any]:
     """
     Search for FHIR resources.
@@ -239,9 +240,10 @@ async def search_resources(
         resource_type: FHIR resource type
         search_params: Search parameters
         access_token: Optional OAuth access token
+        limit: Max number of results to return (uses fhirpy's .limit())
 
     Returns:
-        FHIR Bundle with search results
+        FHIR Bundle with search results and pagination links
     """
     client = get_fhir_client(platform_id, access_token)
 
@@ -249,21 +251,55 @@ async def search_resources(
     if search_params:
         search = search.search(**search_params)
 
-    resources = await search.fetch()
+    # Apply limit using fhirpy's proper method
+    if limit:
+        search = search.limit(limit)
 
-    entries = []
-    for resource in resources:
-        entries.append(
-            {
-                "fullUrl": f"{resource_type}/{resource.get('id', '')}",
-                "resource": resource,
-                "search": {"mode": "match"},
-            }
-        )
+    # Use fetch_raw() to get the actual Bundle with pagination links
+    bundle = await search.fetch_raw()
 
-    return {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "total": len(entries),
-        "entry": entries,
-    }
+    return dict(bundle)
+
+
+async def fetch_bundle_page(
+    platform_id: str,
+    url: str,
+    access_token: str | None = None,
+) -> dict[str, Any]:
+    """
+    Fetch a Bundle page by URL (for pagination).
+
+    Args:
+        platform_id: The platform identifier (for validation)
+        url: The pagination URL from a Bundle link
+        access_token: Optional OAuth access token
+
+    Returns:
+        FHIR Bundle
+
+    Raises:
+        ValueError: If URL doesn't match platform's FHIR base URL
+    """
+    platform = get_platform(platform_id)
+    if not platform:
+        raise PlatformNotFoundError(platform_id)
+
+    if not platform.fhir_base_url:
+        raise PlatformNotConfiguredError(platform_id)
+
+    # Security: Validate URL is from the same platform
+    if not url.startswith(platform.fhir_base_url):
+        raise ValueError(f"URL must be from platform's FHIR server: {platform.fhir_base_url}")
+
+    headers = {"Accept": "application/fhir+json"}
+    if access_token:
+        headers["Authorization"] = f"Bearer {access_token}"
+
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
+    ) as session:
+        async with session.get(url, headers=headers) as resp:
+            if resp.status != 200:
+                error_text = await resp.text()
+                raise FHIRClientError(f"Failed to fetch page: {resp.status} - {error_text}")
+            return await resp.json()

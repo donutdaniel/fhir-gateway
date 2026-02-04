@@ -22,6 +22,7 @@ from app.mcp.validation import (
     validate_resource_type,
 )
 from app.services.fhir_client import (
+    fetch_bundle_page,
     fetch_capability_statement,
     get_fhir_client,
     search_resources,
@@ -122,7 +123,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return handle_exception(e, "get_capabilities")
 
     @mcp.tool(
-        description="Search for FHIR resources. Use get_capabilities first to discover valid search parameters."
+        description="Search for FHIR resources with pagination. Returns max 10 results by default to avoid large responses. Use limit to adjust (max 50). Use get_capabilities first to discover valid search parameters."
     )
     async def search(
         platform_id: Annotated[str, Field(description="Platform identifier")],
@@ -131,8 +132,13 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         ],
         ctx: Context,
         params: Annotated[
-            dict[str, Any] | None, Field(description="Search parameters as key-value pairs")
+            dict[str, Any] | None,
+            Field(description="Search parameters as key-value pairs (e.g., {\"name\": \"Smith\"})"),
         ] = None,
+        limit: Annotated[
+            int,
+            Field(description="Max results to return (default 10, max 50)", ge=1, le=50),
+        ] = 10,
         auth_handle: Annotated[
             str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
         ] = None,
@@ -143,6 +149,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         if err := validate_resource_type(resource_type):
             return error_response("validation_error", err)
 
+        # Cap limit at 50 to prevent huge responses
+        effective_limit = min(limit, 50)
+
         try:
             token = await get_access_token(ctx, platform_id, auth_handle)
             result = await search_resources(
@@ -150,6 +159,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
                 resource_type=resource_type,
                 search_params=params,
                 access_token=token,
+                limit=effective_limit,
             )
             audit_log(
                 AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type=resource_type
@@ -157,6 +167,40 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return result
         except Exception as e:
             return handle_exception(e, "search")
+
+    @mcp.tool(
+        description="Fetch the next page of search results using a pagination URL from a Bundle's 'next' link."
+    )
+    async def get_next_page(
+        platform_id: Annotated[str, Field(description="Platform identifier")],
+        url: Annotated[
+            str,
+            Field(description="The 'next' link URL from a Bundle response"),
+        ],
+        ctx: Context,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
+    ) -> dict[str, Any]:
+        """Fetch next page of results using Bundle pagination link."""
+        if err := validate_platform_id(platform_id):
+            return error_response("validation_error", err)
+
+        try:
+            token = await get_access_token(ctx, platform_id, auth_handle)
+            result = await fetch_bundle_page(
+                platform_id=platform_id,
+                url=url,
+                access_token=token,
+            )
+            audit_log(
+                AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type="Bundle"
+            )
+            return result
+        except ValueError as e:
+            return error_response("validation_error", str(e))
+        except Exception as e:
+            return handle_exception(e, "get_next_page")
 
     @mcp.tool(description="Read a specific FHIR resource by ID.")
     async def read(
@@ -190,7 +234,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return handle_exception(e, "read")
 
-    @mcp.tool(description="Execute a FHIR operation like $everything on a resource.")
+    @mcp.tool(
+        description="Execute a FHIR operation like $everything on a resource. For $everything, use _count param to limit results (default 10, max 50)."
+    )
     async def execute_operation(
         platform_id: Annotated[str, Field(description="Platform identifier")],
         resource_type: Annotated[str, Field(description="FHIR resource type")],
@@ -199,7 +245,10 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             str, Field(description="Operation name (e.g., '$everything', '$validate')")
         ],
         ctx: Context,
-        params: Annotated[dict[str, Any] | None, Field(description="Operation parameters")] = None,
+        params: Annotated[
+            dict[str, Any] | None,
+            Field(description="Operation parameters. For $everything, use _count to limit results."),
+        ] = None,
         auth_handle: Annotated[
             str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
         ] = None,
@@ -221,13 +270,25 @@ def register_fhir_tools(mcp: FastMCP) -> None:
                 f"Operation not allowed. Supported: {', '.join(sorted(ALLOWED_OPERATIONS))}",
             )
 
+        # Enforce pagination for $everything to prevent huge responses
+        op_params = dict(params) if params else {}
+        if operation == "$everything":
+            if "_count" not in op_params:
+                op_params["_count"] = 10
+            else:
+                try:
+                    count = int(op_params["_count"])
+                    op_params["_count"] = min(count, 50)
+                except (ValueError, TypeError):
+                    op_params["_count"] = 10
+
         try:
             token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             result = await client.resource(resource_type, id=resource_id).execute(
                 operation=operation,
                 method="GET",
-                params=params,
+                params=op_params if op_params else None,
             )
             audit_log(
                 AuditEvent.RESOURCE_OPERATION,
