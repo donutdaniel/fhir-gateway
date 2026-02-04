@@ -57,3 +57,14 @@ This gateway uses session-based authentication rather than user accounts:
 - **Logout support**: Users can revoke tokens via `POST /auth/{platform_id}/logout`
 
 This model is designed for the hosted MCP use case where users interact through AI agents and authorize access on-demand.
+
+## Auth Handles (MCP Session Correlation)
+
+MCP tools use signed auth handles instead of raw session IDs:
+
+- **Opaque tokens**: Auth handles are HMAC-SHA256 signed, preventing session enumeration attacks
+- **Platform-scoped**: Each handle is bound to a specific platform
+- **Time-limited**: Handles expire after 24 hours
+- **Tamper-proof**: Signature verification prevents forged handles
+
+The handle contains the session ID, platform ID, and timestamp, but is cryptographically signed so clients cannot forge or modify them. This allows MCP clients with unstable transport sessions to correlate tool calls without exposing internal session identifiers.

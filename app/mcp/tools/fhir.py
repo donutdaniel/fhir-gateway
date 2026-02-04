@@ -13,6 +13,7 @@ from pydantic import Field
 from app.audit import AuditEvent, audit_log
 from app.auth.token_manager import get_token_manager
 from app.config.platform import get_all_platforms
+from app.mcp.auth_handle import verify_auth_handle
 from app.mcp.errors import error_response, handle_exception
 from app.mcp.session import get_session_id
 from app.mcp.validation import (
@@ -28,9 +29,31 @@ from app.services.fhir_client import (
 from app.validation import ALLOWED_OPERATIONS
 
 
-async def get_access_token(ctx: Context, platform_id: str) -> str | None:
+def _resolve_session_id(
+    ctx: Context, auth_handle: str | None, platform_id: str | None = None
+) -> str | None:
+    """
+    Resolve session ID from auth_handle or MCP context.
+
+    Priority:
+    1. Verify and extract from auth_handle if provided
+    2. Fall back to MCP transport session ID
+    """
+    if auth_handle:
+        session_id = verify_auth_handle(auth_handle, platform_id)
+        if session_id:
+            return session_id
+        # Invalid handle - don't fall back, return None to signal error
+        return None
+
+    return get_session_id(ctx)
+
+
+async def get_access_token(
+    ctx: Context, platform_id: str, auth_handle: str | None = None
+) -> str | None:
     """Get access token from session for a platform."""
-    session_id = get_session_id(ctx)
+    session_id = _resolve_session_id(ctx, auth_handle, platform_id)
     if not session_id:
         return None
 
@@ -71,6 +94,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         full: Annotated[
             bool, Field(description="Return full CapabilityStatement instead of summary")
         ] = False,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Fetch CapabilityStatement from platform's FHIR server."""
         if err := validate_platform_id(platform_id):
@@ -79,7 +105,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", err)
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             result = await fetch_capability_statement(
                 platform_id=platform_id,
                 access_token=token,
@@ -107,6 +133,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         params: Annotated[
             dict[str, Any] | None, Field(description="Search parameters as key-value pairs")
         ] = None,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Search for FHIR resources by type and parameters."""
         if err := validate_platform_id(platform_id):
@@ -115,7 +144,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", err)
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             result = await search_resources(
                 platform_id=platform_id,
                 resource_type=resource_type,
@@ -135,6 +164,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource_type: Annotated[str, Field(description="FHIR resource type")],
         resource_id: Annotated[str, Field(description="Resource ID")],
         ctx: Context,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Read a single FHIR resource by type and ID."""
         if err := validate_platform_id(platform_id):
@@ -145,7 +177,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", err)
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             resource = await client.reference(resource_type, resource_id).to_resource()
             audit_log(
@@ -168,6 +200,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         ],
         ctx: Context,
         params: Annotated[dict[str, Any] | None, Field(description="Operation parameters")] = None,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Execute a FHIR operation on a resource."""
         if err := validate_platform_id(platform_id):
@@ -187,7 +222,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             )
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             result = await client.resource(resource_type, id=resource_id).execute(
                 operation=operation,
@@ -210,6 +245,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource_type: Annotated[str, Field(description="FHIR resource type")],
         resource: Annotated[dict[str, Any], Field(description="FHIR resource data")],
         ctx: Context,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Create a new FHIR resource."""
         if err := validate_platform_id(platform_id):
@@ -218,7 +256,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", err)
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             created = await client.resource(resource_type, **resource).save()
             audit_log(
@@ -235,6 +273,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource_id: Annotated[str, Field(description="Resource ID")],
         resource: Annotated[dict[str, Any], Field(description="Updated FHIR resource data")],
         ctx: Context,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Update a FHIR resource."""
         if err := validate_platform_id(platform_id):
@@ -246,7 +287,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
 
         try:
             resource["id"] = resource_id
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             updated = await client.resource(resource_type, **resource).save()
             audit_log(
@@ -265,6 +306,9 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource_type: Annotated[str, Field(description="FHIR resource type")],
         resource_id: Annotated[str, Field(description="Resource ID")],
         ctx: Context,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Delete a FHIR resource."""
         if err := validate_platform_id(platform_id):
@@ -275,7 +319,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", err)
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             await client.resource(resource_type, id=resource_id).delete()
             audit_log(

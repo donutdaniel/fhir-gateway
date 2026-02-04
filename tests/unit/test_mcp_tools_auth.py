@@ -62,6 +62,7 @@ class TestStartAuth:
             patch("app.mcp.tools.auth.OAuthService", return_value=mock_oauth_service),
             patch("app.mcp.tools.auth.get_token_manager", return_value=mock_token_manager),
             patch("app.mcp.tools.auth.audit_log"),
+            patch("app.mcp.tools.auth.create_auth_handle", return_value="test-auth-handle"),
         ):
             mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/oauth/callback"
 
@@ -75,7 +76,7 @@ class TestStartAuth:
 
         assert "authorization_url" in result
         assert result["platform_id"] == "test-payer"
-        assert result["session_id"] == "sess-123"
+        assert result["auth_handle"] == "test-auth-handle"
         assert result["state"] == "test-state"
 
     @pytest.mark.asyncio
@@ -95,6 +96,7 @@ class TestStartAuth:
             patch("app.mcp.tools.auth.OAuthService", return_value=mock_oauth_service),
             patch("app.mcp.tools.auth.get_token_manager", return_value=mock_token_manager),
             patch("app.mcp.tools.auth.audit_log"),
+            patch("app.mcp.tools.auth.create_auth_handle", return_value="test-auth-handle"),
         ):
             mock_settings.return_value.oauth_redirect_uri = "http://localhost:8000/oauth/callback"
 
@@ -222,6 +224,7 @@ class TestWaitForAuth:
         with (
             patch("app.mcp.tools.auth.get_token_manager", return_value=mock_token_manager),
             patch("app.mcp.tools.auth.audit_log"),
+            patch("app.mcp.tools.auth.create_auth_handle", return_value="test-auth-handle"),
         ):
             tools = mcp._tool_manager._tools
             wait_for_auth = tools["wait_for_auth"].fn
@@ -234,6 +237,7 @@ class TestWaitForAuth:
 
         assert result["success"] is True
         assert result["expires_in"] == 3600
+        assert result["auth_handle"] == "test-auth-handle"
         mock_token_manager.wait_for_auth_complete.assert_called_once_with(
             "sess-123", "test-payer", 300
         )
@@ -302,7 +306,6 @@ class TestGetAuthStatus:
 
             result = await get_auth_status(ctx=mock_ctx)
 
-        assert result["session_id"] == "sess-123"
         assert "platforms" in result
         assert "aetna" in result["platforms"]
         assert result["platforms"]["aetna"]["authenticated"] is True
@@ -326,7 +329,6 @@ class TestGetAuthStatus:
                 platform_id="aetna",
             )
 
-        assert result["session_id"] == "sess-123"
         assert result["platform_id"] == "aetna"
         assert result["authenticated"] is True
         assert "platforms" not in result

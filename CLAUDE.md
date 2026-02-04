@@ -150,11 +150,12 @@ Run `fhir-gateway` separately before starting Claude Desktop. The `mcp-remote` p
 - `delete` - Delete resource
 
 **Auth Tools**:
-- `start_auth` - Initiate OAuth flow
-- `complete_auth` - Exchange code for tokens
+- `start_auth` - Initiate OAuth flow, returns `auth_handle` for session correlation
+- `wait_for_auth` - Block until OAuth completes
 - `get_auth_status` - Get authentication status
 - `revoke_auth` - Revoke authentication
-- `wait_for_auth` - Block until OAuth completes
+
+All tools accept an optional `auth_handle` parameter for stable session correlation across MCP tool calls.
 
 ### Configuration
 

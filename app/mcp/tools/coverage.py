@@ -37,6 +37,9 @@ def register_coverage_tools(mcp: FastMCP) -> None:
         code_system: Annotated[
             str, Field(description="Code system URL")
         ] = "http://www.ama-assn.org/go/cpt",
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Check coverage requirements for a procedure."""
         if err := validate_platform_id(platform_id):
@@ -47,7 +50,7 @@ def register_coverage_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", f"Invalid coverage_id: {err}")
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             result = await check_coverage_requirements(
                 client=client,
@@ -77,6 +80,9 @@ def register_coverage_tools(mcp: FastMCP) -> None:
         raw_format: Annotated[
             bool, Field(description="Return raw FHIR Bundle instead of transformed")
         ] = False,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Fetch questionnaire package for prior authorization."""
         if err := validate_platform_id(platform_id):
@@ -85,7 +91,7 @@ def register_coverage_tools(mcp: FastMCP) -> None:
             return error_response("validation_error", f"Invalid coverage_id: {err}")
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             result = await fetch_questionnaire_package(
                 client=client,
@@ -113,13 +119,16 @@ def register_coverage_tools(mcp: FastMCP) -> None:
         code_system: Annotated[
             str, Field(description="Code system URL")
         ] = "http://www.ama-assn.org/go/cpt",
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+        ] = None,
     ) -> dict[str, Any]:
         """Get medical policy rules for a procedure."""
         if err := validate_platform_id(platform_id):
             return error_response("validation_error", err)
 
         try:
-            token = await get_access_token(ctx, platform_id)
+            token = await get_access_token(ctx, platform_id, auth_handle)
             client = get_fhir_client(platform_id, token)
             result = await get_platform_rules(
                 client=client,

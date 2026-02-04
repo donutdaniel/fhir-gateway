@@ -15,10 +15,31 @@ from app.audit import AuditEvent, audit_log
 from app.auth.token_manager import get_token_manager
 from app.config.platform import get_platform
 from app.config.settings import get_settings
+from app.mcp.auth_handle import create_auth_handle, verify_auth_handle
 from app.mcp.errors import error_response, handle_exception
 from app.mcp.session import get_session_id
 from app.mcp.validation import validate_platform_id
 from app.services.oauth import OAuthService
+
+
+def _resolve_session_id(
+    ctx: Context, auth_handle: str | None, platform_id: str | None = None
+) -> str | None:
+    """
+    Resolve session ID from auth_handle or MCP context.
+
+    Priority:
+    1. Verify and extract from auth_handle if provided
+    2. Fall back to MCP transport session ID
+    """
+    if auth_handle:
+        session_id = verify_auth_handle(auth_handle, platform_id)
+        if session_id:
+            return session_id
+        # Invalid handle - don't fall back, return None to signal error
+        return None
+
+    return get_session_id(ctx)
 
 
 def register_auth_tools(mcp: FastMCP) -> None:
@@ -69,14 +90,17 @@ def register_auth_tools(mcp: FastMCP) -> None:
                 mcp_initiated=True,  # Skip browser session validation in callback
             )
 
+            # Create signed auth handle for session correlation
+            auth_handle = create_auth_handle(session_id, platform_id)
+
             audit_log(AuditEvent.AUTH_START, platform_id=platform_id, session_id=session_id)
 
             return {
                 "authorization_url": auth_url,
                 "state": state,
-                "session_id": session_id,
+                "auth_handle": auth_handle,
                 "platform_id": platform_id,
-                "message": "Direct user to authorization_url to authenticate. Then call wait_for_auth.",
+                "message": "Direct user to authorization_url to authenticate. Then call wait_for_auth with the auth_handle.",
             }
         except Exception as e:
             return handle_exception(e, "start_auth")
@@ -88,10 +112,15 @@ def register_auth_tools(mcp: FastMCP) -> None:
         platform_id: Annotated[str, Field(description="Platform identifier")],
         ctx: Context,
         timeout: Annotated[int, Field(description="Timeout in seconds", ge=1, le=600)] = 300,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (required for stable session correlation)")
+        ] = None,
     ) -> dict[str, Any]:
         """Wait for OAuth callback to complete."""
-        session_id = get_session_id(ctx)
+        session_id = _resolve_session_id(ctx, auth_handle, platform_id)
         if not session_id:
+            if auth_handle:
+                return error_response("invalid_auth_handle", "Auth handle is invalid or expired")
             return error_response("session_error", "No MCP session ID available")
 
         try:
@@ -107,8 +136,9 @@ def register_auth_tools(mcp: FastMCP) -> None:
             return {
                 "success": True,
                 "platform_id": platform_id,
+                "auth_handle": auth_handle or create_auth_handle(session_id, platform_id),
                 "expires_in": int(token.seconds_until_expiry() or 0),
-                "message": "Authentication completed. You can now make FHIR requests.",
+                "message": "Authentication completed. You can now make FHIR requests using the auth_handle.",
             }
         except Exception as e:
             return handle_exception(e, "wait_for_auth")
@@ -119,10 +149,15 @@ def register_auth_tools(mcp: FastMCP) -> None:
         platform_id: Annotated[
             str | None, Field(description="Specific platform to check (optional)")
         ] = None,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for stable session correlation)")
+        ] = None,
     ) -> dict[str, Any]:
         """Get current auth status for a session."""
-        session_id = get_session_id(ctx)
+        session_id = _resolve_session_id(ctx, auth_handle, platform_id)
         if not session_id:
+            if auth_handle:
+                return error_response("invalid_auth_handle", "Auth handle is invalid or expired")
             return error_response("session_error", "No MCP session ID available")
 
         try:
@@ -133,9 +168,9 @@ def register_auth_tools(mcp: FastMCP) -> None:
                 platform_status = status.get(
                     platform_id, {"authenticated": False, "has_token": False}
                 )
-                return {"session_id": session_id, "platform_id": platform_id, **platform_status}
+                return {"platform_id": platform_id, **platform_status}
 
-            return {"session_id": session_id, "platforms": status}
+            return {"platforms": status}
         except Exception as e:
             return handle_exception(e, "get_auth_status")
 
@@ -143,10 +178,15 @@ def register_auth_tools(mcp: FastMCP) -> None:
     async def revoke_auth(
         platform_id: Annotated[str, Field(description="Platform identifier")],
         ctx: Context,
+        auth_handle: Annotated[
+            str | None, Field(description="Auth handle from start_auth (for stable session correlation)")
+        ] = None,
     ) -> dict[str, Any]:
         """Clear authentication for a platform."""
-        session_id = get_session_id(ctx)
+        session_id = _resolve_session_id(ctx, auth_handle, platform_id)
         if not session_id:
+            if auth_handle:
+                return error_response("invalid_auth_handle", "Auth handle is invalid or expired")
             return error_response("session_error", "No MCP session ID available")
 
         try:
