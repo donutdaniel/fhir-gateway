@@ -478,3 +478,9 @@ async def cleanup_token_manager() -> None:
             await _token_manager._backend.close()
 
         _token_manager = None
+
+
+def reset_token_manager() -> None:
+    """Reset token manager singleton (for testing only)."""
+    global _token_manager
+    _token_manager = None

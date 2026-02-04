@@ -14,6 +14,9 @@ from fhirpy import AsyncFHIRClient
 # This ensures Settings validation passes during test collection
 os.environ.setdefault("FHIR_GATEWAY_DEBUG", "true")
 os.environ.setdefault("FHIR_GATEWAY_CORS_ALLOW_CREDENTIALS", "false")
+# Ensure no Redis in tests - use in-memory storage
+# Set to empty string to override any .env file value
+os.environ["FHIR_GATEWAY_REDIS_URL"] = ""
 
 
 @pytest.fixture(scope="session")
@@ -22,6 +25,20 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(autouse=True)
+def reset_singletons():
+    """Reset singletons between tests to avoid state leakage."""
+    # Reset before test
+    from app.auth.token_manager import reset_token_manager
+    from app.config.settings import reset_settings
+    reset_settings()
+    reset_token_manager()
+    yield
+    # Reset after test
+    reset_token_manager()
+    reset_settings()
 
 
 @pytest.fixture

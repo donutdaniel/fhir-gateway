@@ -260,7 +260,7 @@ class TestInputValidation:
 
         # Use actual configured platforms
         validate_platform_id("medicare")
-        validate_platform_id("athena")
+        validate_platform_id("aetna")
 
     def test_validate_platform_id_invalid(self):
         """Should reject invalid platform IDs."""
