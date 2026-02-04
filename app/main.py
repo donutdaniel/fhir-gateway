@@ -177,20 +177,30 @@ def run():
     settings = get_settings()
     configure_logging(level=settings.log_level, json_format=settings.log_json)
 
-    # Configure uvicorn to log to stdout (Railway treats stderr as errors)
+    # Configure uvicorn to log to stdout with JSON format (Railway parses level from JSON)
     log_config = {
         "version": 1,
         "disable_existing_loggers": False,
+        "formatters": {
+            "json": {
+                "()": "app.config.logging.JsonLogFormatter",
+            },
+        },
         "handlers": {
             "default": {
                 "class": "logging.StreamHandler",
                 "stream": "ext://sys.stdout",
+                "formatter": "json",
             },
         },
+        "root": {
+            "handlers": ["default"],
+            "level": settings.log_level.upper(),
+        },
         "loggers": {
-            "uvicorn": {"handlers": ["default"], "level": settings.log_level.upper()},
-            "uvicorn.error": {"handlers": ["default"], "level": settings.log_level.upper()},
-            "uvicorn.access": {"handlers": ["default"], "level": "WARNING"},
+            "uvicorn": {"handlers": ["default"], "level": settings.log_level.upper(), "propagate": False},
+            "uvicorn.error": {"handlers": ["default"], "level": settings.log_level.upper(), "propagate": False},
+            "uvicorn.access": {"handlers": ["default"], "level": "WARNING", "propagate": False},
         },
     }
 

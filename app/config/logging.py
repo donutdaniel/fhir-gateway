@@ -5,6 +5,7 @@ This module provides structured JSON logging using structlog for
 production-ready logging with request correlation IDs.
 """
 
+import json
 import logging
 import re
 import sys
@@ -12,6 +13,7 @@ import uuid
 from collections.abc import Callable
 from contextvars import ContextVar
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
@@ -128,6 +130,21 @@ def redact_sensitive_data(
     sensitive data is not exposed in logs.
     """
     return _redact_value(event_dict)
+
+
+class JsonLogFormatter(logging.Formatter):
+    """JSON formatter for uvicorn logs with lowercase level names."""
+
+    def format(self, record: logging.LogRecord) -> str:
+        log_record = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname.lower(),
+            "logger": record.name,
+            "message": record.getMessage(),
+        }
+        if record.exc_info:
+            log_record["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_record)
 
 
 def configure_logging(
