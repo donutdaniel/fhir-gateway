@@ -192,7 +192,8 @@ curl http://localhost:8000/api/fhir/smarthealthit-sandbox-patient/Patient
 {
   "mcpServers": {
     "fhir-gateway": {
-      "url": "http://localhost:8000/mcp/"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"]
     }
   }
 }
@@ -203,7 +204,8 @@ curl http://localhost:8000/api/fhir/smarthealthit-sandbox-patient/Patient
 {
   "mcpServers": {
     "fhir-gateway": {
-      "url": "http://localhost:8000/mcp/"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"]
     }
   }
 }
@@ -219,7 +221,8 @@ curl http://localhost:8000/api/fhir/smarthealthit-sandbox-patient/Patient
 {
   "mcpServers": {
     "fhir-gateway": {
-      "url": "http://localhost:8000/mcp/"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"]
     }
   }
 }
@@ -235,7 +238,8 @@ curl http://localhost:8000/api/fhir/smarthealthit-sandbox-patient/Patient
 {
   "mcpServers": {
     "fhir-gateway": {
-      "url": "http://localhost:8000/mcp/"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"]
     }
   }
 }
@@ -250,7 +254,8 @@ Open Cline settings → MCP Servers → Add:
 ```json
 {
   "fhir-gateway": {
-    "url": "http://localhost:8000/mcp/"
+    "command": "npx",
+    "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"]
   }
 }
 ```

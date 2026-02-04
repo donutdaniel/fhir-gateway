@@ -101,15 +101,11 @@ async def landing_page() -> str:
     <pre><code>{{
   "mcpServers": {{
     "fhir-gateway": {{
-      "url": "{html.escape(mcp_url)}",
-      "transport": "streamable-http"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "{html.escape(mcp_url)}"]
     }}
   }}
 }}</code></pre>
-    <p>
-        <strong>macOS:</strong> <code class="inline-code">~/Library/Application Support/Claude/claude_desktop_config.json</code><br>
-        <strong>Windows:</strong> <code class="inline-code">%APPDATA%\\Claude\\claude_desktop_config.json</code>
-    </p>
 
     <p style="margin-top: 2rem;"><a href="/platforms">View supported platforms →</a></p>
     """

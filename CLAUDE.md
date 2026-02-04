@@ -130,14 +130,14 @@ The MCP server uses **streamable-http** transport only (no stdio support). This 
 {
   "mcpServers": {
     "fhir-gateway": {
-      "url": "http://localhost:8000/mcp",
-      "transport": "streamable-http"
+      "command": "npx",
+      "args": ["-y", "mcp-remote", "http://localhost:8000/mcp"]
     }
   }
 }
 ```
 
-Run `fhir-gateway` separately before starting Claude Desktop.
+Run `fhir-gateway` separately before starting Claude Desktop. The `mcp-remote` package bridges stdio transport to streamable-http.
 
 ### MCP Tools
 
