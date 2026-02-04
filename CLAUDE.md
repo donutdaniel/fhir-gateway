@@ -142,11 +142,21 @@ Run `fhir-gateway` separately before starting Claude Desktop. The `mcp-remote` p
 ### MCP Tools
 
 **FHIR Tools** (all require `platform_id`):
+- `list_platforms` - List available platforms
 - `get_capabilities` - Fetch CapabilityStatement
-- `search` - Search for resources
-- `read` - Read resource (with optional operations)
+- `search` - Search with pagination, includes, sorting, and field selection
+  - `limit`: Max results (default 10, max 50)
+  - `elements`: Limit returned fields (reduces response size)
+  - `include`: Fetch related resources in one call
+  - `revinclude`: Reverse includes
+  - `sort`: Sort results (prefix `-` for descending)
+- `count` - Get count of matching resources without fetching data
+- `get_next_page` - Fetch next page using Bundle's `next` link URL
+- `read` - Read a specific resource by ID
+- `execute_operation` - Execute FHIR operations like `$everything`
 - `create` - Create resource
-- `update` - Update resource
+- `update` - Full resource replacement
+- `patch` - Partial update (only specified fields)
 - `delete` - Delete resource
 
 **Auth Tools**:

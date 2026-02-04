@@ -49,6 +49,7 @@ jobs:
       - name: Test Docker image
         run: |
           docker run -d --name test-container -p 8000:8000 \
+            -e FHIR_GATEWAY_MASTER_KEY="ci-test-key-at-least-32-characters-long" \
             fhir-gateway:ci
           sleep 5
           curl -f http://localhost:8000/health || exit 1

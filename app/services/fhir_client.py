@@ -230,6 +230,11 @@ async def search_resources(
     resource_type: str,
     search_params: dict[str, Any] | None = None,
     access_token: str | None = None,
+    limit: int | None = None,
+    elements: list[str] | None = None,
+    include: list[str] | None = None,
+    revinclude: list[str] | None = None,
+    sort: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     Search for FHIR resources.
@@ -239,9 +244,14 @@ async def search_resources(
         resource_type: FHIR resource type
         search_params: Search parameters
         access_token: Optional OAuth access token
+        limit: Max number of results to return
+        elements: List of element paths to include (reduces response size)
+        include: List of resources to include (e.g., ["Observation:patient"])
+        revinclude: List of reverse includes (e.g., ["Observation:subject"])
+        sort: List of sort fields (prefix with - for descending)
 
     Returns:
-        FHIR Bundle with search results
+        FHIR Bundle with search results and pagination links
     """
     client = get_fhir_client(platform_id, access_token)
 
@@ -249,21 +259,92 @@ async def search_resources(
     if search_params:
         search = search.search(**search_params)
 
-    resources = await search.fetch()
+    # Apply fhirpy search modifiers
+    if limit:
+        search = search.limit(limit)
+    if elements:
+        search = search.elements(*elements)
+    if include:
+        for inc in include:
+            search = search.include(resource_type, inc)
+    if revinclude:
+        for rev in revinclude:
+            search = search.revinclude(resource_type, rev)
+    if sort:
+        search = search.sort(*sort)
 
-    entries = []
-    for resource in resources:
-        entries.append(
-            {
-                "fullUrl": f"{resource_type}/{resource.get('id', '')}",
-                "resource": resource,
-                "search": {"mode": "match"},
-            }
-        )
+    # Use fetch_raw() to get the actual Bundle with pagination links
+    bundle = await search.fetch_raw()
 
-    return {
-        "resourceType": "Bundle",
-        "type": "searchset",
-        "total": len(entries),
-        "entry": entries,
-    }
+    return dict(bundle)
+
+
+async def count_resources(
+    platform_id: str,
+    resource_type: str,
+    search_params: dict[str, Any] | None = None,
+    access_token: str | None = None,
+) -> int:
+    """
+    Count FHIR resources matching search criteria.
+
+    Args:
+        platform_id: The platform identifier
+        resource_type: FHIR resource type
+        search_params: Search parameters
+        access_token: Optional OAuth access token
+
+    Returns:
+        Total count of matching resources
+    """
+    client = get_fhir_client(platform_id, access_token)
+
+    search = client.resources(resource_type)
+    if search_params:
+        search = search.search(**search_params)
+
+    return await search.count()
+
+
+async def fetch_bundle_page(
+    platform_id: str,
+    url: str,
+    access_token: str | None = None,
+) -> dict[str, Any]:
+    """
+    Fetch a Bundle page by URL (for pagination).
+
+    Args:
+        platform_id: The platform identifier (for validation)
+        url: The pagination URL from a Bundle link
+        access_token: Optional OAuth access token
+
+    Returns:
+        FHIR Bundle
+
+    Raises:
+        ValueError: If URL doesn't match platform's FHIR base URL
+    """
+    platform = get_platform(platform_id)
+    if not platform:
+        raise PlatformNotFoundError(platform_id)
+
+    if not platform.fhir_base_url:
+        raise PlatformNotConfiguredError(platform_id)
+
+    # Security: Validate URL is from the same platform
+    if not url.startswith(platform.fhir_base_url):
+        raise ValueError(f"URL must be from platform's FHIR server: {platform.fhir_base_url}")
+
+    headers = {"Accept": "application/fhir+json"}
+    if access_token:
+        headers["Authorization"] = f"Bearer {access_token}"
+
+    async with aiohttp.ClientSession(
+        timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT_SECONDS)
+    ) as session:
+        async with session.get(url, headers=headers) as resp:
+            if resp.status != 200:
+                error_text = await resp.text()
+                raise FHIRClientError(f"Failed to fetch page: {resp.status} - {error_text}")
+            return await resp.json()

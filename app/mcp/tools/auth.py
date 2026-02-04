@@ -113,7 +113,10 @@ def register_auth_tools(mcp: FastMCP) -> None:
         ctx: Context,
         timeout: Annotated[int, Field(description="Timeout in seconds", ge=1, le=600)] = 300,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (required for stable session correlation)")
+            str | None,
+            Field(
+                description="Auth handle from start_auth (required for stable session correlation)"
+            ),
         ] = None,
     ) -> dict[str, Any]:
         """Wait for OAuth callback to complete."""
@@ -150,7 +153,8 @@ def register_auth_tools(mcp: FastMCP) -> None:
             str | None, Field(description="Specific platform to check (optional)")
         ] = None,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for stable session correlation)")
+            str | None,
+            Field(description="Auth handle from start_auth (for stable session correlation)"),
         ] = None,
     ) -> dict[str, Any]:
         """Get current auth status for a session."""
@@ -179,7 +183,8 @@ def register_auth_tools(mcp: FastMCP) -> None:
         platform_id: Annotated[str, Field(description="Platform identifier")],
         ctx: Context,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for stable session correlation)")
+            str | None,
+            Field(description="Auth handle from start_auth (for stable session correlation)"),
         ] = None,
     ) -> dict[str, Any]:
         """Clear authentication for a platform."""
