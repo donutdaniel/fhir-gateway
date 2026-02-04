@@ -13,9 +13,17 @@
     "bcbs.*kansas(?!.*city)",
     "blue.*cross.*kansas(?!.*city)"
   ],
-  "payer_ids": ["47060"],
-  "states": ["KS"],
+  "payer_ids": [
+    "47060"
+  ],
+  "states": [
+    "KS"
+  ],
   "fhir_base_url": "https://patient360ks.bcbsdirect.com/P360Member/api/fhir",
+  "oauth": {
+    "authorize_url": "https://patient360ks.bcbsdirect.com/P360Member/identityserver/connect/authorize",
+    "token_url": "https://patient360ks.bcbsdirect.com/P360Member/identityserver/connect/token"
+  },
   "sandbox_url": null,
   "developer_portal": "https://www.bcbsks.com/help/interoperability/developer-api",
   "capabilities": {
@@ -26,8 +34,6 @@
     "pas": false,
     "cdex": false
   },
-  "verification_status": "verified",
-  "last_verified": "2026-01-20",
   "resources": {
     "developer_api": "https://www.bcbsks.com/help/interoperability/developer-api",
     "interoperability": "https://www.bcbsks.com/help/interoperability"

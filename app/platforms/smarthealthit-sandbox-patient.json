@@ -3,42 +3,54 @@
   "name": "SMART Health IT Sandbox (Patient)",
   "display_name": "SMART Sandbox - Patient",
   "type": "sandbox",
-  "aliases": ["smart", "smarthealthit", "smart-sandbox", "smart-patient"],
-  "patterns": ["smart"],
-
+  "aliases": [
+    "smart",
+    "smarthealthit",
+    "smart-sandbox",
+    "smart-patient"
+  ],
+  "patterns": [
+    "smart"
+  ],
   "developer_portal": "https://launch.smarthealthit.org",
-
   "fhir_base_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/fhir",
   "sandbox_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/fhir",
-
   "oauth": {
     "authorize_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/auth/authorize",
     "token_url": "https://launch.smarthealthit.org/v/r4/sim/WzMsIiIsIiIsIkFVVE8iLDEsMSwwLCIiLCIiLCIiLCIiLCIiLCIiLCIiLDAsMSwiIl0=/auth/token",
     "client_id": "demo_client",
     "redirect_uri": "http://localhost:8000/oauth/callback",
-    "scopes": ["openid", "fhirUser", "patient/*.read", "launch/patient"],
-    "scopes_supported": [
-      "openid", "profile", "fhirUser", "launch", "launch/patient",
-      "patient/*.*", "user/*.*", "offline_access"
+    "scopes": [
+      "openid",
+      "fhirUser",
+      "patient/*.read",
+      "launch/patient"
     ],
-    "code_challenge_methods": ["S256"]
+    "scopes_supported": [
+      "openid",
+      "profile",
+      "fhirUser",
+      "launch",
+      "launch/patient",
+      "patient/*.*",
+      "user/*.*",
+      "offline_access"
+    ],
+    "code_challenge_methods": [
+      "S256"
+    ]
   },
-
   "fhir_version": "R4",
-  "implementation_guides": ["US Core", "SMART on FHIR"],
-
+  "implementation_guides": [
+    "US Core",
+    "SMART on FHIR"
+  ],
   "endpoints": {},
-
   "capabilities": {
     "patient_access": true,
     "provider_directory": false,
     "patient_everything": true
   },
-
   "supported_resources": [],
-
-  "verification_status": "verified",
-  "last_verified": "2026-01-27",
-
   "notes": "SMART Health IT public sandbox with patient access. No registration required. Uses patient-level scopes (patient/*.read) and launch/patient context. Will prompt to select a patient."
 }

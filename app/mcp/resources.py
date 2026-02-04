@@ -17,21 +17,19 @@ def register_resources(mcp: FastMCP) -> None:
     @mcp.resource(
         uri="fhir://platforms",
         name="Available Platforms",
-        description="List of all available platforms and their configurations.",
+        description="List of registered platforms with OAuth credentials configured.",
         mime_type="application/json",
     )
     async def platforms_resource() -> str:
-        """Get list of available platforms as JSON."""
+        """Get list of registered platforms as JSON."""
         platforms = get_all_platforms()
         platform_list = [
             {
                 "id": pid,
                 "name": p.display_name or p.name,
-                "has_fhir": p.fhir_base_url is not None,
-                "has_oauth": p.oauth is not None and p.oauth.authorize_url is not None,
-                "oauth_registered": p.oauth is not None and p.oauth.is_registered,
             }
             for pid, p in platforms.items()
+            if p.oauth is not None and p.oauth.is_registered
         ]
         return json.dumps({"platforms": platform_list, "total": len(platform_list)}, indent=2)
 
@@ -51,8 +49,6 @@ def register_resources(mcp: FastMCP) -> None:
             "id": platform.id,
             "name": platform.display_name or platform.name,
             "fhir_base_url": platform.fhir_base_url,
-            "has_oauth": platform.oauth is not None and platform.oauth.authorize_url is not None,
-            "oauth_registered": platform.oauth is not None and platform.oauth.is_registered,
         }
         if platform.capabilities:
             details["capabilities"] = {

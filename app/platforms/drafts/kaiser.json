@@ -1,0 +1,58 @@
+{
+  "id": "kaiser",
+  "name": "Kaiser Permanente",
+  "display_name": "Kaiser Permanente",
+  "type": "payer",
+  "aliases": [
+    "91617",
+    "94135"
+  ],
+  "patterns": [
+    "kaiser"
+  ],
+  "payer_ids": [
+    "91617",
+    "94135"
+  ],
+  "states": [
+    "CA",
+    "CO",
+    "GA",
+    "HI",
+    "MD",
+    "DC",
+    "VA",
+    "OR",
+    "WA"
+  ],
+  "fhir_base_url": null,
+  "developer_portal": "https://developer.kp.org/",
+  "interchange_portal": "https://interchange.kp.org/",
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+  "endpoints": {
+    "patient_access_base": null
+  },
+  "rate_limits": {
+    "transactions_per_second": 2,
+    "transactions_per_hour_oauth": 200,
+    "transactions_per_hour_api_key": 1000,
+    "transactions_per_day": 5000
+  },
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "resources": {
+    "interoperability_info": "https://healthy.kaiserpermanente.org/front-door/interoperability",
+    "member_portal": "https://healthy.kaiserpermanente.org/",
+    "technical_info": "https://healthy.kaiserpermanente.org/northern-california/pages/technical-information"
+  },
+  "notes": "Kaiser Permanente - integrated health system. Uses Interchange API platform. Rate limits: 2 TPS, 200/hr per OAuth token, 1000/hr per API key, 5000/day. Regional coverage: CA, CO, GA, HI, MD/DC/VA, OR, WA. Register at developer.kp.org."
+}

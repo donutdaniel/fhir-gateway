@@ -3,44 +3,53 @@
   "name": "Epic FHIR Sandbox (Patient Access)",
   "display_name": "Epic Sandbox - Patient",
   "type": "sandbox",
-  "aliases": ["epic-patient", "epic-sandbox"],
-  "patterns": ["epic"],
-
+  "aliases": [
+    "epic-patient",
+    "epic-sandbox"
+  ],
+  "patterns": [
+    "epic"
+  ],
   "developer_portal": "https://fhir.epic.com",
-
   "fhir_base_url": "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
   "sandbox_url": "https://fhir.epic.com/interconnect-fhir-oauth/api/FHIR/R4",
-
   "oauth": {
     "authorize_url": "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/authorize",
     "token_url": "https://fhir.epic.com/interconnect-fhir-oauth/oauth2/token",
     "client_id": null,
     "redirect_uri": "http://localhost:8000/oauth/callback",
-    "scopes": ["openid", "fhirUser", "launch/patient", "patient/*.read"],
-    "scopes_supported": [
-      "openid", "fhirUser", "launch/patient",
-      "patient/*.read", "patient/Patient.read",
-      "patient/Observation.read", "patient/Condition.read",
-      "patient/MedicationRequest.read", "patient/AllergyIntolerance.read"
+    "scopes": [
+      "openid",
+      "fhirUser",
+      "launch/patient",
+      "patient/*.read"
     ],
-    "code_challenge_methods": ["S256"]
+    "scopes_supported": [
+      "openid",
+      "fhirUser",
+      "launch/patient",
+      "patient/*.read",
+      "patient/Patient.read",
+      "patient/Observation.read",
+      "patient/Condition.read",
+      "patient/MedicationRequest.read",
+      "patient/AllergyIntolerance.read"
+    ],
+    "code_challenge_methods": [
+      "S256"
+    ]
   },
-
   "fhir_version": "R4",
-  "implementation_guides": ["US Core", "SMART on FHIR"],
-
+  "implementation_guides": [
+    "US Core",
+    "SMART on FHIR"
+  ],
   "endpoints": {},
-
   "capabilities": {
     "patient_access": true,
     "provider_directory": true,
     "patient_everything": true
   },
-
   "supported_resources": [],
-
-  "verification_status": "pending",
-  "last_verified": "2026-01-27",
-
   "notes": "Epic public FHIR sandbox - Patient Access app. Requires app registration at https://fhir.epic.com with Application Audience set to 'Patients'. See Epic's documentation for sandbox test credentials. Supports PKCE (S256) for public clients."
 }

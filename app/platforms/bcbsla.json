@@ -13,8 +13,12 @@
     "bcbs.*louisiana",
     "louisiana.*blue.*cross"
   ],
-  "payer_ids": ["72076"],
-  "states": ["LA"],
+  "payer_ids": [
+    "72076"
+  ],
+  "states": [
+    "LA"
+  ],
   "fhir_base_url": "https://api-bcbs-prd.safhir.io/v1/api/carin-bb",
   "sandbox_url": null,
   "developer_portal": "https://portal.safhir.io",
@@ -37,8 +41,6 @@
     "cdex": false
   },
   "fhir_version": "4.0.1",
-  "verification_status": "verified",
-  "last_verified": "2026-01-29",
   "resources": {
     "safhir_documentation": "https://docs.safhir.io/blueadvantage-bcbsla.html",
     "safhir_portal": "https://portal.safhir.io"

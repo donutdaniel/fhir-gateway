@@ -1,0 +1,63 @@
+{
+  "id": "hcsc",
+  "name": "Health Care Service Corporation",
+  "display_name": "HCSC (BCBS IL, MT, NM, OK, TX)",
+  "type": "payer",
+  "aliases": [
+    "bcbsil",
+    "bcbstx",
+    "bcbsok",
+    "bcbsmt",
+    "bcbsnm",
+    "00621",
+    "84980"
+  ],
+  "patterns": [
+    "hcsc",
+    "bcbs.*illinois",
+    "bcbs.*texas",
+    "bcbs.*oklahoma",
+    "bcbs.*montana",
+    "bcbs.*new.*mexico"
+  ],
+  "payer_ids": [
+    "00621",
+    "84980"
+  ],
+  "states": [
+    "IL",
+    "MT",
+    "NM",
+    "OK",
+    "TX"
+  ],
+  "fhir_base_url": null,
+  "developer_portal": "https://interoperability.hcsc.com/s/documentation",
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null
+  },
+  "endpoints": {
+    "patient_access_base": null,
+    "provider_directory_base": null
+  },
+  "technology_partners": {
+    "fhir_platform": "Availity Fusion",
+    "ehr_integration": "Epic Payer Platform"
+  },
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "resources": {
+    "interoperability_info": "https://interoperability.hcsc.com/s/",
+    "provider_portal": "https://providers.hcsc.net/",
+    "documentation": "https://interoperability.hcsc.com/s/documentation",
+    "provider_directory_api": "https://interoperability.hcsc.com/s/provider-directory-api"
+  },
+  "notes": "HCSC is the 5th largest US health insurer (~16 million members), operating BCBS plans in IL, MT, NM, OK, and TX. Uses Availity Fusion for FHIR data conversion. Epic Payer Platform partnership for two-way provider data exchange. Loaded 420M+ historical records converted to FHIR. Register at interoperability.hcsc.com."
+}

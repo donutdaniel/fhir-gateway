@@ -17,9 +17,18 @@
     "bcbs.*south.*dakota",
     "blue.*cross.*iowa"
   ],
-  "payer_ids": ["88848"],
-  "states": ["IA", "SD"],
+  "payer_ids": [
+    "88848"
+  ],
+  "states": [
+    "IA",
+    "SD"
+  ],
   "fhir_base_url": "https://apigw.wellmark.com/patient-access-api/v1/",
+  "oauth": {
+    "authorize_url": "https://apigw.wellmark.com/interop-access-presentation-api/v1/auth/authorize-app",
+    "token_url": "https://apigw.wellmark.com/interop-access-presentation-api/v1/auth/token"
+  },
   "sandbox_url": null,
   "developer_portal": "https://www.wellmark.com/developer/wellmark-developer",
   "capabilities": {
@@ -30,8 +39,6 @@
     "pas": false,
     "cdex": false
   },
-  "verification_status": "verified",
-  "last_verified": "2026-01-20",
   "resources": {
     "developer_portal": "https://www.wellmark.com/developer/wellmark-developer",
     "main_site": "https://www.wellmark.com/"

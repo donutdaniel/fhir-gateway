@@ -1,0 +1,83 @@
+{
+  "id": "healthit",
+  "name": "HealthIT.gov",
+  "display_name": "HealthIT.gov FHIR Sandbox",
+  "type": "sandbox",
+  "aliases": [
+    "healthit sandbox",
+    "onc healthit"
+  ],
+  "patterns": [
+    "healthit"
+  ],
+  "developer_portal": null,
+  "support_email": null,
+  "fhir_base_url": null,
+  "sandbox_url": null,
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "launch/patient",
+      "fhirUser",
+      "openid",
+      "patient/AllergyIntolerance.read",
+      "patient/CarePlan.read",
+      "patient/CareTeam.read",
+      "patient/Condition.read",
+      "patient/Device.read",
+      "patient/DiagnosticReport.read",
+      "patient/DocumentReference.read",
+      "patient/Encounter.read",
+      "patient/Goal.read",
+      "patient/Immunization.read",
+      "patient/Location.read",
+      "patient/Medication.read",
+      "patient/MedicationRequest.read",
+      "patient/Observation.read",
+      "patient/Organization.read",
+      "patient/Patient.read",
+      "patient/Practitioner.read",
+      "patient/PractitionerRole.read",
+      "patient/Procedure.read",
+      "patient/Provenance.read",
+      "patient/RelatedPerson.read"
+    ],
+    "code_challenge_methods": [
+      "S256"
+    ]
+  },
+  "fhir_version": "R4",
+  "implementation_guides": [
+    "US Core",
+    "SMART on FHIR"
+  ],
+  "endpoints": {},
+  "api_products": [
+    "FHIR Sandbox"
+  ],
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+  "supported_resources": [
+    "Consent",
+    "FamilyMemberHistory",
+    "InsurancePlan",
+    "MedicationRequest",
+    "NutritionOrder",
+    "Person",
+    "Provenance",
+    "Questionnaire",
+    "QuestionnaireResponse",
+    "RelatedPerson",
+    "Schedule",
+    "ServiceRequest",
+    "Slot"
+  ],
+  "client_headers": {
+    "Accept": "application/json+fhir"
+  },
+  "notes": "HealthIT.gov FHIR Sandbox - ONC reference implementation with mix of clinical and claim data (synthetic and de-identified). Demo: demouser / Demouser1!"
+}
