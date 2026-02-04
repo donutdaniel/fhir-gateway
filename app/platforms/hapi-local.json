@@ -1,0 +1,46 @@
+{
+  "id": "hapi-local",
+  "name": "HAPI FHIR Local",
+  "display_name": "HAPI Local",
+  "type": "sandbox",
+  "aliases": [
+    "hapi",
+    "local",
+    "demo"
+  ],
+  "patterns": [
+    "test",
+    "hapi",
+    "local"
+  ],
+  "payer_ids": [
+    "TEST001"
+  ],
+  "states": [],
+  "fhir_base_url": "http://localhost:8080/fhir",
+  "sandbox_url": "http://localhost:8080/fhir",
+  "developer_portal": null,
+  "oauth": {
+    "authorize_url": "http://localhost:8180/realms/fhir-test/protocol/openid-connect/auth",
+    "token_url": "http://localhost:8180/realms/fhir-test/protocol/openid-connect/token",
+    "client_id": "fhir-mcp-client",
+    "scopes": [
+      "openid"
+    ],
+    "redirect_uri": "http://localhost:8000/oauth/callback"
+  },
+  "endpoints": {
+    "patient_access_base": "http://localhost:8080/fhir",
+    "provider_directory_base": "http://localhost:8080/fhir"
+  },
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": true,
+    "dtr": true,
+    "pas": true,
+    "cdex": true
+  },
+  "fhir_version": "R4",
+  "notes": "Local HAPI FHIR server for testing. No authentication required."
+}

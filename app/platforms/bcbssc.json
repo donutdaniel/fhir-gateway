@@ -3,20 +3,29 @@
   "name": "BlueCross BlueShield of South Carolina",
   "display_name": "BCBS South Carolina",
   "type": "payer",
-  "aliases": ["60013"],
-  "patterns": ["bluecross.*south.*carolina", "bcbs.*sc"],
-  "payer_ids": ["60013"],
-
-  "states": ["SC"],
-
+  "aliases": [
+    "60013"
+  ],
+  "patterns": [
+    "bluecross.*south.*carolina",
+    "bcbs.*sc"
+  ],
+  "payer_ids": [
+    "60013"
+  ],
+  "states": [
+    "SC"
+  ],
   "fhir_base_url": "https://fhir.bcbssc.com/r4/patientaccess",
+  "oauth": {
+    "authorize_url": "https://login.myhealthtoolkit.com/commweb-rest-web/api/auth/fhir/v1/authorize",
+    "token_url": "https://login.myhealthtoolkit.com/commweb-rest-web/api/auth/fhir/v1/token"
+  },
   "sandbox_url": "https://fhir.bcbssc.com/r4/sandbox",
   "developer_portal": "https://www.southcarolinablues.com/web/public/brands/interdev/developers/",
-
   "endpoints": {
     "provider_directory": "https://fhir.bcbssc.com/r4/providerlisting"
   },
-
   "capabilities": {
     "patient_access": true,
     "provider_directory": true,
@@ -25,14 +34,9 @@
     "pas": false,
     "cdex": false
   },
-
   "resources": {
     "interoperability_info": "https://www.southcarolinablues.com/web/public/brands/interdev/developers/",
     "provider_portal": "https://www.southcarolinablues.com/providers"
   },
-
-  "verification_status": "verified",
-  "last_verified": "2026-01-20",
-
   "notes": "BCBS South Carolina. Payer ID 60013. Developer registration required."
 }

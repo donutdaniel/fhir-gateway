@@ -15,9 +15,18 @@
     "bcbs.*kansas.*city",
     "blue.*cross.*kansas.*city"
   ],
-  "payer_ids": ["47080"],
-  "states": ["MO", "KS"],
+  "payer_ids": [
+    "47080"
+  ],
+  "states": [
+    "MO",
+    "KS"
+  ],
   "fhir_base_url": "https://patient360kc.bcbsdirect.com/P360Member/api/fhir",
+  "oauth": {
+    "authorize_url": "https://patient360kc.bcbsdirect.com/P360Member/identityserver/connect/authorize",
+    "token_url": "https://patient360kc.bcbsdirect.com/P360Member/identityserver/connect/token"
+  },
   "sandbox_url": null,
   "developer_portal": "https://data.bluekc.com/",
   "capabilities": {
@@ -28,8 +37,6 @@
     "pas": false,
     "cdex": false
   },
-  "verification_status": "verified",
-  "last_verified": "2026-01-20",
   "resources": {
     "provider_directory_api": "https://data.bluekc.com/provider_directory_api.html",
     "fhir_documentation": "https://patient360kc.bcbsdirect.com/P360Member/fhir/documentation?prefix=fhir"

@@ -3,40 +3,60 @@
   "name": "Anthem Blue Cross Blue Shield (Provider Directory)",
   "display_name": "Anthem BCBS - Provider Directory",
   "type": "payer",
-  "aliases": ["elevance"],
-  "patterns": ["anthem provider", "anthem directory", "anthem network"],
-  "payer_ids": ["47198", "00834", "00332"],
-
-  "states": ["CA", "CO", "CT", "GA", "IN", "KY", "ME", "MO", "NH", "NV", "NY", "OH", "VA", "WI"],
-
+  "aliases": [
+    "elevance"
+  ],
+  "patterns": [
+    "anthem provider",
+    "anthem directory",
+    "anthem network"
+  ],
+  "payer_ids": [
+    "47198",
+    "00834",
+    "00332"
+  ],
+  "states": [
+    "CA",
+    "CO",
+    "CT",
+    "GA",
+    "IN",
+    "KY",
+    "ME",
+    "MO",
+    "NH",
+    "NV",
+    "NY",
+    "OH",
+    "VA",
+    "WI"
+  ],
   "fhir_base_url": "https://totalview.healthos.elevancehealth.com/resources/unregistered/api/v1/fhir/cms_mandate/mcd",
   "developer_portal": "https://www.anthem.com/developers",
-
   "fhir_version": "R4",
-  "implementation_guides": ["DaVinci PDEX Plan Net"],
-
+  "implementation_guides": [
+    "DaVinci PDEX Plan Net"
+  ],
   "oauth": {
     "token_url": "https://totalview.healthos.elevancehealth.com/client.oauth2/unregistered/api/v1/token",
     "grant_type": "client_credentials"
   },
-
   "capabilities": {
     "patient_access": false,
     "provider_directory": true,
     "formulary": false
   },
-
   "supported_resources": [
-    "InsurancePlan", "Practitioner", "PractitionerRole", "Organization", "Location"
+    "InsurancePlan",
+    "Practitioner",
+    "PractitionerRole",
+    "Organization",
+    "Location"
   ],
-
   "resources": {
     "interoperability_info": "https://www.anthem.com/microsites/interoperability/",
     "provider_portal": "https://providers.anthem.com/"
   },
-
-  "verification_status": "verified",
-  "last_verified": "2026-02-03",
-
   "notes": "Anthem/Elevance Health Provider Directory API. Enables lookup of in-network providers for insurance plans. Uses client credentials (no user OAuth)."
 }

@@ -1,0 +1,41 @@
+{
+  "id": "bcbsmi",
+  "name": "Blue Cross Blue Shield of Michigan",
+  "display_name": "BCBS Michigan",
+  "type": "payer",
+  "aliases": [
+    "bcbsm",
+    "bcbsmichigan",
+    "blue cross michigan",
+    "blue care network",
+    "bcn",
+    "00231"
+  ],
+  "patterns": [
+    "bcbs.*michigan",
+    "blue.*cross.*michigan",
+    "blue.*care.*network"
+  ],
+  "payer_ids": [
+    "00231"
+  ],
+  "states": [
+    "MI"
+  ],
+  "fhir_base_url": "https://api.interopstation.com/bcbsm/fhir/",
+  "sandbox_url": null,
+  "developer_portal": "https://www.interopstation.com/sign-up",
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": true,
+    "crd": false,
+    "dtr": false,
+    "pas": false,
+    "cdex": false
+  },
+  "resources": {
+    "patient_access_info": "https://www.bcbsm.com/important-information/privacy-practices/patient-access/",
+    "member_portal": "https://www.bcbsm.com/"
+  },
+  "notes": "BCBS Michigan uses MiHIN InterOp Station. OAuth endpoints require registration at interopstation.com - not publicly documented."
+}

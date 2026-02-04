@@ -198,8 +198,16 @@ def run():
             "level": settings.log_level.upper(),
         },
         "loggers": {
-            "uvicorn": {"handlers": ["default"], "level": settings.log_level.upper(), "propagate": False},
-            "uvicorn.error": {"handlers": ["default"], "level": settings.log_level.upper(), "propagate": False},
+            "uvicorn": {
+                "handlers": ["default"],
+                "level": settings.log_level.upper(),
+                "propagate": False,
+            },
+            "uvicorn.error": {
+                "handlers": ["default"],
+                "level": settings.log_level.upper(),
+                "propagate": False,
+            },
             "uvicorn.access": {"handlers": ["default"], "level": "WARNING", "propagate": False},
         },
     }

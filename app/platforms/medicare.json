@@ -3,48 +3,55 @@
   "name": "Medicare",
   "display_name": "CMS Medicare Blue Button 2.0",
   "type": "government",
-  "aliases": ["cms", "blue button", "cms blue button", "medicare.gov"],
-  "patterns": ["medicare", "cms blue button", "blue button"],
-
+  "aliases": [
+    "cms",
+    "blue button",
+    "cms blue button",
+    "medicare.gov"
+  ],
+  "patterns": [
+    "medicare",
+    "cms blue button",
+    "blue button"
+  ],
   "developer_portal": "https://bluebutton.cms.gov/developers/",
   "support_email": null,
-
   "fhir_base_url": "https://api.bluebutton.cms.gov/v2/fhir/",
   "sandbox_url": "https://sandbox.bluebutton.cms.gov/v2/fhir/",
-
   "oauth": {
     "authorize_url": "https://sandbox.bluebutton.cms.gov/v2/o/authorize/",
     "token_url": "https://sandbox.bluebutton.cms.gov/v2/o/token/",
     "scopes_supported": [
-      "profile", "patient/Patient.read",
-      "patient/ExplanationOfBenefit.read", "patient/Coverage.read"
+      "profile",
+      "patient/Patient.read",
+      "patient/ExplanationOfBenefit.read",
+      "patient/Coverage.read"
     ],
-    "code_challenge_methods": ["S256"],
+    "code_challenge_methods": [
+      "S256"
+    ],
     "confidential": true
   },
-
   "fhir_version": "R4",
-  "implementation_guides": ["CARIN Blue Button", "US Core"],
-
+  "implementation_guides": [
+    "CARIN Blue Button",
+    "US Core"
+  ],
   "endpoints": {},
-
-  "api_products": ["Blue Button 2.0 API"],
-
+  "api_products": [
+    "Blue Button 2.0 API"
+  ],
   "capabilities": {
     "patient_access": true,
     "provider_directory": false,
     "patient_everything": false,
     "claims_data": true
   },
-
   "supported_resources": [
-    "ExplanationOfBenefit", "Coverage", "Patient"
+    "ExplanationOfBenefit",
+    "Coverage",
+    "Patient"
   ],
-
   "client_headers": {},
-
-  "verification_status": "needs_registration",
-  "last_verified": "2026-01-22",
-
   "notes": "CMS Medicare Blue Button 2.0 - provides Medicare beneficiaries access to their claims data via FHIR R4. Supports ExplanationOfBenefit, Coverage, and Patient resources. Does not support $everything operation. Confidential client required."
 }

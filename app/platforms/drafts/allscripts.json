@@ -1,0 +1,68 @@
+{
+  "id": "allscripts",
+  "name": "Allscripts",
+  "display_name": "Veradigm (Allscripts)",
+  "type": "ehr",
+  "aliases": [
+    "veradigm",
+    "allscripts professional"
+  ],
+  "patterns": [
+    "allscripts",
+    "veradigm"
+  ],
+  "developer_portal": "https://developer.veradigm.com",
+  "support_email": null,
+  "fhir_base_url": null,
+  "sandbox_url": null,
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "openid",
+      "launch/patient",
+      "fhirUser",
+      "offline_access",
+      "patient/*.read"
+    ],
+    "code_challenge_methods": [
+      "S256"
+    ],
+    "confidential": true
+  },
+  "fhir_version": "R4",
+  "implementation_guides": [
+    "US Core",
+    "SMART on FHIR"
+  ],
+  "endpoints": {},
+  "api_products": [
+    "Patient Access API"
+  ],
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+  "supported_resources": [
+    "Account",
+    "Appointment",
+    "Consent",
+    "FamilyMemberHistory",
+    "InsurancePlan",
+    "MedicationRequest",
+    "NutritionOrder",
+    "Person",
+    "Provenance",
+    "Questionnaire",
+    "QuestionnaireResponse",
+    "RelatedPerson",
+    "Schedule",
+    "ServiceRequest",
+    "Slot"
+  ],
+  "client_headers": {
+    "Accept": "application/fhir+json"
+  },
+  "notes": "Veradigm (formerly Allscripts) - FHIR R4 patient access. Token endpoint does not support CORS so requires server-side code exchange. Does not support $everything operation."
+}

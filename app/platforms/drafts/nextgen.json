@@ -1,0 +1,63 @@
+{
+  "id": "nextgen",
+  "name": "NextGen",
+  "display_name": "NextGen Healthcare",
+  "type": "ehr",
+  "aliases": [
+    "nextgen healthcare",
+    "nextgen office"
+  ],
+  "patterns": [
+    "nextgen"
+  ],
+  "developer_portal": "https://www.nextgen.com/patient-access-api",
+  "support_email": null,
+  "fhir_base_url": null,
+  "sandbox_url": null,
+  "oauth": {
+    "authorize_url": null,
+    "token_url": null,
+    "scopes_supported": [
+      "openid",
+      "fhirUser",
+      "patient/*.read"
+    ],
+    "code_challenge_methods": [],
+    "confidential": true
+  },
+  "fhir_version": "R4",
+  "implementation_guides": [
+    "US Core",
+    "SMART on FHIR"
+  ],
+  "endpoints": {},
+  "api_products": [
+    "Patient Access API"
+  ],
+  "capabilities": {
+    "patient_access": true,
+    "provider_directory": false,
+    "patient_everything": false
+  },
+  "supported_resources": [
+    "Account",
+    "Appointment",
+    "Consent",
+    "FamilyMemberHistory",
+    "InsurancePlan",
+    "MedicationRequest",
+    "NutritionOrder",
+    "Person",
+    "Provenance",
+    "Questionnaire",
+    "QuestionnaireResponse",
+    "RelatedPerson",
+    "Schedule",
+    "ServiceRequest",
+    "Slot"
+  ],
+  "client_headers": {
+    "Accept": "application/json+fhir"
+  },
+  "notes": "NextGen Healthcare - FHIR R4 patient access. Token endpoint does not support CORS so requires server-side code exchange. Does not support $everything operation."
+}

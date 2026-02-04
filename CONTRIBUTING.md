@@ -13,7 +13,6 @@ The main way to contribute is by adding new platforms. There are hundreds of pay
   "display_name": "Display Name",
   "type": "payer|ehr|sandbox",
   "fhir_base_url": "https://api.platform.com/fhir/r4",
-  "verification_status": "verified|needs_verification|needs_registration",
   "developer_portal": "https://developer.platform.com",
   "oauth": {
     "authorize_url": "https://auth.platform.com/authorize",

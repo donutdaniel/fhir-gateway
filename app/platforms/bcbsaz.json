@@ -15,9 +15,17 @@
     "arizona.*blue.*cross",
     "azblue"
   ],
-  "payer_ids": ["77001"],
-  "states": ["AZ"],
+  "payer_ids": [
+    "77001"
+  ],
+  "states": [
+    "AZ"
+  ],
   "fhir_base_url": "https://azblue.innovaccer.com/fhir/",
+  "oauth": {
+    "authorize_url": "https://azblue.innovaccer.com/api-auth/oauth/v2/authorization/consent",
+    "token_url": "https://azblue.innovaccer.com/api-auth/oauth/v2/token"
+  },
   "sandbox_url": null,
   "developer_portal": "https://www.azblue.com/interoperability",
   "capabilities": {
@@ -28,8 +36,6 @@
     "pas": false,
     "cdex": false
   },
-  "verification_status": "verified",
-  "last_verified": "2026-01-20",
   "resources": {
     "interoperability": "https://www.azblue.com/interoperability"
   },

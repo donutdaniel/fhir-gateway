@@ -3,47 +3,50 @@
   "name": "Netsmart",
   "display_name": "Netsmart Technologies",
   "type": "ehr",
-  "aliases": ["netsmart technologies", "careconnect"],
-  "patterns": ["netsmart"],
-
-  "developer_portal": null,
+  "aliases": [
+    "netsmart technologies",
+    "careconnect"
+  ],
+  "patterns": [
+    "netsmart"
+  ],
+  "developer_portal": "https://careconnect.netsmartcloud.com/",
   "support_email": null,
-
   "fhir_base_url": "https://fhir.netsmartcloud.com/uscore/v1/",
   "sandbox_url": "https://fhirtest.netsmartcloud.com/uscore/v1/",
-
   "oauth": {
-    "authorize_url": "https://oauth.netsmartcloud.com/",
-    "token_url": null,
+    "authorize_url": "https://oauth.netsmartcloud.com/authorize",
+    "token_url": "https://oauth.netsmartcloud.com/token",
     "scopes_supported": [
-      "openid", "fhirUser", "profile", "offline_access",
-      "launch/patient", "patient/*.read"
+      "openid",
+      "fhirUser",
+      "profile",
+      "offline_access",
+      "launch/patient",
+      "patient/*.read"
     ],
-    "code_challenge_methods": ["S256"],
+    "code_challenge_methods": [
+      "S256"
+    ],
     "confidential": true
   },
-
   "fhir_version": "R4",
-  "implementation_guides": ["US Core", "SMART on FHIR"],
-
+  "implementation_guides": [
+    "US Core",
+    "SMART on FHIR"
+  ],
   "endpoints": {},
-
-  "api_products": ["Patient Access API"],
-
+  "api_products": [
+    "Patient Access API"
+  ],
   "capabilities": {
     "patient_access": true,
     "provider_directory": false,
     "patient_everything": true
   },
-
   "supported_resources": [],
-
   "client_headers": {
     "Accept": "application/json+fhir"
   },
-
-  "verification_status": "needs_registration",
-  "last_verified": "2026-01-22",
-
   "notes": "Netsmart Technologies - behavioral health and human services EHR with FHIR R4 patient access. Supports $everything operation. Confidential client required."
 }
