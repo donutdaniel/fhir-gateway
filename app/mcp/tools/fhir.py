@@ -22,6 +22,7 @@ from app.mcp.validation import (
     validate_resource_type,
 )
 from app.services.fhir_client import (
+    count_resources,
     fetch_bundle_page,
     fetch_capability_statement,
     get_fhir_client,
@@ -96,7 +97,8 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             bool, Field(description="Return full CapabilityStatement instead of summary")
         ] = False,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Fetch CapabilityStatement from platform's FHIR server."""
@@ -123,7 +125,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return handle_exception(e, "get_capabilities")
 
     @mcp.tool(
-        description="Search for FHIR resources with pagination. Returns max 10 results by default to avoid large responses. Use limit to adjust (max 50). Use get_capabilities first to discover valid search parameters."
+        description="Search for FHIR resources. Use elements to reduce response size. Use include/revinclude to fetch related resources."
     )
     async def search(
         platform_id: Annotated[str, Field(description="Platform identifier")],
@@ -133,14 +135,39 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         ctx: Context,
         params: Annotated[
             dict[str, Any] | None,
-            Field(description="Search parameters as key-value pairs (e.g., {\"name\": \"Smith\"})"),
+            Field(description='Search parameters as key-value pairs (e.g., {"name": "Smith"})'),
         ] = None,
         limit: Annotated[
             int,
             Field(description="Max results to return (default 10, max 50)", ge=1, le=50),
         ] = 10,
+        elements: Annotated[
+            list[str] | None,
+            Field(
+                description='Limit returned fields to reduce response size (e.g., ["id", "name", "birthDate"])'
+            ),
+        ] = None,
+        include: Annotated[
+            list[str] | None,
+            Field(
+                description='Include related resources (e.g., ["subject"] to include Patient with Observations)'
+            ),
+        ] = None,
+        revinclude: Annotated[
+            list[str] | None,
+            Field(
+                description='Reverse include (e.g., ["Observation:subject"] to get Observations for a Patient)'
+            ),
+        ] = None,
+        sort: Annotated[
+            list[str] | None,
+            Field(
+                description='Sort fields (prefix with - for descending, e.g., ["-date", "name"])'
+            ),
+        ] = None,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Search for FHIR resources by type and parameters."""
@@ -160,6 +187,10 @@ def register_fhir_tools(mcp: FastMCP) -> None:
                 search_params=params,
                 access_token=token,
                 limit=effective_limit,
+                elements=elements,
+                include=include,
+                revinclude=revinclude,
+                sort=sort,
             )
             audit_log(
                 AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type=resource_type
@@ -167,6 +198,45 @@ def register_fhir_tools(mcp: FastMCP) -> None:
             return result
         except Exception as e:
             return handle_exception(e, "search")
+
+    @mcp.tool(
+        description="Count FHIR resources matching search criteria without fetching the data."
+    )
+    async def count(
+        platform_id: Annotated[str, Field(description="Platform identifier")],
+        resource_type: Annotated[
+            str, Field(description="FHIR resource type (e.g., Patient, Observation)")
+        ],
+        ctx: Context,
+        params: Annotated[
+            dict[str, Any] | None,
+            Field(description="Search parameters as key-value pairs"),
+        ] = None,
+        auth_handle: Annotated[
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
+        ] = None,
+    ) -> dict[str, Any]:
+        """Get count of matching resources without fetching them."""
+        if err := validate_platform_id(platform_id):
+            return error_response("validation_error", err)
+        if err := validate_resource_type(resource_type):
+            return error_response("validation_error", err)
+
+        try:
+            token = await get_access_token(ctx, platform_id, auth_handle)
+            total = await count_resources(
+                platform_id=platform_id,
+                resource_type=resource_type,
+                search_params=params,
+                access_token=token,
+            )
+            audit_log(
+                AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type=resource_type
+            )
+            return {"resource_type": resource_type, "total": total}
+        except Exception as e:
+            return handle_exception(e, "count")
 
     @mcp.tool(
         description="Fetch the next page of search results using a pagination URL from a Bundle's 'next' link."
@@ -179,7 +249,8 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         ],
         ctx: Context,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Fetch next page of results using Bundle pagination link."""
@@ -193,9 +264,7 @@ def register_fhir_tools(mcp: FastMCP) -> None:
                 url=url,
                 access_token=token,
             )
-            audit_log(
-                AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type="Bundle"
-            )
+            audit_log(AuditEvent.RESOURCE_SEARCH, platform_id=platform_id, resource_type="Bundle")
             return result
         except ValueError as e:
             return error_response("validation_error", str(e))
@@ -209,7 +278,8 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource_id: Annotated[str, Field(description="Resource ID")],
         ctx: Context,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Read a single FHIR resource by type and ID."""
@@ -247,10 +317,13 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         ctx: Context,
         params: Annotated[
             dict[str, Any] | None,
-            Field(description="Operation parameters. For $everything, use _count to limit results."),
+            Field(
+                description="Operation parameters. For $everything, use _count to limit results."
+            ),
         ] = None,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Execute a FHIR operation on a resource."""
@@ -307,7 +380,8 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource: Annotated[dict[str, Any], Field(description="FHIR resource data")],
         ctx: Context,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Create a new FHIR resource."""
@@ -335,7 +409,8 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource: Annotated[dict[str, Any], Field(description="Updated FHIR resource data")],
         ctx: Context,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Update a FHIR resource."""
@@ -361,6 +436,48 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return handle_exception(e, "update")
 
+    @mcp.tool(description="Partially update a FHIR resource (only specified fields).")
+    async def patch(
+        platform_id: Annotated[str, Field(description="Platform identifier")],
+        resource_type: Annotated[str, Field(description="FHIR resource type")],
+        resource_id: Annotated[str, Field(description="Resource ID")],
+        fields: Annotated[
+            dict[str, Any],
+            Field(
+                description='Fields to update (e.g., {"status": "active", "name": [{"family": "Smith"}]})'
+            ),
+        ],
+        ctx: Context,
+        auth_handle: Annotated[
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
+        ] = None,
+    ) -> dict[str, Any]:
+        """Partially update a FHIR resource with only the provided fields."""
+        if err := validate_platform_id(platform_id):
+            return error_response("validation_error", err)
+        if err := validate_resource_type(resource_type):
+            return error_response("validation_error", err)
+        if err := validate_resource_id(resource_id):
+            return error_response("validation_error", err)
+
+        if not fields:
+            return error_response("validation_error", "No fields provided to patch")
+
+        try:
+            token = await get_access_token(ctx, platform_id, auth_handle)
+            client = get_fhir_client(platform_id, token)
+            patched = await client.patch(resource_type, resource_id, **fields)
+            audit_log(
+                AuditEvent.RESOURCE_UPDATE,
+                platform_id=platform_id,
+                resource_type=resource_type,
+                resource_id=resource_id,
+            )
+            return dict(patched)
+        except Exception as e:
+            return handle_exception(e, "patch")
+
     @mcp.tool(description="Delete a FHIR resource.")
     async def delete(
         platform_id: Annotated[str, Field(description="Platform identifier")],
@@ -368,7 +485,8 @@ def register_fhir_tools(mcp: FastMCP) -> None:
         resource_id: Annotated[str, Field(description="Resource ID")],
         ctx: Context,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Delete a FHIR resource."""

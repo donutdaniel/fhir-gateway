@@ -231,6 +231,10 @@ async def search_resources(
     search_params: dict[str, Any] | None = None,
     access_token: str | None = None,
     limit: int | None = None,
+    elements: list[str] | None = None,
+    include: list[str] | None = None,
+    revinclude: list[str] | None = None,
+    sort: list[str] | None = None,
 ) -> dict[str, Any]:
     """
     Search for FHIR resources.
@@ -240,7 +244,11 @@ async def search_resources(
         resource_type: FHIR resource type
         search_params: Search parameters
         access_token: Optional OAuth access token
-        limit: Max number of results to return (uses fhirpy's .limit())
+        limit: Max number of results to return
+        elements: List of element paths to include (reduces response size)
+        include: List of resources to include (e.g., ["Observation:patient"])
+        revinclude: List of reverse includes (e.g., ["Observation:subject"])
+        sort: List of sort fields (prefix with - for descending)
 
     Returns:
         FHIR Bundle with search results and pagination links
@@ -251,14 +259,51 @@ async def search_resources(
     if search_params:
         search = search.search(**search_params)
 
-    # Apply limit using fhirpy's proper method
+    # Apply fhirpy search modifiers
     if limit:
         search = search.limit(limit)
+    if elements:
+        search = search.elements(*elements)
+    if include:
+        for inc in include:
+            search = search.include(resource_type, inc)
+    if revinclude:
+        for rev in revinclude:
+            search = search.revinclude(resource_type, rev)
+    if sort:
+        search = search.sort(*sort)
 
     # Use fetch_raw() to get the actual Bundle with pagination links
     bundle = await search.fetch_raw()
 
     return dict(bundle)
+
+
+async def count_resources(
+    platform_id: str,
+    resource_type: str,
+    search_params: dict[str, Any] | None = None,
+    access_token: str | None = None,
+) -> int:
+    """
+    Count FHIR resources matching search criteria.
+
+    Args:
+        platform_id: The platform identifier
+        resource_type: FHIR resource type
+        search_params: Search parameters
+        access_token: Optional OAuth access token
+
+    Returns:
+        Total count of matching resources
+    """
+    client = get_fhir_client(platform_id, access_token)
+
+    search = client.resources(resource_type)
+    if search_params:
+        search = search.search(**search_params)
+
+    return await search.count()
 
 
 async def fetch_bundle_page(

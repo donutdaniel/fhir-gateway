@@ -38,7 +38,8 @@ def register_coverage_tools(mcp: FastMCP) -> None:
             str, Field(description="Code system URL")
         ] = "http://www.ama-assn.org/go/cpt",
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Check coverage requirements for a procedure."""
@@ -81,7 +82,8 @@ def register_coverage_tools(mcp: FastMCP) -> None:
             bool, Field(description="Return raw FHIR Bundle instead of transformed")
         ] = False,
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Fetch questionnaire package for prior authorization."""
@@ -120,7 +122,8 @@ def register_coverage_tools(mcp: FastMCP) -> None:
             str, Field(description="Code system URL")
         ] = "http://www.ama-assn.org/go/cpt",
         auth_handle: Annotated[
-            str | None, Field(description="Auth handle from start_auth (for authenticated requests)")
+            str | None,
+            Field(description="Auth handle from start_auth (for authenticated requests)"),
         ] = None,
     ) -> dict[str, Any]:
         """Get medical policy rules for a procedure."""
