@@ -33,6 +33,7 @@ def reset_singletons():
     # Reset before test
     from app.auth.token_manager import reset_token_manager
     from app.config.settings import reset_settings
+
     reset_settings()
     reset_token_manager()
     yield
